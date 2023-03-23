@@ -314,9 +314,6 @@ class DualEncoder(nn.Module):
             visual_feats, visual_cls= self.forward_image(visual_feats, visual_pos, visual_attention_mask)
             
             audio_feats, audio_cls, extended_audio_attention_mask, losses = self.forward_audio(audio_feats, attention_mask)
-            audio_feats = audio_feats [0:m]
-            audio_cls = audio_cls [0:m]
-            extended_audio_attention_mask = extended_audio_attention_mask [0:2]
             return audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses
 
     def carefully_load_state_dict(self, states):
