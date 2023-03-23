@@ -110,11 +110,11 @@ class Trainer:
                 
                 # setting batch data for VGS
                 cur_batch = {
-                        "visual_feats": batch['visual_feats'][0:100].to(self.device),
-                        "visual_pos": batch['boxes'][0:100].to(self.device),
-                        "audio": batch['audio'][0:100].to(self.device),
-                        "audio_attention_mask": batch['audio_attention_mask'][0:100].to(self.device),
-                        "img_id": batch['img_id'][0:100],
+                        "visual_feats": batch['visual_feats'][0:2].to(self.device),
+                        "visual_pos": batch['boxes'][0:2].to(self.device),
+                        "audio": batch['audio'][0:2].to(self.device),
+                        "audio_attention_mask": batch['audio_attention_mask'][0:2].to(self.device),
+                        "img_id": batch['img_id'][0:2],
                         #"label": batch['label']
                         }
 
