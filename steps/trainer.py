@@ -658,15 +658,60 @@ class Trainer:
         # alpha = 1
         ############
         # model base3
-        alpha = 0.5
+        # alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
         ############
         # model base5
-        #alpha = 0.9
+        alpha = 0.9
         ############
-        
+        # model 19base4-old 
+        # if self.progress['epoch'] <=12:
+        #     alpha = 0
+        # else:
+        #     alpha = 0.5
+        # (later changed to use pretrained path)
+        # alpha = 0.5
+        ############
+        # model 19T0
+        # alpha = 0.001
+        ############
+        # model 19T1       
+        # a = (numpy.pi) / (N)
+        # alpha = 0.1 + (0.8) * ((numpy.sin(a*n))**2)
+        ############
+        # model 19T2
+        # a = (2*numpy.pi) / N
+        # alpha = 0.1 + 0.8 * ((numpy.sin(a*n))**2)
+        ############
+        # model 19T3       
+        # a = (2*numpy.pi) / (2 * N)
+        # alpha = 0.1 + (0.4) * ((numpy.sin(a*n))**2)
+        ############
+        # model 19T4
+        # if self.progress['epoch'] <=8 or self.progress['epoch'] >16:
+        #     alpha = 0.1
+        # else:
+        #     alpha = 0.5
+        ############
+        # model 19T5
+        # alpha = 0.1 + (0.8/N) * n
+        ############        
+        # model 19T6
+        # alpha = 0.9 - (0.8/N) * n        
+        ############
+        # model 19T7 (19T4-narvi)
+        # alpha = 0.1
+        ############
+        # model 19T8 
+        # alpha = 0.9
+        ############       
+        # model 19T9 
+        # y = 0.9 * numpy.ones(N)
+        # y[::2]= 0.1
+        # alpha = y [n-1] #because n starts from 1 not 0
+        ############         
         #khazar: I removed 'fine_matching_loss' below line
         weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha #+ losses['fine_matching_loss'] * self.args.fine_matching_weight
         
