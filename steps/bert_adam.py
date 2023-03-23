@@ -118,7 +118,7 @@ class BertAdam(Optimizer):
             loss = closure()
 
         warned_for_t_total = False
-        print(".............we are inside optimizer adam class step function .............")
+        #print(".............we are inside optimizer adam class step function .............")
         for group in self.param_groups:
             for p in group['params']:
                 if p.grad is None:
