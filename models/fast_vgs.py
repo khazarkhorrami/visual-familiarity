@@ -307,10 +307,9 @@ class DualEncoder(nn.Module):
             # for the image branch we cut the data even befor forward method
             # for the audio branch we have to cut after forward since SSL need all audio data
             
-            m = 2
-            visual_feats = visual_feats[0:m]
-            visual_pos = visual_pos[0:m]
-            # visual_attention_mask = visual_attention_mask [0:m]
+            # m = 2
+            # visual_feats = visual_feats[0:m]
+            # visual_pos = visual_pos[0:m]
             visual_feats, visual_cls= self.forward_image(visual_feats, visual_pos, visual_attention_mask)
             
             audio_feats, audio_cls, extended_audio_attention_mask, losses = self.forward_audio(audio_feats, attention_mask)
