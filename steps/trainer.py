@@ -63,9 +63,6 @@ class Trainer:
     
     def forward(self, batch):
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        print ("##### print cls tokens ###########")
-        print (audio_cls)
-        print (visual_cls)
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
         losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'])
         B = visual_feats.shape[0]
@@ -92,12 +89,9 @@ class Trainer:
                 libri_loader_iterator = iter(self.libri_train_loader)
             print ('khazar: train data length is ' + str(self.train_data_length))
             for i, batch in enumerate(self.train_loader):
-                
-                
                 if self.use_libri_loss:
                     libri_batch = next(libri_loader_iterator)
                 data_end_time = time.time()
-                
                 self.dual_encoder.train()
                 self.cross_encoder.train()
                 if self.progress['num_updates'] > self.total_num_updates:
@@ -110,8 +104,7 @@ class Trainer:
 
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
                 cur_step = self.progress['num_updates'] % step_per_epoch
-                
-                # setting batch data for VGS
+
                 cur_batch = {
                         "visual_feats": batch['visual_feats'].to(self.device),
                         "visual_pos": batch['boxes'].to(self.device),
@@ -120,9 +113,8 @@ class Trainer:
                         "img_id": batch['img_id'],
                         #"label": batch['label']
                         }
-                print (cur_batch ["img_id"])
+
                 losses = self.forward(cur_batch)
-                
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) # target_list = libri_batch['label'], 
 
@@ -600,8 +592,7 @@ class Trainer:
         # SpokenCOCO
             train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
             val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
-            #kh: I changed use_random=False
-            train_sampler = StatefulSampler(len(train_dataset), use_random=True)
+            train_sampler = StatefulSampler(len(train_dataset))
             if self.progress['num_updates'] > 1 and self.indices is not None:
                 train_sampler.load_state_dict(self.indices)
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
@@ -673,9 +664,9 @@ class Trainer:
         # alpha = 0.1
         ############
         # model base5
-        # alpha = 0.9
+        #alpha = 0.9
         ############
-        ############         
+        
         #khazar: I removed 'fine_matching_loss' below line
         weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha #+ losses['fine_matching_loss'] * self.args.fine_matching_weight
         
