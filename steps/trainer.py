@@ -601,7 +601,7 @@ class Trainer:
             train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
             val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
             #kh: I changed use_random=False
-            train_sampler = StatefulSampler(len(train_dataset), use_random=False)
+            train_sampler = StatefulSampler(len(train_dataset), use_random=True)
             if self.progress['num_updates'] > 1 and self.indices is not None:
                 train_sampler.load_state_dict(self.indices)
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
