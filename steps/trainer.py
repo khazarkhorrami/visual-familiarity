@@ -110,18 +110,6 @@ class Trainer:
                 
                 # setting batch data for VGS
                 cur_batch = {
-                        "visual_feats": batch['visual_feats'][0:2].to(self.device),
-                        "visual_pos": batch['boxes'][0:2].to(self.device),
-                        "audio": batch['audio'][0:2].to(self.device),
-                        "audio_attention_mask": batch['audio_attention_mask'][0:2].to(self.device),
-                        "img_id": batch['img_id'][0:2],
-                        #"label": batch['label']
-                        }
-
-                losses = self.forward(cur_batch)
-                
-                # setting batch data for SSL
-                cur_batch = {
                         "visual_feats": batch['visual_feats'].to(self.device),
                         "visual_pos": batch['boxes'].to(self.device),
                         "audio": batch['audio'].to(self.device),
@@ -129,6 +117,9 @@ class Trainer:
                         "img_id": batch['img_id'],
                         #"label": batch['label']
                         }
+                print (cur_batch ["img_id"])
+                losses = self.forward(cur_batch)
+                
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) # target_list = libri_batch['label'], 
 
@@ -606,7 +597,8 @@ class Trainer:
         # SpokenCOCO
             train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
             val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
-            train_sampler = StatefulSampler(len(train_dataset))
+            #kh: I changed use_random=False
+            train_sampler = StatefulSampler(len(train_dataset), use_random=False)
             if self.progress['num_updates'] > 1 and self.indices is not None:
                 train_sampler.load_state_dict(self.indices)
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
