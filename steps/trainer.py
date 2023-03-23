@@ -63,11 +63,11 @@ class Trainer:
     
     def forward(self, batch):
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        print("333333333333333333")
-        print(audio_cls.size)
-        print(visual_cls.size)
+        print(batch['img_id'])
+        audio_cls = audio_cls[0:2]
+        visual_cls = visual_cls[0:2]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
-        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'])
+        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'][0:2])
         B = visual_feats.shape[0]
         # visual_feats_square = visual_feats.repeat(B,1,1)
         # audio_feats_square = audio_feats.repeat_interleave(B, dim=0)
