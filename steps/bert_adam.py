@@ -86,13 +86,13 @@ class BertAdam(Optimizer):
 
     def get_lr(self):
         lr = []
-        print(".................................................................we are inside optimizer adam class get lr function")
+        #print(".................................................................we are inside optimizer adam class get lr function")
         for group in self.param_groups:
             for p in group['params']:
                 state = self.state[p]
                 if len(state) == 0:
                     return [0]
-                    print(' len state is zero')
+                    #print(' len state is zero')
                 if group['t_total'] != -1:
                     schedule_fct = SCHEDULES[group['schedule']]
                     lr_scheduled = group['lr'] * schedule_fct(state['step']/group['t_total'], group['warmup'])
@@ -118,7 +118,7 @@ class BertAdam(Optimizer):
             loss = closure()
 
         warned_for_t_total = False
-        print(".............we are inside optimizer adam class step function .............")
+        #print(".............we are inside optimizer adam class step function .............")
         for group in self.param_groups:
             for p in group['params']:
                 if p.grad is None:
