@@ -15,8 +15,8 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
---batch_size 6 \
---val_batch_size 12 \
+--batch_size 8 \
+--val_batch_size 8 \
 --val_cross_batch_size 100 \
 --n_epochs 70 \
 --n_print_steps 500 \
