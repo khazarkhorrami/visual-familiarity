@@ -66,7 +66,7 @@ class Trainer:
         print ("##### print cls tokens ###########")
         print (audio_cls)
         print (visual_cls)
-        coarse_cross_relationship_score_matrix = visual_cls @ audio_cls [0:2].transpose(0,1)
+        coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
         losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'])
         B = visual_feats.shape[0]
         # visual_feats_square = visual_feats.repeat(B,1,1)
