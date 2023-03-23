@@ -121,14 +121,14 @@ class Trainer:
                 losses = self.forward(cur_batch)
                 
                 # setting batch data for SSL
-                cur_batch = {
-                        "visual_feats": batch['visual_feats'].to(self.device),
-                        "visual_pos": batch['boxes'].to(self.device),
-                        "audio": batch['audio'].to(self.device),
-                        "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                        "img_id": batch['img_id'],
-                        #"label": batch['label']
-                        }
+                # cur_batch = {
+                #         "visual_feats": batch['visual_feats'].to(self.device),
+                #         "visual_pos": batch['boxes'].to(self.device),
+                #         "audio": batch['audio'].to(self.device),
+                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                #         "img_id": batch['img_id'],
+                #         #"label": batch['label']
+                #         }
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) # target_list = libri_batch['label'], 
 
