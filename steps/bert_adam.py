@@ -86,7 +86,7 @@ class BertAdam(Optimizer):
 
     def get_lr(self):
         lr = []
-        print(".................................................................we are inside optimizer adam class get lr function")
+        #print(".................................................................we are inside optimizer adam class get lr function")
         for group in self.param_groups:
             for p in group['params']:
                 state = self.state[p]
