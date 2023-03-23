@@ -166,10 +166,10 @@ class Trainer:
                     
                 #     r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
                 # ########    
-                # self.progress['num_updates'] += 1
-                # self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
-                # data_start_time = time.time()
-                # #print(self.progress['num_updates'])
+                self.progress['num_updates'] += 1
+                self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+                data_start_time = time.time()
+                #print(self.progress['num_updates'])
         
     def validate_and_save(self, libri=False, places=False , n_save_ind = 0):
         # khazar: I added "n_save_ind" argument to save intermediate models 
