@@ -86,12 +86,12 @@ class Trainer:
         print ('start of training method')
         print ('kh: memory allocated at training time')
         print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-        print(self.train_loader.batch_sampler())
-        print(self.train_loader.sampler())
+        print(len(self.train_loader))
+   
         b = []
         for i, batch in enumerate(self.train_loader):
-            b.append(['img_id'])
-        
+            b.append(batch['img_id'])
+            print(batch['img_id'][0:5])
         print("number of batches are : " + len(b))
         print(b[0])
             
