@@ -86,7 +86,16 @@ class Trainer:
         print ('start of training method')
         print ('kh: memory allocated at training time')
         print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-        print(self.train_loader)
+        print(self.train_loader.batch_sampler())
+        print(self.train_loader.sampler())
+        b = []
+        for i, batch in enumerate(self.train_loader):
+            b.append(['img_id'])
+        
+        print("number of batches are : " + len(b))
+        print(b[0])
+            
+        
         # while flag:
         #     logger.info('epoch starts here ')
         #     if self.use_libri_loss:
@@ -663,13 +672,13 @@ class Trainer:
         # alpha = 1
         ############
         # model base3
-        # alpha = 0.5
+        alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
         ############
         # model base5
-        alpha = 0.9
+        # alpha = 0.9
         ############
         # model 19base4-old 
         # if self.progress['epoch'] <=12:
