@@ -86,7 +86,7 @@ class Trainer:
         print ('start of training method')
         print ('kh: memory allocated at training time')
         print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-        print(len(self.train_loader))
+        #print(len(self.train_loader))
         
         while flag:
             logger.info('epoch starts here ')
