@@ -59,16 +59,16 @@ class Trainer:
             self.cross_encoder = nn.DataParallel(self.cross_encoder)
         self.scheduler = self._setup_scheduler()
         self.criterion = fast_vgs.Margin_InfoNCE_loss
+        self.avportion = 2
         logger.info(f"batch size: {self.args.batch_size}")
         
     
     def forward(self, batch):
-        m = 32
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        audio_cls = audio_cls[0:m]
-        visual_cls = visual_cls[0:m]
+        audio_cls = audio_cls[0:self.avportion]
+        visual_cls = visual_cls[0:self.avportion]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
-        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'][0:m])
+        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'][0:self.avportion])
         #B = visual_feats.shape[0]
         # visual_feats_square = visual_feats.repeat(B,1,1)
         # audio_feats_square = audio_feats.repeat_interleave(B, dim=0)
@@ -360,27 +360,32 @@ class Trainer:
                 
                 ############################################################### khazar: validation loss
                 
-                # cur_batch = {
-                #         "visual_feats": batch['visual_feats'].to(self.device),
-                #         "visual_pos": batch['boxes'].to(self.device),
-                #         "audio": batch['audio'].to(self.device),
-                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                #         "img_id": batch['img_id'],
-                #         #"label": batch['label']
-                #         }
+                cur_batch = {
+                        "visual_feats": batch['visual_feats'].to(self.device),
+                        "visual_pos": batch['boxes'].to(self.device),
+                        "audio": batch['audio'].to(self.device),
+                        "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                        "img_id": batch['img_id'],
+                        #"label": batch['label']
+                        }
                 
-                # loss_val = self.forward(cur_batch)
+                loss_val = self.forward(cur_batch)
                 
-                # for key in loss_val:
-                #     if key in self.meters:
-                #         self.meters[key].update(loss_val[key].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
-                #         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                key = 'vloss_av'
+                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
+                self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                key = 'vloss_cap'
+                self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
+                self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                # weighted_loss = self.weight_loss(loss_val)
-
-                # self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['visual_feats'].shape[0])
-                # self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
                 
+                l_out = {}
+                l_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                key = 'vloss_av'
+                l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                key = 'vloss_cap'
+                l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                logger.info(l_out)
                 ###############################################################
                 
                 # khazar :  for high batch sizes below line gives memory related error
@@ -526,7 +531,7 @@ class Trainer:
 
     def _setup_meters(self):
         meters = {}
-        meter_names = ['weighted_loss', "fine_matching_loss", "coarse_matching_loss", 'caption_w2v2_loss', "libri_w2v2_loss", "caption_hubert_loss", "libri_hubert_loss", "caption_m_acc", "libri_m_acc",'data_time', 'train_time']
+        meter_names = ['vloss_av', 'vloss_cap','weighted_loss', "fine_matching_loss", "coarse_matching_loss", 'caption_w2v2_loss', "libri_w2v2_loss", "caption_m_acc", "libri_m_acc",'data_time', 'train_time']
         for name in meter_names:
             meters[name] = AverageMeter()
         return meters
@@ -577,7 +582,7 @@ class Trainer:
             libri_indices = None
             optim_states = None
         # Khazar: for random initialization
-        # self.args.fb_w2v2_weights_fn = None
+        self.args.fb_w2v2_weights_fn = None
         if self.args.fb_w2v2_weights_fn and self.progress['num_updates'] <= 1 and not self.args.validate and self.args.trained_weights_dir == None:           
             b = torch.load(self.args.fb_w2v2_weights_fn)['model']
             dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(b)
