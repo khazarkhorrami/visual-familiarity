@@ -60,7 +60,7 @@ class Trainer:
         self.scheduler = self._setup_scheduler()
         self.criterion = fast_vgs.Margin_InfoNCE_loss
         logger.info(f"batch size: {self.args.batch_size}")
-        self.testshuffle = []
+        
     
     def forward(self, batch):
         m = 32
@@ -118,7 +118,7 @@ class Trainer:
                         "img_id": batch['img_id'],
                         #"label": batch['label']
                         }
-                self.testshuffle.append(batch['img_id'][0:2])
+                
                 losses = self.forward(cur_batch)
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) # target_list = libri_batch['label'], 
@@ -356,6 +356,33 @@ class Trainer:
                 
                 self.dual_encoder.eval()
                 self.cross_encoder.eval()
+                
+                
+                ############################################################### khazar: validation loss
+                
+                # cur_batch = {
+                #         "visual_feats": batch['visual_feats'].to(self.device),
+                #         "visual_pos": batch['boxes'].to(self.device),
+                #         "audio": batch['audio'].to(self.device),
+                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                #         "img_id": batch['img_id'],
+                #         #"label": batch['label']
+                #         }
+                
+                # loss_val = self.forward(cur_batch)
+                
+                # for key in loss_val:
+                #     if key in self.meters:
+                #         self.meters[key].update(loss_val[key].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
+                #         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                
+                # weighted_loss = self.weight_loss(loss_val)
+
+                # self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['visual_feats'].shape[0])
+                # self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                
+                ###############################################################
+                
                 # khazar :  for high batch sizes below line gives memory related error
                 audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), visual_feats = batch['visual_feats'].to(self.device), visual_pos = batch['boxes'].to(self.device), test = True)
                 audio_cls_total.append(audio_cls)
