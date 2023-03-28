@@ -379,13 +379,6 @@ class Trainer:
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
-                l_out = {}
-                l_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                key = 'vloss_av'
-                l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                key = 'vloss_cap'
-                l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                logger.info(l_out)
                 ###############################################################
                 
                 # khazar :  for high batch sizes below line gives memory related error
@@ -458,6 +451,17 @@ class Trainer:
             print ('kh: memory at the end of coarse')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
             #print(torch.cuda.memory_allocated(device=1) / 1024 ** 3)
+            
+            ############################################################### khazar: logging validation loss
+            l_out = {}
+            l_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+            key = 'vloss_av'
+            l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+            key = 'vloss_cap'
+            l_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+            logger.info(l_out)
+            ###############################################################
+            
             logger.info("Coarse Retrieval Accuracy:")
             logger.info('Audio R@100 {A_r100:.3f} Image R@100 {I_r100:.3f} Average R@100 {r100_ave:.3f} over {N:d} validation pairs'.format(A_r100=recalls['A_r100'], I_r100=recalls['I_r100'], r100_ave=(recalls['A_r100']+recalls['I_r100'])/2, N=N_examples))
             logger.info('Audio R@10 {A_r10:.3f} Image R@10 {I_r10:.3f} Average R@10 {r10_ave:.3f} over {N:d} validation pairs'.format(A_r10=recalls['A_r10'], I_r10=recalls['I_r10'], r10_ave=(recalls['A_r10']+recalls['I_r10'])/2, N=N_examples))
