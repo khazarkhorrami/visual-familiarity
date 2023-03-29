@@ -65,10 +65,10 @@ class Trainer:
     
     def forward(self, batch):
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        #audio_cls = audio_cls[0:self.avportion]
-        #visual_cls = visual_cls[0:self.avportion]
+        audio_cls = audio_cls[0:self.avportion]
+        visual_cls = visual_cls[0:self.avportion]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
-        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id']) # [0:self.avportion]
+        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'][0:self.avportion]) # 
         #B = visual_feats.shape[0]
         # visual_feats_square = visual_feats.repeat(B,1,1)
         # audio_feats_square = audio_feats.repeat_interleave(B, dim=0)
@@ -586,7 +586,7 @@ class Trainer:
             libri_indices = None
             optim_states = None
         # Khazar: for random initialization
-        self.args.fb_w2v2_weights_fn = None
+        # self.args.fb_w2v2_weights_fn = None
         if self.args.fb_w2v2_weights_fn and self.progress['num_updates'] <= 1 and not self.args.validate and self.args.trained_weights_dir == None:           
             b = torch.load(self.args.fb_w2v2_weights_fn)['model']
             dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(b)
