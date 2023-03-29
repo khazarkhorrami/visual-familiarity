@@ -586,7 +586,7 @@ class Trainer:
             libri_indices = None
             optim_states = None
         # Khazar: for random initialization
-        # self.args.fb_w2v2_weights_fn = None
+        self.args.fb_w2v2_weights_fn = None
         if self.args.fb_w2v2_weights_fn and self.progress['num_updates'] <= 1 and not self.args.validate and self.args.trained_weights_dir == None:           
             b = torch.load(self.args.fb_w2v2_weights_fn)['model']
             dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(b)
@@ -699,7 +699,7 @@ class Trainer:
         # alpha = 0
         ############
         # model base2
-        alpha = 0.5
+        alpha = 1
         ############
         # model base3
         # alpha = 0.5
