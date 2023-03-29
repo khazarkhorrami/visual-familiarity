@@ -59,7 +59,7 @@ class Trainer:
             self.cross_encoder = nn.DataParallel(self.cross_encoder)
         self.scheduler = self._setup_scheduler()
         self.criterion = fast_vgs.Margin_InfoNCE_loss
-        self.avportion = 2
+        self.avportion = 16
         logger.info(f"batch size: {self.args.batch_size}")
         
     
@@ -408,8 +408,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                if i>= 100:
-                    break
+                # if i>= 100:
+                #     break
             
             print ('khazar: memory allocated before cat')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
