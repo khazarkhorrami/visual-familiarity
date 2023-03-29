@@ -15,12 +15,12 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
---batch_size 16 \
+--batch_size 64 \
 --val_batch_size 100 \
 --val_cross_batch_size 100 \
 --n_epochs 70 \
 --n_print_steps 500 \
---n_val_steps 37000 \
+--n_val_steps 9252 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --normalize \
