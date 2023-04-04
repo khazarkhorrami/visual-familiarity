@@ -129,11 +129,14 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                if cur_step < last_av_step:
-                    alpha = 0.5
-                else:
-                    alpha = 0
-                weighted_loss = self.weight_loss(losses, alpha)
+                # khazar : this is for vfb0
+                # if cur_step < last_av_step:
+                #     alpha = 0.5
+                # else:
+                #     alpha = 0
+                # weighted_loss = self.weight_loss(losses, alpha)
+                
+                weighted_loss = self.weight_loss(losses)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['visual_feats'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])

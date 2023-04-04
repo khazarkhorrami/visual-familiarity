@@ -12,6 +12,23 @@ import pickle
 import logging
 logger = logging.getLogger(__name__)
 
+# data_root = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp"
+# audio_dataset_json_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
+
+# train_img_dataset_h5py_file = os.path.join(data_root, "coco_img_feat/SpokenCOCO_train_imgfeat.hdf5")
+# train_imgid2index_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_imgid2idex.json")
+# train_imgid2ordered_indices_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_imgid2ordered_indices.pkl")
+
+# with open(audio_dataset_json_file, 'r') as fp:
+#     data_json = json.load(fp)
+    
+# train_img_data = h5py.File(train_img_dataset_h5py_file, 'r')
+# with open(train_imgid2index_file, 'r') as fp:
+#     train_img_id2index = json.load(fp)    
+# with open(train_imgid2ordered_indices_file, 'rb') as f:
+#     train_img_id2ordered_indices = pickle.load(f)
+    
+
 class ImageCaptionDataset(Dataset):
     @staticmethod
     def add_args(parser):
@@ -44,8 +61,16 @@ class ImageCaptionDataset(Dataset):
 
         with open(audio_dataset_json_file, 'r') as fp:
             data_json = json.load(fp)
+            
         self.data = data_json['data']
-
+        
+        ##############################################
+        #khazar: i added this to reduce the train data
+        ss = int (1/2 * 592187)
+        if split == "train":
+            self.data = data_json['data'][0:ss]
+        ##############################################
+        
         self.val_img_data = h5py.File(val_img_dataset_h5py_file, 'r')
         with open(val_imgid2index_file, 'r') as fp:
             self.val_img_id2index = json.load(fp)    
