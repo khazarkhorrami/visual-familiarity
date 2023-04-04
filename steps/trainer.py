@@ -65,10 +65,10 @@ class Trainer:
     
     def forward(self, batch):
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        audio_cls = audio_cls[0:self.avportion]
-        visual_cls = visual_cls[0:self.avportion]
+        # audio_cls = audio_cls[0:self.avportion]
+        # visual_cls = visual_cls[0:self.avportion]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
-        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'][0:self.avportion]) # 
+        losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id']) # [0:self.avportion]
         #B = visual_feats.shape[0]
         # visual_feats_square = visual_feats.repeat(B,1,1)
         # audio_feats_square = audio_feats.repeat_interleave(B, dim=0)
@@ -81,6 +81,7 @@ class Trainer:
     def train(self):
         flag = True
         step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        last_av_step = int(step_per_epoch/2)
         data_start_time = time.time()
         #khazar
         print ('start of training method')
@@ -128,7 +129,11 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                weighted_loss = self.weight_loss(losses)
+                if cur_step < last_av_step:
+                    alpha = 0.5
+                else:
+                    alpha = 0
+                weighted_loss = self.weight_loss(losses, alpha)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['visual_feats'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
@@ -372,7 +377,8 @@ class Trainer:
                 loss_val = self.forward(cur_batch)
                 
                 key = 'vloss_av'
-                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
+                #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
+                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 key = 'vloss_cap'
                 self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
@@ -586,7 +592,7 @@ class Trainer:
             libri_indices = None
             optim_states = None
         # Khazar: for random initialization
-        self.args.fb_w2v2_weights_fn = None
+        # self.args.fb_w2v2_weights_fn = None
         if self.args.fb_w2v2_weights_fn and self.progress['num_updates'] <= 1 and not self.args.validate and self.args.trained_weights_dir == None:           
             b = torch.load(self.args.fb_w2v2_weights_fn)['model']
             dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(b)
@@ -689,7 +695,7 @@ class Trainer:
     def _setup_scheduler(self):
         pass
 
-    def weight_loss(self, losses):
+    def weight_loss(self, losses, alpha):
         
         # n = self.progress['num_updates']    
         # n = self.progress['epoch']
@@ -699,7 +705,7 @@ class Trainer:
         # alpha = 0
         ############
         # model base2
-        alpha = 1
+        # alpha = 1
         ############
         # model base3
         # alpha = 0.5
