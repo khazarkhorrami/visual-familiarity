@@ -204,16 +204,8 @@ class DualEncoder(nn.Module):
     def __init__(self, args):
         super().__init__()
         
-        if args.vit_arch == "vitsmall":
-            self.trm = vit_small(patch_size=self.args.vit_patch_size, num_classes=0)
-        elif args.vit_arch == "vitbase":
-            self.trm = vit_base(patch_size=self.args.vit_patch_size, num_classes=0)
-        else:
-            raise NotImplementedError
-            logger.info(f"Model {self.args.vit_arch} {self.args.vit_patch_size}x{self.args.vit_patch_size} built")
-
-
         self.args = args
+        
         if self.args.caption_w2v2_weight == None:
             self.no_caption_audio_loss = True
         else:
@@ -223,6 +215,16 @@ class DualEncoder(nn.Module):
             args.encoder_layers = args.layer_use + 1
         print("################# args.encoder_layers ######################")
         print(args.encoder_layers)
+        
+        if args.vit_arch == "vitsmall":
+            self.trm = vit_small(patch_size=self.args.vit_patch_size, num_classes=0)
+        elif args.vit_arch == "vitbase":
+            self.trm = vit_base(patch_size=self.args.vit_patch_size, num_classes=0)
+        else:
+            raise NotImplementedError
+            logger.info(f"Model {self.args.vit_arch} {self.args.vit_patch_size}x{self.args.vit_patch_size} built")
+            
+            
         self.conv1_trm1_trm3 = Wav2Vec2Model_cls(args)
         self.conv2 = ResDavenet()
         self.audio_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.args.hidden_size, self.args.hidden_size*2), nn.GELU(), nn.Linear(self.args.hidden_size*2, self.args.hidden_size))
