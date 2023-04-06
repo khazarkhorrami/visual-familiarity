@@ -23,6 +23,9 @@ python \
 --n_val_steps 100 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
+--vit_arch 'vitsmall' \
+--vit_patch_size 8 \
+--vit_checkpoint_key 'teacher' \
 --normalize \
 --xtrm_layers 1 \
 --trm_layers 6 \
