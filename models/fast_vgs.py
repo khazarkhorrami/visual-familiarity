@@ -236,7 +236,7 @@ class DualEncoder(nn.Module):
         self.visual_cls_token = torch.nn.Parameter(torch.randn((1, 1, args.hidden_size)), requires_grad=True)
         #self.trm = nn.ModuleList([BertLayer(args) for _ in range(args.trm_layers)])
         #self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.args.hidden_size, self.args.hidden_size*2), nn.GELU(), nn.Linear(self.args.hidden_size*2, self.args.hidden_size))
-        self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.trm.embed_dim,self.args.encoder_embed_dim*2), nn.GELU(), nn.Linear(self.args.encoder_embed_dim*2,self.args.common_embed_dim))
+        self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.trm.embed_dim,self.args.encoder_embed_dim*2), nn.GELU(), nn.Linear(self.args.encoder_embed_dim*2,self.args.hidden_size))
         self.apply(self.init_weights)
 
     def init_weights(self, module):
