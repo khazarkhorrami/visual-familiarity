@@ -17,6 +17,8 @@ import logging
 
 import numpy
 
+from models import vit_utils
+
 logger = getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logging.basicConfig()
@@ -64,7 +66,8 @@ class Trainer:
         
     
     def forward(self, batch):
-        audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
+        audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], images = batch['images'])
+                                                                                                                    #, visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
         # audio_cls = audio_cls[0:self.avportion]
         # visual_cls = visual_cls[0:self.avportion]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
@@ -111,13 +114,19 @@ class Trainer:
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
                 cur_step = self.progress['num_updates'] % step_per_epoch
 
+                # cur_batch = {
+                #         "visual_feats": batch['visual_feats'].to(self.device),
+                #         "visual_pos": batch['boxes'].to(self.device),
+                #         "audio": batch['audio'].to(self.device),
+                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                #         "img_id": batch['img_id'],
+                #         }
+                
                 cur_batch = {
-                        "visual_feats": batch['visual_feats'].to(self.device),
-                        "visual_pos": batch['boxes'].to(self.device),
+                        "images": batch['images'].to(self.device),
                         "audio": batch['audio'].to(self.device),
                         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                        "img_id": batch['img_id'],
-                        #"label": batch['label']
+                        "img_id": batch['img_id']
                         }
                 
                 losses = self.forward(cur_batch)
@@ -604,6 +613,13 @@ class Trainer:
             for name, p in dual_encoder.named_parameters():
                 if "feature_extractor" in name:
                     p.requires_grad = False
+                    
+        if self.args.load_pretrained_vit != None and self.progress['num_updates'] <= 1 and not self.args.validate:
+            ckpt_root = self.args.load_pretrained_vit
+            ckpt_name = f"dino_{self.args.vit_arch.lower()}{str(self.args.vit_patch_size)}_pretrain_full_checkpoint.pth"
+            ckpt_fn = os.path.join(ckpt_root, ckpt_name)
+            vit_utils.load_pretrained_weights(dual_encoder.trm, ckpt_fn, self.args.vit_checkpoint_key, self.args.vit_arch, self.args.vit_patch_size)
+                    
         trainables1 = [p for p in dual_encoder.parameters() if p.requires_grad]
         trainables2 = [p for p in cross_encoder.parameters() if p.requires_grad]
         trainables = trainables1 + trainables2

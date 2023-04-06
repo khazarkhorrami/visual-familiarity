@@ -26,6 +26,10 @@ from .utils import w2v2_loss, Margin_InfoNCE_loss, VisualFeatEncoder, BertLayer,
 import logging
 logger = logging.getLogger(__name__)
 
+
+from .vision_transformer import vit_tiny, vit_small, vit_base
+
+
 def flatten_tensor(inputs):
     """
     convert [b,t,c] into [b*t,c]
@@ -191,8 +195,24 @@ class DualEncoder(nn.Module):
         parser.add_argument("--fb_w2v2_weights_fn", type=str, help="the path of w2v2 small model trained by FAIR", default=None)
         parser.add_argument("--margin", type=float, default=1.0)
         parser.add_argument("--topk", type=float, default=100)
+        
+        parser.add_argument('--vit_arch', default='vitsmall', type=str,
+        choices=['vittiny', 'vitsmall', 'vitbase'], help='Architecture (support only ViT atm).')
+        parser.add_argument('--vit_patch_size', default=16, type=int, help='Patch resolution of the model.')
+        parser.add_argument("--vit_checkpoint_key", default="teacher", type=str, help='Key to use in the checkpoint (example: "teacher")')
+        
     def __init__(self, args):
         super().__init__()
+        
+        if args.vit_arch == "vitsmall":
+            self.trm = vit_small(patch_size=self.args.vit_patch_size, num_classes=0)
+        elif args.vit_arch == "vitbase":
+            self.trm = vit_base(patch_size=self.args.vit_patch_size, num_classes=0)
+        else:
+            raise NotImplementedError
+            logger.info(f"Model {self.args.vit_arch} {self.args.vit_patch_size}x{self.args.vit_patch_size} built")
+
+
         self.args = args
         if self.args.caption_w2v2_weight == None:
             self.no_caption_audio_loss = True
@@ -212,9 +232,9 @@ class DualEncoder(nn.Module):
 
         self.visn_fc = VisualFeatEncoder(args)
         self.visual_cls_token = torch.nn.Parameter(torch.randn((1, 1, args.hidden_size)), requires_grad=True)
-        self.trm = nn.ModuleList([BertLayer(args) for _ in range(args.trm_layers)])
-        self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.args.hidden_size, self.args.hidden_size*2), nn.GELU(), nn.Linear(self.args.hidden_size*2, self.args.hidden_size))
-
+        #self.trm = nn.ModuleList([BertLayer(args) for _ in range(args.trm_layers)])
+        #self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.args.hidden_size, self.args.hidden_size*2), nn.GELU(), nn.Linear(self.args.hidden_size*2, self.args.hidden_size))
+        self.visual_cls_token_proj_coarse = nn.Sequential(nn.Linear(self.trm.embed_dim,self.args.encoder_embed_dim*2), nn.GELU(), nn.Linear(self.args.encoder_embed_dim*2,self.args.common_embed_dim))
         self.apply(self.init_weights)
 
     def init_weights(self, module):
@@ -228,21 +248,24 @@ class DualEncoder(nn.Module):
             module.weight.data.fill_(1.0)
         if isinstance(module, nn.Linear) and module.bias is not None:
             module.bias.data.zero_()
-    
 
-    def forward_image(self, visual_feats, visual_pos, visual_attention_mask):
-        visual_feats = (visual_feats, visual_pos)
-        visual_feats = self.visn_fc(visual_feats)
-        visual_feats = torch.cat([self.visual_cls_token.repeat(visual_feats.shape[0],1,1), visual_feats], dim=1)
-        for layer_module in self.trm:
-            visual_feats = layer_module(visual_feats, None)
-        cls_token_coarse = self.visual_cls_token_proj_coarse(visual_feats[:,0])
-        return visual_feats, cls_token_coarse
+    def forward_image(self, images):
+        out = self.trm(images)
+        if self.args.cls_loss:
+            out['visual_cls'] = self.visual_cls_token_proj(out['visual_cls'])
+        if self.args.feat_loss:
+            out['visual_feats']= self.visual_feats_proj(out['visual_feats'])
+        return out    
+
+    # def forward_image(self, visual_feats, visual_pos, visual_attention_mask):
+    #     visual_feats = (visual_feats, visual_pos)
+    #     visual_feats = self.visn_fc(visual_feats)
+    #     visual_feats = torch.cat([self.visual_cls_token.repeat(visual_feats.shape[0],1,1), visual_feats], dim=1)
+    #     for layer_module in self.trm:
+    #         visual_feats = layer_module(visual_feats, None)
+    #     cls_token_coarse = self.visual_cls_token_proj_coarse(visual_feats[:,0])
+    #     return visual_feats, cls_token_coarse
     
-    # def forward_test(self, audio_feats, audio_attention_mask):
-    #     self.conv1_trm1_trm3.eval()
-    #     trm13_out = self.conv1_trm1_trm3(audio_feats, padding_mask=audio_attention_mask, mask=False, features_only=True, tgt_layer=self.args.layer_use)
-    #     return trm13_out['layer_feats']
     
     def forward_audio(self, audio_feats, audio_attention_mask, test=False):
         if test:
@@ -287,9 +310,10 @@ class DualEncoder(nn.Module):
     def forward(
         self,
         audio_feats,
+        images,
         attention_mask=None,
-        visual_feats=None,
-        visual_pos=None,
+        # visual_feats=None,
+        # visual_pos=None,
         visual_attention_mask=None, # this is not used, cause we always use all 36 features
         test = False,
         inter = -1,
@@ -299,13 +323,15 @@ class DualEncoder(nn.Module):
             libri_loss = self.forward_libri(audio_feats, attention_mask)
             return libri_loss
         elif test:
-            visual_feats, visual_cls = self.forward_image(visual_feats, visual_pos, visual_attention_mask)
+            #visual_feats, visual_cls = self.forward_image(visual_feats, visual_pos, visual_attention_mask)
+            visual_out = self.forward_image(images)
             audio_feats, audio_cls, extended_audio_attention_mask, _ = self.forward_audio(audio_feats, attention_mask, test)
-            return audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls
+            return audio_feats, audio_cls, extended_audio_attention_mask, visual_out['visual_feats'].mean(1), visual_out['visual_cls']
         else:
-            visual_feats, visual_cls= self.forward_image(visual_feats, visual_pos, visual_attention_mask)
+            #visual_feats, visual_cls= self.forward_image(visual_feats, visual_pos, visual_attention_mask)
+            visual_out = self.forward_image(images)
             audio_feats, audio_cls, extended_audio_attention_mask, losses = self.forward_audio(audio_feats, attention_mask)
-            return audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses
+            return audio_feats, audio_cls, extended_audio_attention_mask, visual_out['visual_feats'].mean(1), visual_out['visual_cls'], losses
 
     def carefully_load_state_dict(self, states):
         """

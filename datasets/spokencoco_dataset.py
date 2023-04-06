@@ -12,6 +12,8 @@ import pickle
 import logging
 logger = logging.getLogger(__name__)
 
+from PIL import Image
+
 # data_root = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp"
 # audio_dataset_json_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
 
@@ -57,7 +59,11 @@ class ImageCaptionDataset(Dataset):
         val_img_dataset_h5py_file = os.path.join(args.data_root, "coco_img_feat/SpokenCOCO_val_imgfeat.hdf5")
         val_imgid2index_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_val_imgid2idex.json")
         val_imgid2ordered_indices_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_val_imgid2ordered_indices.pkl")
+        
+        
         self.audio_base_path = args.raw_audio_base_path
+        self.image_base_path = os.path.join(args.data_root, "MSCOCO")
+        
 
         with open(audio_dataset_json_file, 'r') as fp:
             data_json = json.load(fp)
@@ -100,15 +106,20 @@ class ImageCaptionDataset(Dataset):
             x = new_x
         return x, audio_length
 
-    def _LoadImage(self, index, ordered_indices, img_data):
-        img_h, img_w = img_data['img_h'][index],img_data['img_w'][index]
-        boxes = img_data['boxes'][index][ordered_indices[:self.args.img_feat_len]]
-        boxes[:, (0, 2)] /= img_w
-        boxes[:, (1, 3)] /= img_h
-        np.testing.assert_array_less(boxes, 1+1e-5)
-        np.testing.assert_array_less(-boxes, 0+1e-5)
-        return torch.from_numpy(img_data['features'][index][ordered_indices[:self.args.img_feat_len]]), torch.from_numpy(boxes)
+    # def _LoadImage(self, index, ordered_indices, img_data):
+    #     img_h, img_w = img_data['img_h'][index],img_data['img_w'][index]
+    #     boxes = img_data['boxes'][index][ordered_indices[:self.args.img_feat_len]]
+    #     boxes[:, (0, 2)] /= img_w
+    #     boxes[:, (1, 3)] /= img_h
+    #     np.testing.assert_array_less(boxes, 1+1e-5)
+    #     np.testing.assert_array_less(-boxes, 0+1e-5)
+    #     return torch.from_numpy(img_data['features'][index][ordered_indices[:self.args.img_feat_len]]), torch.from_numpy(boxes)
 
+    def _LoadImage(self, impath):
+        img = Image.open(impath).convert('RGB')
+        img = self.image_transform(img)
+        return img
+    
     def __getitem__(self, index):
         datum = self.data[index]
         img_id = datum['image'].split("/")[-1].split(".")[0]
@@ -124,8 +135,11 @@ class ImageCaptionDataset(Dataset):
             raise RuntimeError(f"image id {img_id} not found!")
         wavpath = os.path.join(self.audio_base_path, datum['caption']['wav'])
         audio, nframes = self._LoadAudio(wavpath)
-        feats, boxes = self._LoadImage(img_index, ordered_indices, img_data)
-        return feats, boxes, audio, nframes, img_id, datum['caption']['wav']
+        #feats, boxes = self._LoadImage(img_index, ordered_indices, img_data)
+        imgpath = os.path.join(self.image_base_path, datum['image'])
+        img = self._LoadImage(imgpath)
+        #return feats, boxes, audio, nframes, img_id, datum['caption']['wav']
+        return img, audio, nframes, img_id, datum['caption']['wav']
 
     def __len__(self):
         return len(self.data)
@@ -137,12 +151,14 @@ class ImageCaptionDataset(Dataset):
         #print(vals)
 
         collated = {}
-        collated['visual_feats'] = torch.stack(vals[0])
-        collated['boxes'] = torch.stack(vals[1])
-        collated['audio'] = torch.nn.utils.rnn.pad_sequence(vals[2], batch_first=True)
-        collated['audio_length'] = torch.LongTensor(vals[3])
-        collated['img_id'] = np.array(vals[4])
-        collated['fn'] = vals[5]
+        # collated['visual_feats'] = torch.stack(vals[0])
+        # collated['boxes'] = torch.stack(vals[1])
+        
+        collated['images'] = torch.stack(vals[0])
+        collated['audio'] = torch.nn.utils.rnn.pad_sequence(vals[1], batch_first=True)
+        collated['audio_length'] = torch.LongTensor(vals[2])
+        collated['img_id'] = np.array(vals[3])
+        collated['fn'] = vals[4]
         collated['audio_attention_mask'] = torch.arange(len(collated['audio'][0])).unsqueeze(0) >= collated['audio_length'].unsqueeze(1) 
         # kh mask = torch.arange(8).unsqueeze(0) >= torch.LongTensor(5).unsqueeze(1) 
         # print(mask) : above test creats a random boolean tensor 5*8 
