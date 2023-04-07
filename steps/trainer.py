@@ -714,7 +714,7 @@ class Trainer:
     def _setup_scheduler(self):
         pass
 
-    def weight_loss(self, losses, alpha):
+    def weight_loss(self, losses):
         
         # n = self.progress['num_updates']    
         # n = self.progress['epoch']
@@ -727,7 +727,7 @@ class Trainer:
         # alpha = 1
         ############
         # model base3
-        # alpha = 0.5
+        alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
