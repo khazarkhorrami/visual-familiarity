@@ -80,9 +80,9 @@ class ImageCaptionDataset(Dataset):
         
         ##############################################
         #khazar: i added this to reduce the train data
-        ss = int (1/2 * 592187)
-        if split == "train":
-            self.data = data_json['data'][0:ss]
+        # ss = int (1/2 * 592187)
+        # if split == "train":
+        #     self.data = data_json['data'][0:ss]
         ##############################################
         
         self.val_img_data = h5py.File(val_img_dataset_h5py_file, 'r')

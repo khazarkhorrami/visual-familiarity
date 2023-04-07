@@ -18,11 +18,14 @@ python \
 --batch_size 64 \
 --val_batch_size 100 \
 --val_cross_batch_size 100 \
---n_epochs 50 \
+--n_epochs 30 \
 --n_print_steps 500 \
 --n_val_steps 9252 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
+--vit_arch 'vitsmall' \
+--vit_patch_size 8 \
+--vit_checkpoint_key 'teacher' \
 --normalize \
 --xtrm_layers 1 \
 --trm_layers 6 \
