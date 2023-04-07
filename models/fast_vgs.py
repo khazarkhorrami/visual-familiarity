@@ -253,10 +253,10 @@ class DualEncoder(nn.Module):
 
     def forward_image(self, images):
         out = self.trm(images)
-        if self.args.cls_loss:
-            out['visual_cls'] = self.visual_cls_token_proj(out['visual_cls'])
-        if self.args.feat_loss:
-            out['visual_feats']= self.visual_feats_proj(out['visual_feats'])
+        #if self.args.cls_loss:
+        out['visual_cls'] = self.visual_cls_token_proj(out['visual_cls'])
+        #if self.args.feat_loss:
+        out['visual_feats']= self.visual_feats_proj(out['visual_feats'])
         return out    
 
     # def forward_image(self, visual_feats, visual_pos, visual_attention_mask):
