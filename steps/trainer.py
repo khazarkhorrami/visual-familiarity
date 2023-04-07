@@ -135,7 +135,7 @@ class Trainer:
 
                 for key in losses:
                     if key in self.meters:
-                        self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
+                        self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 # khazar : this is for vfb0
@@ -147,7 +147,7 @@ class Trainer:
                 
                 weighted_loss = self.weight_loss(losses)
 
-                self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['visual_feats'].shape[0])
+                self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
                 weighted_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
