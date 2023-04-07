@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from PIL import Image
+import torchvision.transforms as transforms
 
 # data_root = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp"
 # audio_dataset_json_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
@@ -64,6 +65,13 @@ class ImageCaptionDataset(Dataset):
         self.audio_base_path = args.raw_audio_base_path
         self.image_base_path = os.path.join(args.data_root, "MSCOCO")
         
+        if "train" not in split:
+            self.image_transform = transforms.Compose(
+                [transforms.Resize(256, interpolation=Image.BICUBIC), transforms.CenterCrop(224), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+        else:
+            self.image_transform = transforms.Compose(
+                [transforms.RandomResizedCrop(224, interpolation=Image.BICUBIC), transforms.RandomHorizontalFlip(0.5), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
 
         with open(audio_dataset_json_file, 'r') as fp:
             data_json = json.load(fp)
