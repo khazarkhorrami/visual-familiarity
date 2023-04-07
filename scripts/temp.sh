@@ -7,6 +7,7 @@ raw_audio_base_path=$2
 fb_w2v2_weights_fn=$3
 exp_dir=$4
 libri_fn_root=$5
+pretrained_root="/worktmp/khorrami/current/FaST/hubertAndDINO"
 
 python \
 ../run_spokencoco.py \
@@ -15,6 +16,7 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
+--load_pretrained_vit ${pretrained_root} \
 --batch_size 6 \
 --val_batch_size 8 \
 --val_cross_batch_size 100 \
