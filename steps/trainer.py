@@ -257,7 +257,7 @@ class Trainer:
             for i, batch in enumerate(valid_loader):
                 self.dual_encoder.eval()
                 self.cross_encoder.eval()
-                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), visual_feats = batch['visual_feats'].to(self.device), visual_pos = batch['boxes'].to(self.device), test = True)
+                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), images = batch['images'].to(self.device), test = True)
                 audio_cls_total.append(audio_cls)
                 visual_cls_total.append(visual_cls)
                 audio_feats_total.append(audio_feats.detach()) # still on cude after .detach(), just removed from graph, so no gradient
@@ -378,8 +378,7 @@ class Trainer:
                 ############################################################### khazar: validation loss
                 
                 cur_batch = {
-                        "visual_feats": batch['visual_feats'].to(self.device),
-                        "visual_pos": batch['boxes'].to(self.device),
+                        "images": batch['images'].to(self.device),
                         "audio": batch['audio'].to(self.device),
                         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
                         "img_id": batch['img_id'],
@@ -390,17 +389,16 @@ class Trainer:
                 
                 key = 'vloss_av'
                 #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
-                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
+                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 key = 'vloss_cap'
-                self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['visual_feats'].shape[0])
+                self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
                 ###############################################################
-                
                 # khazar :  for high batch sizes below line gives memory related error
-                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), visual_feats = batch['visual_feats'].to(self.device), visual_pos = batch['boxes'].to(self.device), test = True)
+                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device),images = batch['images'].to(self.device), test = True)
                 audio_cls_total.append(audio_cls)
                 # visual_cls_total.append(visual_cls)
                 
@@ -426,8 +424,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                # if i>= 100:
-                #     break
+                if i>= 100:
+                    break
             
             print ('khazar: memory allocated before cat')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
