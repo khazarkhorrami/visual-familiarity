@@ -195,7 +195,7 @@ class DualEncoder(nn.Module):
         parser.add_argument("--fb_w2v2_weights_fn", type=str, help="the path of w2v2 small model trained by FAIR", default=None)
         parser.add_argument("--margin", type=float, default=1.0)
         parser.add_argument("--topk", type=float, default=100)
-        parser.add_argument("--load_pretrained_vit", type=str, default="/worktmp/khorrami/current/FaST/hubertAndDINO")
+        parser.add_argument("--load_pretrained_vit", type=str, default=None)
         parser.add_argument('--vit_arch', default='vitsmall', type=str,
         choices=['vittiny', 'vitsmall', 'vitbase'], help='Architecture (support only ViT atm).')
         parser.add_argument('--vit_patch_size', default=16, type=int, help='Patch resolution of the model.')
