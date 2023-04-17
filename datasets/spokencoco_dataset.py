@@ -15,15 +15,16 @@ logger = logging.getLogger(__name__)
 from PIL import Image
 import torchvision.transforms as transforms
 
-# data_root = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp"
-# audio_dataset_json_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
 
+# data_root = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp"
+# audio_dataset_json_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
+# with open(audio_dataset_json_file, 'r') as fp:
+#     data_json = json.load(fp)
+# data = data_json['data']
+        
 # train_img_dataset_h5py_file = os.path.join(data_root, "coco_img_feat/SpokenCOCO_train_imgfeat.hdf5")
 # train_imgid2index_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_imgid2idex.json")
 # train_imgid2ordered_indices_file = os.path.join(data_root, "SpokenCOCO/SpokenCOCO_train_imgid2ordered_indices.pkl")
-
-# with open(audio_dataset_json_file, 'r') as fp:
-#     data_json = json.load(fp)
     
 # train_img_data = h5py.File(train_img_dataset_h5py_file, 'r')
 # with open(train_imgid2index_file, 'r') as fp:
@@ -48,12 +49,15 @@ class ImageCaptionDataset(Dataset):
         self.split = split
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
         if split == "train":
-            audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
+            #audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
+            audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_train_sub1_unrolled_karpathy.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
             else:
-                audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
+                #audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
+                audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_val_sub1_unrolled_karpathy.json'
+        
         train_img_dataset_h5py_file = os.path.join(args.data_root, "coco_img_feat/SpokenCOCO_train_imgfeat.hdf5")
         train_imgid2index_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_imgid2idex.json")
         train_imgid2ordered_indices_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_imgid2ordered_indices.pkl")
@@ -83,6 +87,12 @@ class ImageCaptionDataset(Dataset):
         # ss = int (1/2 * 592187)
         # if split == "train":
         #     self.data = data_json['data'][0:ss]
+        
+        #khazar: i added this to reduce the train data
+        # ss = int (1/2 * 592187)
+        # if split == "train":
+        #     self.data = data_json['data'][0:ss]
+        
         ##############################################
         
         self.val_img_data = h5py.File(val_img_dataset_h5py_file, 'r')
