@@ -18,7 +18,7 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 4 \
---val_batch_size 8 \
+--val_batch_size 16 \
 --val_cross_batch_size 100 \
 --n_epochs 30 \
 --n_print_steps 100 \
@@ -37,5 +37,7 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
+--encoder_layers 12 \
+--encoder_attention_heads 12 \
 --layer_use 7 \
 
