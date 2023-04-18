@@ -424,8 +424,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                # if i>= 100:
-                #     break
+                if i>= 300:
+                    break
             
             print ('khazar: memory allocated before cat')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
@@ -722,10 +722,10 @@ class Trainer:
         # alpha = 0
         ############
         # model base2
-        alpha = 1
+        # alpha = 1
         ############
         # model base3
-        # alpha = 0.5
+        alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
