@@ -50,13 +50,15 @@ class ImageCaptionDataset(Dataset):
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
         if split == "train":
             #audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
-            audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_train_sub1_unrolled_karpathy.json'
+            #audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_train_sub1_unrolled_karpathy.json'
+            audio_dataset_json_file = '/worktmp/khorrami/current/FaST/data/SpokenCOCO_train_sub1_unrolled_karpathy.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
             else:
                 #audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
-                audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_val_sub1_unrolled_karpathy.json'
+                #audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/SpokenCOCO_val_sub1_unrolled_karpathy.json'
+                audio_dataset_json_file = '/worktmp/khorrami/current/FaST/data/SpokenCOCO_val_sub1_unrolled_karpathy.json'
         
         train_img_dataset_h5py_file = os.path.join(args.data_root, "coco_img_feat/SpokenCOCO_train_imgfeat.hdf5")
         train_imgid2index_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_imgid2idex.json")
