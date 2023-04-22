@@ -45,7 +45,7 @@ import copy
 # plt.imshow(mask_GT)
 
 ###############################################################################
-                ############# COCO aux functions #############
+                ############# masking images #############
 ###############################################################################
 
 dataDir='../data/coco_pyp/MSCOCO'
@@ -74,6 +74,7 @@ for item in anns_image : # constructing true mask by ading all mask items
 plt.imshow(mask_temp)
 plt.imshow(image)
 
+###############################################################################
 
 masked_image = copy.deepcopy (image)
 masked_image[:,:,0] = image[:,:,0] * mask_annitem
