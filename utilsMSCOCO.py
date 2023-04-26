@@ -143,3 +143,52 @@ def get_catitem_images (query_id, coco):
     img_ids_query = coco.getImgIds(catIds=[query_id])
     return img_ids_query
     
+def sort_object (objects, values):
+    sorted_ind = np.argsort(values)[::-1]
+    objects_sorted = [objects[i] for i in sorted_ind ]
+    values_sorted = [values[j] for j in sorted_ind]  
+    return sorted_ind, objects_sorted,values_sorted 
+
+def plot_dist_cats (objects, values, save_name, title):
+    sorted_ind, objects_sorted,values_sorted = sort_object (objects, values)
+    fig, ax = plt.subplots(figsize = (16,16))
+    ax.barh(objects_sorted, values_sorted)   
+    # Remove axes splines
+    for s in ['top', 'bottom', 'left', 'right']:
+        ax.spines[s].set_visible(False)        
+    # Remove x, y Ticks
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')    
+    # Add padding between axes and labels
+    ax.xaxis.set_tick_params(pad = 5)
+    ax.yaxis.set_tick_params(pad = 10)    
+    # Add x, y gridlines
+    ax.grid(b = True, color ='grey',
+            linestyle ='-.', linewidth = 0.5,
+            alpha = 0.2)     
+    # Show top values
+    ax.invert_yaxis()   
+    # Add annotation to bars
+    for i in ax.patches:
+        plt.text(i.get_width()+0.2, i.get_y()+0.5,
+                 str(round((i.get_width()), 2)),
+                 fontsize = 10, fontweight ='bold',
+                 color ='grey')
+     
+    # Add Plot Title
+    ax.set_title(title,
+                 loc ='center', )
+    if save_name:
+        plt.savefig(save_name, format='pdf')
+
+def save_plot (save_path, all_counts_images,all_images_supercats ):
+    save_name = save_path + '_cats'
+    objects = list(all_counts_images.keys())
+    values = list (all_counts_images.values())
+    title = 'Number of images for annotated object categories'
+    plot_dist_cats (objects, values, save_name, title)
+    save_name = save_path + '_supercats'
+    objects = list(all_images_supercats.keys())
+    values = list(all_images_supercats.values())
+    title = 'Number of images for annotated object supercategories'
+    plot_dist_cats(objects, [len(item) for item in values], save_name, title)
