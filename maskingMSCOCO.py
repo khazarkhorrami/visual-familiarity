@@ -49,7 +49,7 @@ import copy
 ###############################################################################
 
 dataDir='../data/coco_pyp/MSCOCO'
-dataType='val2014'
+dataType='train2014'
 annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
 
 coco , cats, cat_ids = read_data_from_path (dataDir, dataType)
@@ -57,7 +57,7 @@ cats_id_to_name, cats_id_to_supername, cats_name_to_id = get_all_cats (coco)
 
 img_ids = get_all_image_ids (coco)
 
-image_id = img_ids [3800]
+image_id = img_ids [0]
 img = coco.loadImgs(image_id)[0]
 h = img ['height']
 w = img ['width']
@@ -73,7 +73,8 @@ for item in anns_image : # constructing true mask by ading all mask items
 
 plt.imshow(mask_temp)
 plt.imshow(image)
-
+print (len(annId_img))
+#%%
 ###############################################################################
 
 masked_image = copy.deepcopy (image)
