@@ -192,3 +192,20 @@ def save_plot (save_path, all_counts_images,all_images_supercats ):
     values = list(all_images_supercats.values())
     title = 'Number of images for annotated object supercategories'
     plot_dist_cats(objects, [len(item) for item in values], save_name, title)
+    
+    
+def get_images_per_cats (cat_ids, coco) :
+    all_counts_images = {}
+    all_images_cats = {}
+    all_images_supercats = {}  
+    for query_id in cat_ids:
+        query_name, query_supercategory = read_catitem_info (query_id, coco)
+        img_ids_query = coco.getImgIds(catIds=[query_id])
+        all_counts_images[query_name] = len(img_ids_query)
+        all_images_cats [query_name] = img_ids_query
+        if query_supercategory not in all_images_supercats:
+            all_images_supercats [query_supercategory] = []
+            all_images_supercats [query_supercategory].extend(img_ids_query)
+        else:
+            all_images_supercats [query_supercategory].extend(img_ids_query)
+    return all_counts_images, all_images_cats, all_images_supercats
