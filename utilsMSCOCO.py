@@ -61,7 +61,27 @@ import json
             ############# COCO main functions #############
 ###############################################################################
 
-
+def change_labels (cats_id_to_name):
+    all_labels = []
+    cats_id_to_name[10] = 'traffic' # 'traffic light'
+    cats_id_to_name[11] = 'hydrant' # 'fire hydrant'
+    cats_id_to_name[13] = 'stop' # 'stop sign'
+    cats_id_to_name[14] = 'parking' # 'parking meter'
+    cats_id_to_name[37] = 'ball' # sports ball'
+    cats_id_to_name[39] = 'baseball' # baseball bat'
+    cats_id_to_name[40] = 'glove' # 'baseball glove'
+    cats_id_to_name[43] = 'tennis' # 'tennis racket'
+    cats_id_to_name[46] = 'wineglass' # 'wine glass'
+    cats_id_to_name[58] = 'hotdog'  # 'hot dog'
+    cats_id_to_name[64] = 'plant' # 'potted plant'
+    cats_id_to_name[67] = 'table' # 'dining table'
+    cats_id_to_name[77] = 'cellphone' # 'cell phone'
+    cats_id_to_name[88] = 'teddybear' # 'teddy bear'
+    cats_id_to_name[89] = 'hairdryer' # 'hair-drier'
+    for counter, label in cats_id_to_name.items():
+        #print(label) 
+        all_labels.append(label)
+    return all_labels, cats_id_to_name
 
 def read_data_from_path (dataDir, dataType):
     annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)   
@@ -74,7 +94,7 @@ def get_all_image_ids (coco):
     img_ids = coco.getImgIds()
     return img_ids
 
-def get_all_cats (coco):
+def get_all_cats (coco, change_names = True):
     cat_ids = coco.getCatIds()
     cats_list = coco.loadCats(cat_ids)
     cats_id_to_name = {}
@@ -84,6 +104,12 @@ def get_all_cats (coco):
         cats_id_to_name [item['id']] = item['name']
         cats_id_to_supername [item['id']] = item['supercategory']
         cats_name_to_id [item['name']] = item['id']
+    if change_names:
+        all_labels, cats_id_to_name = change_labels (cats_id_to_name)
+        cats_name_to_id = {}
+        for key, value in cats_id_to_name.items():
+            cats_name_to_id [value] = key
+        
     return cats_id_to_name, cats_id_to_supername, cats_name_to_id
 
 def get_cats_names (coco):

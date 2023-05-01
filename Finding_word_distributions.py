@@ -2,7 +2,7 @@ import numpy
 import os
 import scipy
 from utilsMSCOCO import read_data_from_path, get_all_cats
-from utilsMSCOCO import sort_object, plot_dist_cats
+from utilsMSCOCO import sort_object, plot_dist_cats, change_labels
 import json
 from nltk.tokenize import word_tokenize
 import nltk
@@ -10,28 +10,7 @@ from gensim.models import KeyedVectors
 kh
 model = KeyedVectors.load_word2vec_format('/worktmp2/hxkhkh/current/Dcase/model/word2vec/GoogleNews-vectors-negative300.bin', binary=True)
 
-def change_labels (cats_id_to_name):
-    all_labels = []
-    cats_id_to_name[10] = 'traffic' # 'traffic light'
-    cats_id_to_name[11] = 'hydrant' # 'fire hydrant'
-    cats_id_to_name[13] = 'stop' # 'stop sign'
-    cats_id_to_name[14] = 'parking' # 'parking meter'
-    cats_id_to_name[37] = 'ball' # sports ball'
-    cats_id_to_name[39] = 'baseball' # baseball bat'
-    cats_id_to_name[40] = 'glove' # 'baseball glove'
-    cats_id_to_name[43] = 'tennis' # 'tennis racket'
-    cats_id_to_name[46] = 'wineglass' # 'wine glass'
-    cats_id_to_name[58] = 'hotdog'  # 'hot dog'
-    cats_id_to_name[64] = 'plant' # 'potted plant'
-    cats_id_to_name[67] = 'table' # 'dining table'
-    cats_id_to_name[77] = 'cellphone' # 'cell phone'
-    cats_id_to_name[88] = 'teddybear' # 'teddy bear'
-    cats_id_to_name[89] = 'hairdryer' # 'hair-drier'
-    for counter, label in cats_id_to_name.items():
-        print(label) 
-        sim = model.similarity('man',label) 
-        all_labels.append(label)
-    return all_labels
+
 
 def detec_nouns (input_words):
     tok = nltk.pos_tag(input_words)
