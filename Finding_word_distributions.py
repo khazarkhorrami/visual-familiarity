@@ -7,7 +7,7 @@ import json
 from nltk.tokenize import word_tokenize
 import nltk
 from gensim.models import KeyedVectors
-kh
+
 model = KeyedVectors.load_word2vec_format('/worktmp2/hxkhkh/current/Dcase/model/word2vec/GoogleNews-vectors-negative300.bin', binary=True)
 
 
