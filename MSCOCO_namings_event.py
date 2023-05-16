@@ -290,7 +290,7 @@ for counter, n in enumerate(unique_nouns_sorted):
 # save_name = save_path + 'dist_nouns_100.pdf'
 # title = 'distribution of 100 most frequent nouns '
 # plot_dist_cats (dict_unique_nouns_100, save_name, title)
-kh
+
 #%% manually selecting proper names
 threshold = 0.5
 dict_names_to_nouns = {}
@@ -356,18 +356,54 @@ plot_dist_cats (dict_names_variety, save_name, title, f)
 
 #%%
 
-dict_names_frequent = {}
-dict_names_frequent_words = {}
-dict_names_frequent_counts = {}
+dict_frequent_words = {}
+dict_frequent_words_counts = {}
 
 for label, dict_nouns in dict_names_to_nouns_counts.items():
     list_sorted = sorted (dict_nouns.items(), key=lambda x:x[1], reverse=True)
     frequent_noun_tuple = list_sorted[0]
-    dict_names_frequent[label] = frequent_noun_tuple
-    dict_names_frequent_words[label] = frequent_noun_tuple [0]
-    dict_names_frequent_counts[label] = frequent_noun_tuple [1]
+    dict_frequent_words[label] = frequent_noun_tuple [0]
+    dict_frequent_words_counts[label] = frequent_noun_tuple [1]
     
-frequent_counts_sorted = sorted (dict_names_frequent_counts.items(), key=lambda x:x[1], reverse=True)
+frequent_counts_sorted = sorted (dict_frequent_words_counts.items(), key=lambda x:x[1], reverse=True)
+
+words_sorted = []
+words_count_sorted = []
+labels_sorted = []
+for tuple_word_count in frequent_counts_sorted:
+    
+    labels_sorted.append(tuple_word_count[0])
+    words_count_sorted.append(tuple_word_count[1])
+    words_sorted.append(dict_frequent_words[tuple_word_count[0]])
+
+#%% real word statistic for namings frequencies ( # / hour)
+
+from scipy.io import loadmat
+file_name = save_path + 'rws_counts_sorted.mat'
+rws_sorted = loadmat(file_name, variable_names = 'data')
+rws_data = rws_sorted['data'][0]   
+rws_data_short = rws_data[0:80]
+rws_data_unique = []
+for item in rws_data:
+    if item not in rws_data_unique:
+        rws_data_unique.append(item)
+
+phi = rws_data_short
+
+#%%
+
+simulation_days = 60 # days
+minutes_per_day = 56.1
+beta = 0.5 # co-occurrence factor
+
+total_time = (1/60) * simulation_days * minutes_per_day # hours
+total_co_occurrence = beta * phi * total_time 
+
+# this is comparable with "labels_sorted" and "words_sorted"
+# We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
+# In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
+
+# continue from here
 #%% both methods are same, the second one is more general
 
 # dict_noun_to_name = {}
@@ -376,7 +412,7 @@ frequent_counts_sorted = sorted (dict_names_frequent_counts.items(), key=lambda 
 #     for n in noun_list:
 #         if n not in dict_noun_to_name:
 #             dict_noun_to_name [n] = key_name
-            
+kh            
 dict_noun_to_name = {}            
 for noun, count_noun in dict_unique_nouns_freq10.items():            
     try:
