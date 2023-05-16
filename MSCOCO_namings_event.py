@@ -294,8 +294,9 @@ kh
 #%% manually selecting proper names
 threshold = 0.5
 dict_names_to_nouns = {}
-dict_names_to_nouns_simple = {}
 dict_names_to_nouns_counts = {}
+dict_names_to_nouns_simple = {}
+dict_names_to_nouns_counts_all = {}
 error_nouns = [] # only 42 among 4737 most frequent nouns
 for noun, count_noun in dict_unique_nouns_freq10.items():
     try:
@@ -309,47 +310,64 @@ for noun, count_noun in dict_unique_nouns_freq10.items():
                 dict_names_to_nouns[label_max][noun] = {}
                 dict_names_to_nouns[label_max][noun]['sim'] = sim_max
                 dict_names_to_nouns[label_max][noun]['count'] = count_noun
+                dict_names_to_nouns_counts[label_max] = {}
+                dict_names_to_nouns_counts[label_max][noun] = count_noun
                 dict_names_to_nouns_simple [label_max] = []
                 dict_names_to_nouns_simple [label_max].append(noun)
-                dict_names_to_nouns_counts [label_max] = count_noun
+                dict_names_to_nouns_counts_all [label_max] = count_noun
             else:
                 dict_names_to_nouns[label_max][noun] = {}
                 dict_names_to_nouns[label_max][noun]['sim'] = sim_max
                 dict_names_to_nouns[label_max][noun]['count'] = count_noun
+                dict_names_to_nouns_counts[label_max][noun] = count_noun
                 dict_names_to_nouns_simple [label_max].append(noun)
-                dict_names_to_nouns_counts [label_max] += count_noun
+                dict_names_to_nouns_counts_all [label_max] += count_noun
     except:
         print( 'the noun ' + noun + ' is not present ')
         error_nouns.append(noun)
 
-dict_names_to_nouns_counts_sorted = sorted(dict_names_to_nouns_counts.items(), key=lambda x:x[1], reverse=False) 
+dict_names_to_nouns_counts_sorted = sorted(dict_names_to_nouns_counts_all.items(), key=lambda x:x[1], reverse=False) 
              
-dict_names_counts = {}
+dict_names_counts_all = {}
 dict_names_sims = {}
 dict_names_variety = {}
 for key_label, value in dict_names_to_nouns.items():
     for key_name, info_name in value.items():
-        if key_label not in dict_names_counts:
-            dict_names_counts [key_label] = info_name ['count']
+        if key_label not in dict_names_counts_all:
+            dict_names_counts_all [key_label] = info_name ['count']
             dict_names_sims [key_label] = []
             dict_names_sims [key_label].append(info_name ['sim'])
             dict_names_variety[key_label] = 1
         else:
-            dict_names_counts [key_label] += info_name ['count']
+            dict_names_counts_all [key_label] += info_name ['count']
             dict_names_sims [key_label].append(info_name ['sim'])
             dict_names_variety[key_label] += 1
             
 #Plotting the distribution of names
-save_name = save_path + 'dist_names_09.png'
+save_name = save_path + 'dist_names_05.png'
 title = 'distribution of all name counts '
 f = 'png'
-plot_dist_cats (dict_names_counts, save_name, title, f)
+plot_dist_cats (dict_names_counts_all, save_name, title, f)
 
-save_name = save_path + 'dist_names_variabilty_09.png'
+save_name = save_path + 'dist_names_variabilty_05.png'
 title = 'distribution of all name variabilities '
 f = 'png'
 plot_dist_cats (dict_names_variety, save_name, title, f)
 
+#%%
+
+dict_names_frequent = {}
+dict_names_frequent_words = {}
+dict_names_frequent_counts = {}
+
+for label, dict_nouns in dict_names_to_nouns_counts.items():
+    list_sorted = sorted (dict_nouns.items(), key=lambda x:x[1], reverse=True)
+    frequent_noun_tuple = list_sorted[0]
+    dict_names_frequent[label] = frequent_noun_tuple
+    dict_names_frequent_words[label] = frequent_noun_tuple [0]
+    dict_names_frequent_counts[label] = frequent_noun_tuple [1]
+    
+frequent_counts_sorted = sorted (dict_names_frequent_counts.items(), key=lambda x:x[1], reverse=True)
 #%% both methods are same, the second one is more general
 
 # dict_noun_to_name = {}
