@@ -93,22 +93,19 @@ dict_rws ['window'] = 0.12
 
 
 dict_rws_sorted = sorted (dict_rws.items(), key=lambda x:x[1], reverse=True)
-
+rws_counts_sorted = []
+for item in dict_rws_sorted:
+    rws_counts_sorted.append(item[1])
+    
 from scipy.io import savemat
 save_path =   '/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/new/' 
  
-save_name = save_path + 'dict_rws_sorted.mat'
-mdict = {'data': dict_rws_sorted}
+save_name = save_path + 'rws_counts_sorted.mat'
+mdict = {'data': rws_counts_sorted}
 savemat(save_name, mdict)
-
-save_name = save_path + 'dict_rws.mat'
-mdict = dict_rws
-savemat(save_name, mdict)
-
 
 
 from scipy.io import loadmat
-test_rws_sorted = loadmat('/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/new/dict_rws_sorted.mat', variable_names = 'data')
+file_name = save_path + 'rws_counts_sorted.mat'
+test_rws_sorted = loadmat(file_name, variable_names = 'data')
 data = test_rws_sorted['data']
-
-test_rws = loadmat('/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/new/dict_rws.mat')
