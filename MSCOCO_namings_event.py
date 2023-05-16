@@ -1,5 +1,6 @@
 import os
 import json
+import scipy
 from utilsMSCOCO import read_data_from_path, get_all_image_ids, get_all_cats
 import cv2
 from matplotlib import pyplot as plt
@@ -9,6 +10,9 @@ import numpy as np
 from gensim.models import KeyedVectors
 
 model = KeyedVectors.load_word2vec_format('/worktmp2/hxkhkh/current/Dcase/model/word2vec/GoogleNews-vectors-negative300.bin', binary=True)
+
+save_path =   '/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/new/'  
+
 #%%
 ######################### reading train and val data
 
@@ -94,8 +98,24 @@ dict_image_to_label_all = {**dict_image_to_label_train, **dict_image_to_label_va
   
 img_id_to_path_all = {**img_id_to_path_train , **img_id_to_path_val}
 img_path_to_id_all = {**img_path_to_id_train , **img_path_to_id_val}
-kh
-#%%
+
+
+# saving the results
+# since dict_image_to_label_all cannot be saved as mat file, I provided another dictionary with keys equal to image paths.
+
+dict_imagepath_to_label_all = {}
+for imID, value in dict_image_to_label_all.items():
+    impath = img_id_to_path_all [imID]
+    dict_imagepath_to_label_all [impath] = value
+    
+# save_name = save_path + 'dict_imagepath_to_label_all.mat'
+# scipy.io.savemat(save_name, dict_imagepath_to_label_all)
+
+# save_name = save_path + 'img_path_to_id_all.mat'
+# scipy.io.savemat(save_name, img_path_to_id_all)
+
+
+#%% steps 2 and 3
 
 def sort_object (input_dict, reverse):
     objects = list(input_dict.keys())
@@ -108,8 +128,8 @@ def sort_object (input_dict, reverse):
     values_sorted = [values[j] for j in sorted_ind]  
     return sorted_ind, objects_sorted,values_sorted 
 
-def plot_dist_cats (input_dict, save_name, title):
-    sorted_ind, objects_sorted,values_sorted = sort_object (input_dict)
+def plot_dist_cats (input_dict, save_name, title, f):
+    sorted_ind, objects_sorted,values_sorted = sort_object (input_dict, reverse = True)
     fig, ax = plt.subplots(figsize = (16,16))
     ax.barh(objects_sorted, values_sorted)   
     # Remove axes splines
@@ -138,7 +158,7 @@ def plot_dist_cats (input_dict, save_name, title):
     ax.set_title(title,
                  loc ='center', )
     if save_name:
-        plt.savefig(save_name, format='pdf')
+        plt.savefig(save_name, format=f)
         
 
 def detec_nouns (input_words):
@@ -182,15 +202,15 @@ def find_dict_image_to_nouns (dict_image_to_captions):
         dict_image_to_nouns [key_imID] = nounslist
     return dict_image_to_nouns
 
-def find_dict_image_to_names (dict_image_to_nouns, dict_nouns_to_names):
+def find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name):
     dict_image_to_names = {}
-    for key_imID, values in dict_image_to_nouns.items():
+    for key_imID, caps_nouns in dict_image_to_nouns.items():
         values_new = []
-        for nounlist in values:
+        for cap_nouns in caps_nouns:
             namelist = []
-            for n in nounlist:
-                if n in dict_nouns_to_names:
-                    namelist.append(dict_nouns_to_names[n])
+            for n in cap_nouns:
+                if n in dict_noun_to_name:
+                    namelist.append(dict_noun_to_name[n])
             values_new.append(namelist)
         dict_image_to_names[key_imID] = values_new
     return dict_image_to_names
@@ -209,23 +229,42 @@ data_val = read_captions_from_json(split)
 # for train + val
 data = data_train + data_val
 dict_image_to_captions = find_dict_image_to_captions (data)
+
+# saving the results
+save_name = save_path + 'dict_imagepath_to_captions.mat'
+
+dict_imagepath_to_captions = {}
+for imID, value in dict_image_to_captions.items():
+    impath = img_id_to_path_all [imID]
+    dict_imagepath_to_captions [impath] = value
+    
+#scipy.io.savemat(save_name, dict_imagepath_to_captions)
+                 
 #%% step 3
 
 dict_image_to_nouns = find_dict_image_to_nouns (dict_image_to_captions)
 
+# saving the results
+save_name = save_path + 'dict_imagepath_to_nouns.mat'
+
+dict_imagepath_to_nouns = {}
+for imID, value in dict_image_to_nouns.items():
+    impath = img_id_to_path_all [imID]
+    dict_imagepath_to_nouns [impath] = value
+    
+#scipy.io.savemat(save_name, dict_imagepath_to_nouns)
+
 #%% automatically getting names using a threshold
 #%% 
-mydict = {}
 
-
-unique_nouns = {}
+dict_unique_nouns = {}
 for key_imId, value_caplists in dict_image_to_nouns.items():
     for cap in value_caplists:
-        for n in cap:
-            if n not in unique_nouns:
-                unique_nouns[n] = 1
+        for noun in cap:
+            if noun not in dict_unique_nouns:
+                dict_unique_nouns[noun] = 1
             else:
-                unique_nouns[n] += 1
+                dict_unique_nouns[noun] += 1
             # if n=='.jpg':
             #     print(cap)
             #     print(dict_image_to_captions[key_imId])
@@ -233,70 +272,115 @@ for key_imId, value_caplists in dict_image_to_nouns.items():
 
 
 
-sorted_ind, unique_nouns_sorted, unique_nouns_counts_sorted  = sort_object (unique_nouns, reverse = True)
-n = 4743 # manually selecting only nouns that are repeated at least 10 times and more
-sorted_ind, unique_nouns_sorted, unique_nouns_counts_sorted  = sorted_ind [0:4743], unique_nouns_sorted[0:4743], unique_nouns_counts_sorted [0:4743]
+sorted_ind, unique_nouns_sorted, unique_nouns_counts_sorted  = sort_object (dict_unique_nouns, reverse = True)
+m = 4743 # manually selecting only nouns that are repeated at least 10 times and more
+sorted_ind, unique_nouns_sorted, unique_nouns_counts_sorted  = sorted_ind [0:m], unique_nouns_sorted[0:m], unique_nouns_counts_sorted [0:m]
 
-unique_nouns_frequent = {}
+dict_unique_nouns_freq10 = {}
 for counter, n in enumerate(unique_nouns_sorted):
-    unique_nouns_frequent[n] = unique_nouns_counts_sorted [counter]
-
-mydict = {}
-for noun, count_noun in unique_nouns_frequent.items():
+    dict_unique_nouns_freq10[n] = unique_nouns_counts_sorted [counter]
+   
+# plotting distribution of 100 frequent nouns
+# m = 100
+# sorted_ind, unique_nouns_sorted, unique_nouns_counts_sorted  = sorted_ind [0:m], unique_nouns_sorted[0:m], unique_nouns_counts_sorted [0:m]
+# dict_unique_nouns_100 = {}
+# for counter, n in enumerate(unique_nouns_sorted):
+#     dict_unique_nouns_100[n] = unique_nouns_counts_sorted [counter]
+    
+# save_name = save_path + 'dist_nouns_100.pdf'
+# title = 'distribution of 100 most frequent nouns '
+# plot_dist_cats (dict_unique_nouns_100, save_name, title)
+kh
+#%% manually selecting proper names
+threshold = 0.5
+dict_names_to_nouns = {}
+dict_names_to_nouns_simple = {}
+dict_names_to_nouns_counts = {}
+error_nouns = [] # only 42 among 4737 most frequent nouns
+for noun, count_noun in dict_unique_nouns_freq10.items():
     try:
         sims = [model.similarity (noun, label) for label in catnames_list]
         sim_max = np.max (sims)
-        if sim_max >= 0.5:
+        if sim_max >= threshold:
             ind = np.argmax(sims)
             label_max = catnames_list [ind]
-            if label_max not in mydict:
-                mydict[label_max] = {}
-                mydict[label_max][noun] = {}
-                mydict[label_max][noun]['sim'] = sim_max
-                mydict[label_max][noun]['count'] = count_noun
+            if label_max not in dict_names_to_nouns:
+                dict_names_to_nouns[label_max] = {}
+                dict_names_to_nouns[label_max][noun] = {}
+                dict_names_to_nouns[label_max][noun]['sim'] = sim_max
+                dict_names_to_nouns[label_max][noun]['count'] = count_noun
+                dict_names_to_nouns_simple [label_max] = []
+                dict_names_to_nouns_simple [label_max].append(noun)
+                dict_names_to_nouns_counts [label_max] = count_noun
             else:
-                mydict[label_max][noun] = {}
-                mydict[label_max][noun]['sim'] = sim_max
-                mydict[label_max][noun]['count'] = count_noun
+                dict_names_to_nouns[label_max][noun] = {}
+                dict_names_to_nouns[label_max][noun]['sim'] = sim_max
+                dict_names_to_nouns[label_max][noun]['count'] = count_noun
+                dict_names_to_nouns_simple [label_max].append(noun)
+                dict_names_to_nouns_counts [label_max] += count_noun
     except:
         print( 'the noun ' + noun + ' is not present ')
+        error_nouns.append(noun)
+
+dict_names_to_nouns_counts_sorted = sorted(dict_names_to_nouns_counts.items(), key=lambda x:x[1], reverse=False) 
+             
+dict_names_counts = {}
+dict_names_sims = {}
+dict_names_variety = {}
+for key_label, value in dict_names_to_nouns.items():
+    for key_name, info_name in value.items():
+        if key_label not in dict_names_counts:
+            dict_names_counts [key_label] = info_name ['count']
+            dict_names_sims [key_label] = []
+            dict_names_sims [key_label].append(info_name ['sim'])
+            dict_names_variety[key_label] = 1
+        else:
+            dict_names_counts [key_label] += info_name ['count']
+            dict_names_sims [key_label].append(info_name ['sim'])
+            dict_names_variety[key_label] += 1
             
-    
-    
-# p = '/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/names/names_all_nouns_0.5.mat'
-# import scipy
-# mfile = scipy.io.loadmat(p)
-# a = sorted(mfile.keys())[3:]
-# mydict = {}
-# for key in a:
-#     mydict[key] = mfile[key]
+#Plotting the distribution of names
+save_name = save_path + 'dist_names_09.png'
+title = 'distribution of all name counts '
+f = 'png'
+plot_dist_cats (dict_names_counts, save_name, title, f)
 
+save_name = save_path + 'dist_names_variabilty_09.png'
+title = 'distribution of all name variabilities '
+f = 'png'
+plot_dist_cats (dict_names_variety, save_name, title, f)
 
-#%% manually selecting proper names
+#%% both methods are same, the second one is more general
 
+# dict_noun_to_name = {}
 
-for key_label, valuelist in mydict.items():
-    sim = [model.similarity(str(name.strip()), key_label) for name in valuelist]
-
-#%%    
-dict_nouns_to_names = {}
-for key, nounlist in mydict.items():
-    for noun in nounlist:
-        print (noun)
-        n = str(noun)
-        n_key = n.strip()
-        dict_nouns_to_names[n_key] = key
-
+# for key_name, noun_list in dict_names_to_nouns.items():
+#     for n in noun_list:
+#         if n not in dict_noun_to_name:
+#             dict_noun_to_name [n] = key_name
+            
+dict_noun_to_name = {}            
+for noun, count_noun in dict_unique_nouns_freq10.items():            
+    try:
+        sims = [model.similarity (noun, label) for label in catnames_list]
+        sim_max = np.max (sims)
+        if sim_max >= threshold:
+            ind = np.argmax(sims)
+            label_max = catnames_list [ind]
+            dict_noun_to_name [noun] = label_max
+    except:
+        print( 'the noun ' + noun + ' is not present ')
+        error_nouns.append(noun)
 #%%
 
-dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_nouns_to_names)
+dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name)
 
 #%%
 counts_namings_labelsID = {}
 for key_imID, value_namelists in dict_image_to_names.items():
     labelIDs = dict_image_to_label_all[key_imID]
     namings_5caps = dict_image_to_names [key_imID]
-    count = 0
+    
     
     for labelID in labelIDs:
         
@@ -308,7 +392,7 @@ for key_imID, value_namelists in dict_image_to_names.items():
         for namings_eachcap in namings_5caps:
             if label in namings_eachcap:
                 count += 1
-        
+        #print (count)
         counts_namings_labelsID [labelID].append(count)
 
 
@@ -317,12 +401,48 @@ for labelID , value in counts_namings_labelsID.items():
     newKey = cats_id_to_name [labelID]
     frequency_namings_labels [newKey] = round (np.mean(value),2)
     
+kh
+#%%
+    
+save_name = save_path + 'frequency_labels_09.png'
+title = 'average number of naming events for each label'
+f = 'png'
+plot_dist_cats (frequency_namings_labels, save_name, title, f)
+
+#%%
+number_of_images_per_label = {}
+
+for key_naming, value in frequency_namings_labels.items():
+    number_of_images_per_label [key_naming] =  dict_names_counts [key_naming] / value
         
 #%%
+    
+save_name = save_path + 'image_numbers_needed_09.png'
+title = 'average number of images for each naming event'
+f = 'png'
+plot_dist_cats (number_of_images_per_label, save_name, title, f)
+
+#%%
+from nltk.corpus import wordnet as wn
+
+test =  wn.synsets('apple')
+print(test)
+
+print(wn.synset('apple.n.02').definition())
 
 
 
-        
-save_name = '/worktmp2/hxkhkh/current/FaST/plots/vf/distributions/frequency_labels.pdf'
-title = 'average number of naming events for each label'
-plot_dist_cats (frequency_namings_labels, save_name, title)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
