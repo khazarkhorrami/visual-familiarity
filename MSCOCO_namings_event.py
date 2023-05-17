@@ -354,6 +354,32 @@ title = 'distribution of all name variabilities '
 f = 'png'
 plot_dist_cats (dict_names_variety, save_name, title, f)
 
+
+#%% both methods are same, the second one is more general
+
+dict_noun_to_name = {}
+
+for key_name, noun_list in dict_names_to_nouns.items():
+    for n in noun_list:
+        if n not in dict_noun_to_name:
+            dict_noun_to_name [n] = key_name
+           
+dict_noun_to_name = {}            
+for noun, count_noun in dict_unique_nouns_freq10.items():            
+    try:
+        sims = [model.similarity (noun, label) for label in catnames_list]
+        sim_max = np.max (sims)
+        if sim_max >= threshold:
+            ind = np.argmax(sims)
+            label_max = catnames_list [ind]
+            dict_noun_to_name [noun] = label_max
+    except:
+        print( 'the noun ' + noun + ' is not present ')
+        error_nouns.append(noun)
+
+
+dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name)
+
 #%%
 
 dict_frequent_words = {}
@@ -376,7 +402,9 @@ for tuple_word_count in frequent_counts_sorted:
     words_count_sorted.append(tuple_word_count[1])
     words_sorted.append(dict_frequent_words[tuple_word_count[0]])
 
-#%% real word statistic for namings frequencies ( # / hour)
+#%% 
+
+#######    real word statistic for namings frequencies ( # / hour)    ########
 
 from scipy.io import loadmat
 file_name = save_path + 'rws_counts_sorted.mat'
@@ -390,7 +418,9 @@ for item in rws_data:
 
 phi = rws_data_short
 
-#%%
+#%% 
+
+#######        simulatin the language experinece       ########
 
 simulation_days = 60 # days
 minutes_per_day = 56.1
@@ -398,91 +428,74 @@ beta = 0.5 # co-occurrence factor
 
 total_time = (1/60) * simulation_days * minutes_per_day # hours
 total_co_occurrence = beta * phi * total_time 
+total_co_occurrence_rounded = np.ceil(total_co_occurrence)
 
 # this is comparable with "labels_sorted" and "words_sorted"
 # We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
 # In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
 
-# continue from here
-#%% both methods are same, the second one is more general
 
-# dict_noun_to_name = {}
+#%% selection of image-caption pairs
+# n image_caption pairs from "total_co_occurrence_rounded" containing caption of words_sorted paired with image label in labels_sorted
+# example: n = 89 pairs with word = "man" and image label = "person"
 
-# for key_name, noun_list in dict_names_to_nouns.items():
-#     for n in noun_list:
-#         if n not in dict_noun_to_name:
-#             dict_noun_to_name [n] = key_name
-kh            
-dict_noun_to_name = {}            
-for noun, count_noun in dict_unique_nouns_freq10.items():            
-    try:
-        sims = [model.similarity (noun, label) for label in catnames_list]
-        sim_max = np.max (sims)
-        if sim_max >= threshold:
-            ind = np.argmax(sims)
-            label_max = catnames_list [ind]
-            dict_noun_to_name [noun] = label_max
-    except:
-        print( 'the noun ' + noun + ' is not present ')
-        error_nouns.append(noun)
-#%%
+# we need 1 ) cats_name_to_id 2) dict_image_to_label_all ans 3 ) dict_image_to_names/dict_image_to_captions
 
-dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name)
-
-#%%
-counts_namings_labelsID = {}
-for key_imID, value_namelists in dict_image_to_names.items():
-    labelIDs = dict_image_to_label_all[key_imID]
-    namings_5caps = dict_image_to_names [key_imID]
+all_pairs = []
+all_possible_pairs = []
+for counter, n in enumerate(total_co_occurrence_rounded):
+    pairs_list = []
+    label = labels_sorted [counter]
+    word = words_sorted[counter]    
+    label_id = cats_name_to_id [label]
     
-    
-    for labelID in labelIDs:
+    for image_id, list_of_image_labels in dict_image_to_label_all.items():
+        if label_id in list_of_image_labels:
+            search_captions = dict_image_to_captions [image_id]
+            for cap in search_captions:
+                if word in cap:
+                    pair = (image_id, cap)
+                    pairs_list.append(pair)
+                        
+    all_pairs.append(pairs_list) 
+    all_possible_pairs.append(len(pairs_list))              
         
-        label = cats_id_to_name [labelID]
-        if labelID not in counts_namings_labelsID:
-            counts_namings_labelsID [labelID] = []
+
+#%%
+
+# #%%
+# counts_namings_labelsID = {}
+# for key_imID, value_namelists in dict_image_to_names.items():
+#     labelIDs = dict_image_to_label_all[key_imID]
+#     namings_5caps = dict_image_to_names [key_imID]
+    
+    
+#     for labelID in labelIDs:
+        
+#         label = cats_id_to_name [labelID]
+#         if labelID not in counts_namings_labelsID:
+#             counts_namings_labelsID [labelID] = []
             
-        count = 0    
-        for namings_eachcap in namings_5caps:
-            if label in namings_eachcap:
-                count += 1
-        #print (count)
-        counts_namings_labelsID [labelID].append(count)
+#         count = 0    
+#         for namings_eachcap in namings_5caps:
+#             if label in namings_eachcap:
+#                 count += 1
+#         #print (count)
+#         counts_namings_labelsID [labelID].append(count)
 
 
-frequency_namings_labels = {}        
-for labelID , value in counts_namings_labelsID.items():
-    newKey = cats_id_to_name [labelID]
-    frequency_namings_labels [newKey] = round (np.mean(value),2)
+# frequency_namings_labels = {}        
+# for labelID , value in counts_namings_labelsID.items():
+#     newKey = cats_id_to_name [labelID]
+#     frequency_namings_labels [newKey] = round (np.mean(value),2)
     
-kh
-#%%
-    
-save_name = save_path + 'frequency_labels_09.png'
-title = 'average number of naming events for each label'
-f = 'png'
-plot_dist_cats (frequency_namings_labels, save_name, title, f)
+# #%%
+# from nltk.corpus import wordnet as wn
 
-#%%
-number_of_images_per_label = {}
+# test =  wn.synsets('apple')
+# print(test)
 
-for key_naming, value in frequency_namings_labels.items():
-    number_of_images_per_label [key_naming] =  dict_names_counts [key_naming] / value
-        
-#%%
-    
-save_name = save_path + 'image_numbers_needed_09.png'
-title = 'average number of images for each naming event'
-f = 'png'
-plot_dist_cats (number_of_images_per_label, save_name, title, f)
-
-#%%
-from nltk.corpus import wordnet as wn
-
-test =  wn.synsets('apple')
-print(test)
-
-print(wn.synset('apple.n.02').definition())
+# print(wn.synset('apple.n.02').definition())
 
 
 
