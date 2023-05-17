@@ -6,6 +6,7 @@ import cv2
 from matplotlib import pyplot as plt
 import nltk
 import numpy as np
+import copy
 
 from gensim.models import KeyedVectors
 
@@ -401,6 +402,35 @@ for tuple_word_count in frequent_counts_sorted:
     labels_sorted.append(tuple_word_count[0])
     words_count_sorted.append(tuple_word_count[1])
     words_sorted.append(dict_frequent_words[tuple_word_count[0]])
+    
+label_word_sorted = []
+for counter, l in enumerate(labels_sorted):
+    lw_pair = (l, words_sorted[counter])
+    label_word_sorted.append(lw_pair)
+    
+#%%
+
+# manually filtering words
+label_word_sorted_filtered = copy.deepcopy(label_word_sorted)
+
+label_word_sorted_filtered [6] = ('baseball', 'baseball bat')
+label_word_sorted_filtered [7] = ('toilet','toilet')
+label_word_sorted_filtered [9] = ('refrigerator','refrigerator' )
+label_word_sorted_filtered [18] = ('laptop', 'laptop')
+label_word_sorted_filtered [26] = ('parking', 'parking meter')
+label_word_sorted_filtered [34] = ( 'wineglass', 'wine glass')
+label_word_sorted_filtered [36] = ('traffic', 'traffic light')
+label_word_sorted_filtered [44] = ('broccoli','broccoli')
+label_word_sorted_filtered [50] = ('suitcase', 'suitcase')
+label_word_sorted_filtered [51] = ('bottle', 'bottle')
+label_word_sorted_filtered [54] = ('apple', 'apple')
+label_word_sorted_filtered [57] =  ('stop', 'stop sign')
+label_word_sorted_filtered [58] = ('oven', 'oven')
+label_word_sorted_filtered [61] = ('spoon', 'spoon')
+label_word_sorted_filtered [65] = ('backpack', 'backpack')
+label_word_sorted_filtered [75] = ('glove', 'baseball glove')
+label_word_sorted_filtered [76] = ('handbag', 'handbag')
+label_word_sorted_filtered [79] = ('hairdryer', 'hair dryer') 
 
 #%% 
 
@@ -419,12 +449,15 @@ for item in rws_data:
 phi = rws_data_short
 
 #%% 
+# also twice this size or 4 times this size
 
+# 2 months to 4 months of simulation with 2 months for the smallest set that goes to 4 mnths 8-12 months (or going to 6 months and see when the learning starts to happen)
+# we cannot compare with wordbank data since is only meal time now but we can see if increasing that leads to more word learning
 #######        simulatin the language experinece       ########
 
-simulation_days = 60 # days
+simulation_days = 120 # days
 minutes_per_day = 56.1
-beta = 0.5 # co-occurrence factor
+beta = 1 # co-occurrence factor
 
 total_time = (1/60) * simulation_days * minutes_per_day # hours
 total_co_occurrence = beta * phi * total_time 
@@ -443,10 +476,10 @@ total_co_occurrence_rounded = np.ceil(total_co_occurrence)
 
 all_pairs = []
 all_possible_pairs = []
-for counter, n in enumerate(total_co_occurrence_rounded):
+for counter, value in enumerate(label_word_sorted_filtered):
     pairs_list = []
-    label = labels_sorted [counter]
-    word = words_sorted[counter]    
+    label = value [0]
+    word = value [1] 
     label_id = cats_name_to_id [label]
     
     for image_id, list_of_image_labels in dict_image_to_label_all.items():
