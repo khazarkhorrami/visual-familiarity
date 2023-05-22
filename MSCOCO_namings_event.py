@@ -114,8 +114,6 @@ for imID, value in dict_image_to_label_all.items():
 
 # save_name = save_path + 'img_path_to_id_all.mat'
 # scipy.io.savemat(save_name, img_path_to_id_all)
-
-
 #%% steps 2 and 3
 
 def sort_object (input_dict, reverse):
@@ -358,28 +356,28 @@ plot_dist_cats (dict_names_variety, save_name, title, f)
 
 #%% both methods are same, the second one is more general
 
-dict_noun_to_name = {}
+# dict_noun_to_name = {}
 
-for key_name, noun_list in dict_names_to_nouns.items():
-    for n in noun_list:
-        if n not in dict_noun_to_name:
-            dict_noun_to_name [n] = key_name
+# for key_name, noun_list in dict_names_to_nouns.items():
+#     for n in noun_list:
+#         if n not in dict_noun_to_name:
+#             dict_noun_to_name [n] = key_name
            
-dict_noun_to_name = {}            
-for noun, count_noun in dict_unique_nouns_freq10.items():            
-    try:
-        sims = [model.similarity (noun, label) for label in catnames_list]
-        sim_max = np.max (sims)
-        if sim_max >= threshold:
-            ind = np.argmax(sims)
-            label_max = catnames_list [ind]
-            dict_noun_to_name [noun] = label_max
-    except:
-        print( 'the noun ' + noun + ' is not present ')
-        error_nouns.append(noun)
+# dict_noun_to_name = {}            
+# for noun, count_noun in dict_unique_nouns_freq10.items():            
+#     try:
+#         sims = [model.similarity (noun, label) for label in catnames_list]
+#         sim_max = np.max (sims)
+#         if sim_max >= threshold:
+#             ind = np.argmax(sims)
+#             label_max = catnames_list [ind]
+#             dict_noun_to_name [noun] = label_max
+#     except:
+#         print( 'the noun ' + noun + ' is not present ')
+#         error_nouns.append(noun)
 
 
-dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name)
+# dict_image_to_names = find_dict_image_to_names (dict_image_to_nouns, dict_noun_to_name)
 
 #%%
 
@@ -411,26 +409,26 @@ for counter, l in enumerate(labels_sorted):
 #%%
 
 # manually filtering words
-label_word_sorted_filtered = copy.deepcopy(label_word_sorted)
+label_word_filtered = copy.deepcopy(label_word_sorted)
 
-label_word_sorted_filtered [6] = ('baseball', 'baseball bat')
-label_word_sorted_filtered [7] = ('toilet','toilet')
-label_word_sorted_filtered [9] = ('refrigerator','refrigerator' )
-label_word_sorted_filtered [18] = ('laptop', 'laptop')
-label_word_sorted_filtered [26] = ('parking', 'parking meter')
-label_word_sorted_filtered [34] = ( 'wineglass', 'wine glass')
-label_word_sorted_filtered [36] = ('traffic', 'traffic light')
-label_word_sorted_filtered [44] = ('broccoli','broccoli')
-label_word_sorted_filtered [50] = ('suitcase', 'suitcase')
-label_word_sorted_filtered [51] = ('bottle', 'bottle')
-label_word_sorted_filtered [54] = ('apple', 'apple')
-label_word_sorted_filtered [57] =  ('stop', 'stop sign')
-label_word_sorted_filtered [58] = ('oven', 'oven')
-label_word_sorted_filtered [61] = ('spoon', 'spoon')
-label_word_sorted_filtered [65] = ('backpack', 'backpack')
-label_word_sorted_filtered [75] = ('glove', 'baseball glove')
-label_word_sorted_filtered [76] = ('handbag', 'handbag')
-label_word_sorted_filtered [79] = ('hairdryer', 'hair dryer') 
+label_word_filtered [6] = ('baseball', 'baseball bat')
+label_word_filtered [7] = ('toilet','toilet')
+label_word_filtered [9] = ('refrigerator','refrigerator' )
+label_word_filtered [18] = ('laptop', 'laptop')
+label_word_filtered [26] = ('parking', 'parking meter')
+label_word_filtered [34] = ( 'wineglass', 'wine glass')
+label_word_filtered [36] = ('traffic', 'traffic light')
+label_word_filtered [44] = ('broccoli','broccoli')
+label_word_filtered [50] = ('suitcase', 'suitcase')
+label_word_filtered [51] = ('bottle', 'bottle')
+label_word_filtered [54] = ('apple', 'apple')
+label_word_filtered [57] =  ('stop', 'stop sign')
+label_word_filtered [58] = ('oven', 'oven')
+label_word_filtered [61] = ('spoon', 'spoon')
+label_word_filtered [65] = ('backpack', 'backpack')
+label_word_filtered [75] = ('glove', 'baseball glove')
+label_word_filtered [76] = ('handbag', 'handbag')
+label_word_filtered [79] = ('hairdryer', 'hair dryer') 
 
 #%% 
 
@@ -455,13 +453,15 @@ phi = rws_data_short
 # we cannot compare with wordbank data since is only meal time now but we can see if increasing that leads to more word learning
 #######        simulatin the language experinece       ########
 
-simulation_days = 120 # days
+simulation_days = 240 # days
 minutes_per_day = 56.1
 beta = 1 # co-occurrence factor
 
 total_time = (1/60) * simulation_days * minutes_per_day # hours
-total_co_occurrence = beta * phi * total_time 
-total_co_occurrence_rounded = np.ceil(total_co_occurrence)
+total_time_co_occurrence = beta * total_time 
+
+total_co_occurrence = total_time_co_occurrence * phi 
+total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
 
 # this is comparable with "labels_sorted" and "words_sorted"
 # We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
@@ -474,29 +474,113 @@ total_co_occurrence_rounded = np.ceil(total_co_occurrence)
 
 # we need 1 ) cats_name_to_id 2) dict_image_to_label_all ans 3 ) dict_image_to_names/dict_image_to_captions
 
-all_pairs = []
 all_possible_pairs = []
-for counter, value in enumerate(label_word_sorted_filtered):
+all_possible_pairs_counts = []
+for counter, value in enumerate(label_word_filtered):
     pairs_list = []
     label = value [0]
-    word = value [1] 
+    word = ' ' + value [1] + ' ' 
     label_id = cats_name_to_id [label]
     
     for image_id, list_of_image_labels in dict_image_to_label_all.items():
         if label_id in list_of_image_labels:
             search_captions = dict_image_to_captions [image_id]
             for cap in search_captions:
-                if word in cap:
+                #print('---' + cap + '---')
+                cap_modified = cap
+                if cap[-1] == '.' :
+                    cap_modified = cap[0:-1]
+                if cap[-2:] == '. ':
+                    cap_modified = cap[0:-2]
+                cap_modified = ' ' + cap_modified + ' '
+                #print('#' + cap_modified + '#')
+                if word in cap_modified:
                     pair = (image_id, cap)
                     pairs_list.append(pair)
                         
-    all_pairs.append(pairs_list) 
-    all_possible_pairs.append(len(pairs_list))              
+    all_possible_pairs.append(pairs_list) 
+    all_possible_pairs_counts.append(len(pairs_list))              
         
 
+#%% sorting based on all possible pairs
+
+all_pairs_counts_sorted = np.sort(all_possible_pairs_counts)[::-1]
+ind_sorted = np.argsort(all_possible_pairs_counts)[::-1]
+all_pairs_sorted = [all_possible_pairs[i] for i in ind_sorted]
+label_word_final = [label_word_filtered[i] for i in ind_sorted]
+
+    
+#%% 
+from sklearn.utils import shuffle
+
+     
+pool_all_organized = []
+pool_all_organized_selection = []
+pool_all = {}
+
+for ind, pool_lw in enumerate(all_pairs_sorted):
+    pool_shufled = shuffle(pool_lw, random_state=0)
+    selection = pool_shufled [0:total_co_occurrence_rounded [ind]]
+    pool_all_organized.append(pool_shufled)
+    pool_all_organized_selection.append(selection)
+    for item in pool_shufled:
+        if item not in pool_all:
+            pool_all[item] = []
+            pool_all[item].append(ind)
+        else:
+            pool_all[item].append(ind)
+
+pool_all_unique = {}      
+for key, value in pool_all.items():
+    if len(value) <= 1:
+        pool_all_unique[key] = value
+
+    
+#pool_all_shuffled = shuffle(pool_all, random_state=0)
+
+# max_iter =   sum (total_co_occurrence_rounded) # 11641
+
+pool_all_descending = pool_all_organized_selection [::-1]
+
+#%%
+dict_frequencies = {}
+for ind, f in enumerate(total_co_occurrence_rounded):
+    dict_frequencies [ind] = f
+    
+selected_pairs = {}
+for candidate_pair , value_ind_list in pool_all_unique.items(): 
+    ind = value_ind_list[0]
+    freq = dict_frequencies[ind] 
+    if ind not in selected_pairs:
+        selected_pairs[ind] = []
+        selected_pairs[ind].append(candidate_pair)
+    elif len (selected_pairs[ind]) < freq:
+        selected_pairs[ind].append(candidate_pair)
+        
 #%%
 
-# #%%
+test = selected_pairs[79]
+word = ' '+ 'phone' + ' '
+for i_tuple in test:
+    cap = i_tuple[1]
+    print(cap)
+        
+    # for ind_original, frequency_original in enumerate(total_co_occurrence_rounded): 
+    #     # current_pool = all_pairs_sorted [ind_original]
+    #     current_pool = pool_all_organized [ind_original]
+    #     if candidate_pair in current_pool:
+    #         # if candidate appears in ind_original pairs
+    #         # it must be added to selected_pairs [ind_original]
+            
+    #         if ind_original not in selected_pairs: 
+    #             selected_pairs [ind_original] = []
+    #             selected_pairs [ind_original].append(candidate_pair)
+                       
+    #         else:# len(selected_pairs [ind_original]) < dict_frequencies [ind_original]:
+    #             selected_pairs[ind_original].append(candidate_pair)
+          
+           
+#%%
 # counts_namings_labelsID = {}
 # for key_imID, value_namelists in dict_image_to_names.items():
 #     labelIDs = dict_image_to_label_all[key_imID]
