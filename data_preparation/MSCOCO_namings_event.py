@@ -95,7 +95,7 @@ dict_image_to_label_val, img_id_to_path_val, img_path_to_id_val = find_dict_imag
 
 # merging train and val
 
-dict_image_to_label_all = {**dict_image_to_label_train, **dict_image_to_label_val}
+dict_image_to_label_all = dict_image_to_label_train #{**dict_image_to_label_train, **dict_image_to_label_val}
   
 img_id_to_path_all = {**img_id_to_path_train , **img_id_to_path_val}
 img_path_to_id_all = {**img_path_to_id_train , **img_path_to_id_val}
@@ -226,7 +226,7 @@ data_val = read_captions_from_json(split)
 # dict_image_to_nouns_val = find_dict_image_to_nouns (dict_image_to_captions_val)
 
 # for train + val
-data = data_train + data_val
+data = data_train #+ data_val
 dict_image_to_captions = find_dict_image_to_captions (data)
 
 # saving the results
@@ -427,8 +427,61 @@ label_word_filtered [58] = ('oven', 'oven')
 label_word_filtered [61] = ('spoon', 'spoon')
 label_word_filtered [65] = ('backpack', 'backpack')
 label_word_filtered [75] = ('glove', 'baseball glove')
-label_word_filtered [76] = ('handbag', 'handbag')
+label_word_filtered [76] = ('handbag', 'purse') # this should be changed to handbag later
 label_word_filtered [79] = ('hairdryer', 'hair dryer') 
+
+
+
+#%% selection of image-caption pairs
+# n image_caption pairs from "total_co_occurrence_rounded" containing caption of words_sorted paired with image label in labels_sorted
+# example: n = 89 pairs with word = "man" and image label = "person"
+
+# we need 1 ) cats_name_to_id 2) dict_image_to_label_all ans 3 ) dict_image_to_names/dict_image_to_captions
+
+#%% some basic text cleaning to enable to detect the "word" is isolation
+def modify_caption (cap):
+    cap_modified = cap
+    if cap[-1] == '.' :
+        cap_modified = cap[0:-1]
+    if cap[-2:] == '. ':
+        cap_modified = cap[0:-2]
+    
+    cap_modified = ' ' + cap_modified + ' '
+    cap_modified = cap_modified.replace(',', '')
+    # print(cap)
+    # print(cap_modified)
+    return cap_modified
+
+cap = 'a man having a phone, bag and other stuff. '        
+cap_modified = modify_caption (cap) 
+
+#%%   
+all_possible_pairs = []
+all_possible_pairs_counts = []
+for counter, value in enumerate(label_word_filtered):
+    pairs_list = []
+    label = value [0]
+    word = ' ' + value [1] + ' ' 
+    label_id = cats_name_to_id [label]
+    
+    for image_id, list_of_image_labels in dict_image_to_label_all.items():
+        if label_id in list_of_image_labels:
+            search_captions = dict_image_to_captions [image_id]
+            for cap in search_captions:
+                cap_modified = modify_caption (cap) 
+                if word in cap_modified:
+                    pair = (image_id, cap)
+                    pairs_list.append(pair)
+                        
+    all_possible_pairs.append(pairs_list) 
+    all_possible_pairs_counts.append(len(pairs_list))              
+
+#%% sorting based on all possible pairs
+
+all_pairs_counts_sorted = np.sort(all_possible_pairs_counts)[::-1]
+ind_sorted = np.argsort(all_possible_pairs_counts)[::-1]
+all_pairs_sorted = [all_possible_pairs[i] for i in ind_sorted]
+label_word_final = [label_word_filtered[i] for i in ind_sorted]
 
 #%% 
 
@@ -453,9 +506,9 @@ phi = rws_data_short
 # we cannot compare with wordbank data since is only meal time now but we can see if increasing that leads to more word learning
 #######        simulatin the language experinece       ########
 
-simulation_days = 240 # days
+simulation_days = 120 # days
 minutes_per_day = 56.1
-beta = 1 # co-occurrence factor
+beta = 0.5 # co-occurrence factor
 
 total_time = (1/60) * simulation_days * minutes_per_day # hours
 total_time_co_occurrence = beta * total_time 
@@ -466,48 +519,6 @@ total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
 # this is comparable with "labels_sorted" and "words_sorted"
 # We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
 # In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
-
-
-#%% selection of image-caption pairs
-# n image_caption pairs from "total_co_occurrence_rounded" containing caption of words_sorted paired with image label in labels_sorted
-# example: n = 89 pairs with word = "man" and image label = "person"
-
-# we need 1 ) cats_name_to_id 2) dict_image_to_label_all ans 3 ) dict_image_to_names/dict_image_to_captions
-
-all_possible_pairs = []
-all_possible_pairs_counts = []
-for counter, value in enumerate(label_word_filtered):
-    pairs_list = []
-    label = value [0]
-    word = ' ' + value [1] + ' ' 
-    label_id = cats_name_to_id [label]
-    
-    for image_id, list_of_image_labels in dict_image_to_label_all.items():
-        if label_id in list_of_image_labels:
-            search_captions = dict_image_to_captions [image_id]
-            for cap in search_captions:
-                #print('---' + cap + '---')
-                cap_modified = cap
-                if cap[-1] == '.' :
-                    cap_modified = cap[0:-1]
-                if cap[-2:] == '. ':
-                    cap_modified = cap[0:-2]
-                cap_modified = ' ' + cap_modified + ' '
-                #print('#' + cap_modified + '#')
-                if word in cap_modified:
-                    pair = (image_id, cap)
-                    pairs_list.append(pair)
-                        
-    all_possible_pairs.append(pairs_list) 
-    all_possible_pairs_counts.append(len(pairs_list))              
-        
-
-#%% sorting based on all possible pairs
-
-all_pairs_counts_sorted = np.sort(all_possible_pairs_counts)[::-1]
-ind_sorted = np.argsort(all_possible_pairs_counts)[::-1]
-all_pairs_sorted = [all_possible_pairs[i] for i in ind_sorted]
-label_word_final = [label_word_filtered[i] for i in ind_sorted]
 
     
 #%% 
@@ -548,71 +559,63 @@ for ind, f in enumerate(total_co_occurrence_rounded):
     dict_frequencies [ind] = f
     
 selected_pairs = {}
+selected_pairs_all = [] # 11586
 for candidate_pair , value_ind_list in pool_all_unique.items(): 
     ind = value_ind_list[0]
     freq = dict_frequencies[ind] 
     if ind not in selected_pairs:
         selected_pairs[ind] = []
         selected_pairs[ind].append(candidate_pair)
+        selected_pairs_all.append(candidate_pair) 
     elif len (selected_pairs[ind]) < freq:
         selected_pairs[ind].append(candidate_pair)
-        
+        selected_pairs_all.append(candidate_pair) 
+       
 #%%
 
 test = selected_pairs[79]
 word = ' '+ 'phone' + ' '
 for i_tuple in test:
     cap = i_tuple[1]
-    print(cap)
+    if word in cap:
+        print(cap)
         
-    # for ind_original, frequency_original in enumerate(total_co_occurrence_rounded): 
-    #     # current_pool = all_pairs_sorted [ind_original]
-    #     current_pool = pool_all_organized [ind_original]
-    #     if candidate_pair in current_pool:
-    #         # if candidate appears in ind_original pairs
-    #         # it must be added to selected_pairs [ind_original]
-            
-    #         if ind_original not in selected_pairs: 
-    #             selected_pairs [ind_original] = []
-    #             selected_pairs [ind_original].append(candidate_pair)
-                       
-    #         else:# len(selected_pairs [ind_original]) < dict_frequencies [ind_original]:
-    #             selected_pairs[ind_original].append(candidate_pair)
-          
-           
+for key, list_i in selected_pairs.items():
+    if len(list_i) != dict_frequencies[key]:
+        print("there is a mismatch in " )
+        print(key)
+
 #%%
-# counts_namings_labelsID = {}
-# for key_imID, value_namelists in dict_image_to_names.items():
-#     labelIDs = dict_image_to_label_all[key_imID]
-#     namings_5caps = dict_image_to_names [key_imID]
-    
-    
-#     for labelID in labelIDs:
         
-#         label = cats_id_to_name [labelID]
-#         if labelID not in counts_namings_labelsID:
-#             counts_namings_labelsID [labelID] = []
-            
-#         count = 0    
-#         for namings_eachcap in namings_5caps:
-#             if label in namings_eachcap:
-#                 count += 1
-#         #print (count)
-#         counts_namings_labelsID [labelID].append(count)
+#unifying all selected pairs to include in train data
 
+data_subset = []    
+for data_pair in data:
+    imID = data_pair['image_id']
+    caption = data_pair['caption']
+    if (imID, caption) in selected_pairs_all:
+        data_subset.append(data_pair)
 
-# frequency_namings_labels = {}        
-# for labelID , value in counts_namings_labelsID.items():
-#     newKey = cats_id_to_name [labelID]
-#     frequency_namings_labels [newKey] = round (np.mean(value),2)
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp/MSCOCO/annotations/captions_train2014.json"
+with open(caption_json, 'r') as fp:
+    data_json = json.load(fp)
+data_annotations = data_json['annotations']
+data_json['annotations'] = data_subset
+# data_images = data_json['images']
+# data_json['images'] = []
+
+#%%
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/captions_train2014_subset1.json"
+with open(caption_json, "w") as fp:
+    json.dump(data_json,fp) 
     
-# #%%
-# from nltk.corpus import wordnet as wn
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/captions_train2014_subset1.json"
+with open(caption_json, 'r') as fp:
+    data_json_test = json.load(fp)
+#%%
 
-# test =  wn.synsets('apple')
-# print(test)
 
-# print(wn.synset('apple.n.02').definition())
+
 
 
 
