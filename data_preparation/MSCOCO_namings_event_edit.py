@@ -246,17 +246,53 @@ for noun, count_noun in dict_unique_nouns_freq10.items():
 for c in catnames_list:
     if c not in dict_names_to_nouns:
         print(c)
+        
 #%%
-kh
-dict_frequent_words = {}
-dict_frequent_words_counts = {}
+# This section asls user for selecting relevant words
 
-for label, dict_nouns in dict_names_to_nouns_counts.items():
-    list_sorted = sorted (dict_nouns.items(), key=lambda x:x[1], reverse=True)
-    frequent_noun_tuple = list_sorted[0]
-    dict_frequent_words[label] = frequent_noun_tuple [0]
-    dict_frequent_words_counts[label] = frequent_noun_tuple [1]
+# dict_words_sorted = {}
+# dict_words_selected = {}
+# dict_words_selected_counts = {}
+# for label, dict_nouns in dict_names_to_nouns_counts.items():
+#     list_sorted = sorted (dict_nouns.items(), key=lambda x:x[1], reverse=True)
+#     dict_words_sorted [label] = list_sorted
+#     words = []
+#     counts = 0
+#     print(list_sorted)
+#     print('###############')
+#     for item in list_sorted:
+#         val = input('Is "'+ item[0] + '" a word for label "' + label + '" ? (y/n)  ')
+#         if val == 'y':
+#             words.append(item[0])
+#             counts += item[1]
+#     dict_words_selected [label] = words 
+#     dict_words_selected_counts [label] = counts       
+
+
+#%% saving the results
+
+# caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected.json"
+# with open(caption_json, "w") as fp:
+#     json.dump(dict_words_selected,fp) 
+
+
+# caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected_counts.json"
+# with open(caption_json, "w") as fp:
+#     json.dump(dict_words_selected_counts,fp)
     
+        
+# with open(caption_json, 'r') as fp:
+#     data_json_test = json.load(fp)
+
+#%%
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected.json"
+with open(caption_json, 'r') as fp:
+    dict_words_selected = json.load(fp)
+
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected_counts.json"
+with open(caption_json, 'r') as fp:
+    dict_words_selected_counts = json.load(fp)
+
 frequent_counts_sorted = sorted (dict_frequent_words_counts.items(), key=lambda x:x[1], reverse=True)
 
 words_sorted = []
@@ -273,28 +309,19 @@ for counter, l in enumerate(labels_sorted):
 #%%
 
 # manually filtering words
-label_word_filtered = copy.deepcopy(label_word_sorted)
+label_word_filtered = copy.deepcopy(dict_words_selected)
 
-label_word_filtered [6] = ('baseball', 'baseball bat')
-label_word_filtered [7] = ('toilet','toilet')
-label_word_filtered [9] = ('refrigerator','refrigerator' )
-label_word_filtered [18] = ('laptop', 'laptop')
-label_word_filtered [26] = ('parking', 'parking meter')
-label_word_filtered [34] = ( 'wineglass', 'wine glass')
-label_word_filtered [36] = ('traffic', 'traffic light')
-label_word_filtered [44] = ('broccoli','broccoli')
-label_word_filtered [50] = ('suitcase', 'suitcase')
-label_word_filtered [51] = ('bottle', 'bottle')
-label_word_filtered [54] = ('apple', 'apple')
-label_word_filtered [57] =  ('stop', 'stop sign')
-label_word_filtered [58] = ('oven', 'oven')
-label_word_filtered [61] = ('spoon', 'spoon')
-label_word_filtered [65] = ('backpack', 'backpack')
-label_word_filtered [75] = ('glove', 'baseball glove')
-label_word_filtered [76] = ('handbag', 'purse') # this should be changed to handbag later
-label_word_filtered [79] = ('dryer', 'hair dryer') 
+label_word_filtered ['baseball'] = ['baseball bat']
+label_word_filtered ['parking'] = ['parking meter']
+label_word_filtered ['wineglass'] = ['wine glass']
+label_word_filtered ['traffic'] = ['traffic light']
+label_word_filtered ['stop'] =  ['stop sign']
+label_word_filtered ['glove'] = ['baseball glove', 'baseball gloves']
+label_word_filtered ['handbag'] = ['purse'] # this should be changed to handbag later
+label_word_filtered ['dryer'] = ['hair dryer']
 
-#%%   
+#%% 
+kh # next, change the algorithm so that instead of a single word, it reads from list of relevant words 
 all_possible_pairs = []
 all_possible_pairs_counts = []
 for counter, value in enumerate(label_word_filtered):
@@ -437,11 +464,11 @@ data_json['annotations'] = data_subset
 # data_json['images'] = []
 
 #%%
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/captions_train2014_subset4.json"
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/captions_train2014_subset4.json"
 with open(caption_json, "w") as fp:
     json.dump(data_json,fp) 
     
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/captions_train2014_subset4.json"
+caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/captions_train2014_subset4.json"
 with open(caption_json, 'r') as fp:
     data_json_test = json.load(fp)
 #%%
