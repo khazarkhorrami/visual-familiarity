@@ -77,7 +77,7 @@ def change_labels (cats_id_to_name):
     cats_id_to_name[67] = 'table' # 'dining table'
     cats_id_to_name[77] = 'cellphone' # 'cell phone'
     cats_id_to_name[88] = 'teddybear' # 'teddy bear'
-    cats_id_to_name[89] = 'hairdryer' # 'hair-drier'
+    cats_id_to_name[89] = 'dryer' # 'hair-drier'
     for counter, label in cats_id_to_name.items():
         #print(label) 
         all_labels.append(label)
