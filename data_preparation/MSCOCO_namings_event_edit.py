@@ -61,8 +61,8 @@ def find_image_path (imID, coco, dataType):
     return imPath
 
 def find_dict_image_to_label (coco, dataType, img_ids ):
-    img_id_to_path = {}
-    img_path_to_id = {}
+    dict_img_id_to_path = {}
+    dict_img_path_to_id = {}
     dict_image_to_label = {}
     
     for ind in range(len(img_ids)):
@@ -73,39 +73,31 @@ def find_dict_image_to_label (coco, dataType, img_ids ):
         dict_image_to_label [imID] = unique_objects_ids
         
         imPath = find_image_path (imID, coco, dataType)
-        img_id_to_path [imID] = imPath
-        img_path_to_id [imPath] = imID
-    return dict_image_to_label, img_id_to_path, img_path_to_id
+        dict_img_id_to_path [imID] = imPath
+        dict_img_path_to_id [imPath] = imID
+    return dict_image_to_label, dict_img_id_to_path, dict_img_path_to_id
 
 # For the train split
 
 coco = coco_train
 dataType = dataType_train
 img_ids = img_ids_train    
-dict_image_to_label_train, img_id_to_path_train, img_path_to_id_train = find_dict_image_to_label (coco, dataType,img_ids ) 
+dict_image_to_label_train, dict_img_id_to_path_train, dict_img_path_to_id_train = find_dict_image_to_label (coco, dataType,img_ids ) 
 
 # For the validation split
 
 coco = coco_val
 dataType = dataType_val
 img_ids = img_ids_val   
-dict_image_to_label_val, img_id_to_path_val, img_path_to_id_val = find_dict_image_to_label (coco, dataType,img_ids ) 
+dict_image_to_label_val, dict_img_id_to_path_val, dict_img_path_to_id_val = find_dict_image_to_label (coco, dataType,img_ids ) 
 
 # merging train and val
 
 dict_image_to_label_all = dict_image_to_label_train #{**dict_image_to_label_train, **dict_image_to_label_val}
   
-img_id_to_path_all = {**img_id_to_path_train , **img_id_to_path_val}
-img_path_to_id_all = {**img_path_to_id_train , **img_path_to_id_val}
+dict_img_id_to_path_all = {**dict_img_id_to_path_train , **dict_img_id_to_path_val}
+dict_img_path_to_id_all = {**dict_img_path_to_id_train , **dict_img_path_to_id_val}
 
-
-# saving the results
-# since dict_image_to_label_all cannot be saved as mat file, I provided another dictionary with keys equal to image paths.
-
-dict_imagepath_to_label_all = {}
-for imID, value in dict_image_to_label_all.items():
-    impath = img_id_to_path_all [imID]
-    dict_imagepath_to_label_all [impath] = value
     
 #%% steps 2 and 3
 
@@ -140,7 +132,7 @@ def find_dict_image_to_captions (data):
     for item in data:
         image = item ['image']
         cap = item['caption']['text']
-        image_id = img_path_to_id_all [image]
+        image_id = dict_img_path_to_id_all [image]
         if image_id not in dict_image_id_to_captions:
             dict_image_id_to_captions[image_id] = []
             dict_image_id_to_captions[image_id].append(cap)
@@ -284,7 +276,8 @@ for c in catnames_list:
 # with open(caption_json, 'r') as fp:
 #     data_json_test = json.load(fp)
 
-#%%
+#%% call data from saved files
+
 caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected.json"
 with open(caption_json, 'r') as fp:
     dict_words_selected = json.load(fp)
@@ -292,64 +285,74 @@ with open(caption_json, 'r') as fp:
 caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected_counts.json"
 with open(caption_json, 'r') as fp:
     dict_words_selected_counts = json.load(fp)
+   
+#%%
 
-frequent_counts_sorted = sorted (dict_frequent_words_counts.items(), key=lambda x:x[1], reverse=True)
+# manually filtering words
+dict_words_selected_filtered = copy.deepcopy(dict_words_selected)
+
+dict_words_selected_filtered ['baseball'] = ['baseball bat']
+dict_words_selected_filtered ['parking'] = ['parking meter']
+dict_words_selected_filtered ['wineglass'] = ['wine glass']
+dict_words_selected_filtered ['traffic'] = ['traffic light']
+dict_words_selected_filtered ['stop'] =  ['stop sign']
+dict_words_selected_filtered ['glove'] = ['baseball glove', 'baseball gloves']
+dict_words_selected_filtered ['handbag'] = ['purse'] # this should be changed to handbag later
+dict_words_selected_filtered ['dryer'] = ['hair dryer']
+
+#%%
+
+frequent_counts_sorted = sorted (dict_words_selected_counts.items(), key=lambda x:x[1], reverse=True)
 
 words_sorted = []
 labels_sorted = []
 for tuple_word_count in frequent_counts_sorted:   
     labels_sorted.append(tuple_word_count[0])
-    words_sorted.append(dict_frequent_words[tuple_word_count[0]])
+    words_sorted.append(dict_words_selected_filtered[tuple_word_count[0]])
     
 label_word_sorted = []
 for counter, l in enumerate(labels_sorted):
     lw_pair = (l, words_sorted[counter])
     label_word_sorted.append(lw_pair)
     
-#%%
-
-# manually filtering words
-label_word_filtered = copy.deepcopy(dict_words_selected)
-
-label_word_filtered ['baseball'] = ['baseball bat']
-label_word_filtered ['parking'] = ['parking meter']
-label_word_filtered ['wineglass'] = ['wine glass']
-label_word_filtered ['traffic'] = ['traffic light']
-label_word_filtered ['stop'] =  ['stop sign']
-label_word_filtered ['glove'] = ['baseball glove', 'baseball gloves']
-label_word_filtered ['handbag'] = ['purse'] # this should be changed to handbag later
-label_word_filtered ['dryer'] = ['hair dryer']
+# check "label_word_sorted" with Okko
 
 #%% 
-kh # next, change the algorithm so that instead of a single word, it reads from list of relevant words 
+ 
+     
 all_possible_pairs = []
 all_possible_pairs_counts = []
-for counter, value in enumerate(label_word_filtered):
+for counter, value in enumerate(label_word_sorted):
     pairs_list = []
     label = value [0]
-    word = ' ' + value [1] + ' ' 
-    word = word.upper()
-    label_id = cats_name_to_id [label]
-    
-    for image_id, list_of_image_labels in dict_image_to_label_all.items():
-        if label_id in list_of_image_labels:
-            search_captions = dict_image_id_to_captions [image_id]
-            for cap in search_captions:
-                if word in cap:
-                    pair = (image_id, cap)
-                    pairs_list.append(pair)
+    # list of words
+    words = value [1]
+    for word in words:
+        word = ' ' + word + ' ' 
+        word = word.upper()
+        label_id = cats_name_to_id [label]
+        
+        for image_id, list_of_image_labels in dict_image_to_label_all.items():
+            if label_id in list_of_image_labels:
+                search_captions = dict_image_id_to_captions [image_id]
+                for cap in search_captions:
+                    if word in cap:
+                        pair = (image_id, cap)
+                        pairs_list.append(pair)
                         
     all_possible_pairs.append(pairs_list) 
     all_possible_pairs_counts.append(len(pairs_list))              
 
-#%% sorting based on all possible pairs
+#%% sorting based on all possible pairs # The main sorting is happening here #
 
-all_pairs_counts_sorted = np.sort(all_possible_pairs_counts)[::-1]
+all_possible_pairs_counts_sorted = np.sort(all_possible_pairs_counts)[::-1]
 ind_sorted = np.argsort(all_possible_pairs_counts)[::-1]
-all_pairs_sorted = [all_possible_pairs[i] for i in ind_sorted]
-label_word_final = [label_word_filtered[i] for i in ind_sorted]
+all_possible_pairs_sorted = [all_possible_pairs[i] for i in ind_sorted]
+label_word_final = [label_word_sorted[i] for i in ind_sorted]
 
-#%% 
+# you should work with "label_word_final"
+
+#%% RWS
 
 #######    real word statistic for namings frequencies ( # / hour)    ########
 
@@ -365,7 +368,9 @@ for item in rws_data:
 
 phi = rws_data_short
 
-#%% 
+#%% RWS
+
+subset_name = 'subset4'
 
 # 2 months to 4 months of simulation  (or going to 6 months and see when the learning starts to happen)
 #######        simulatin the language experinece       ########
@@ -383,93 +388,110 @@ total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
 # this is comparable with "labels_sorted" and "words_sorted"
 # We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
 # In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
-
-    
+dict_rws = {}
+for ind_label, tco in enumerate(total_co_occurrence_rounded):
+    dict_rws [ind_label] =tco
 #%% 
 from sklearn.utils import shuffle
 
      
 pool_all_organized = []
-pool_all_organized_selection = []
 pool_all = {}
 
-for ind, pool_lw in enumerate(all_pairs_sorted):
-    pool_shufled = shuffle(pool_lw, random_state=0)
-    selection = pool_shufled [0:total_co_occurrence_rounded [ind]]
-    pool_all_organized.append(pool_shufled)
-    pool_all_organized_selection.append(selection)
-    for item in pool_shufled:
+for ind, pool_lw in enumerate(all_possible_pairs_sorted):
+    pool_shuffled = shuffle(pool_lw, random_state=0)   
+    pool_all_organized.append(pool_shuffled)
+
+    for item in pool_shuffled:
         if item not in pool_all:
             pool_all[item] = []
             pool_all[item].append(ind)
         else:
             pool_all[item].append(ind)
 
-pool_all_unique = {}      
-for key, value in pool_all.items():
-    if len(value) <= 1:
-        pool_all_unique[key] = value
-
-pool_all_descending = pool_all_organized_selection [::-1]
-
 #%%
-dict_frequencies = {}
-for ind, f in enumerate(total_co_occurrence_rounded):
-    dict_frequencies [ind] = f
+# iterative algorithm 
+# for selecting pairs for each category considering overlapping categories
+dict_selected_pairs = {}
+dict_selected_stat = {}
+
+for key_pair, list_ind in pool_all.items():
     
-selected_pairs = {}
-selected_pairs_all = [] # 11586
-for candidate_pair , value_ind_list in pool_all_unique.items(): 
-    ind = value_ind_list[0]
-    freq = dict_frequencies[ind] 
-    if ind not in selected_pairs:
-        selected_pairs[ind] = []
-        selected_pairs[ind].append(candidate_pair)
-        selected_pairs_all.append(candidate_pair) 
-    elif len (selected_pairs[ind]) < freq:
-        selected_pairs[ind].append(candidate_pair)
-        selected_pairs_all.append(candidate_pair) 
-       
+    pass_status = True
+    # first check if we can accept this pair
+    for ind in list_ind: 
+        if ind in dict_selected_stat and dict_selected_stat[ind] >= dict_rws [ind] :
+           pass_status = False 
+           
+    if pass_status:
+        for ind in list_ind:   
+            if ind not in dict_selected_stat:
+                dict_selected_pairs[ind] = []
+                dict_selected_pairs[ind].append(key_pair)
+                dict_selected_stat[ind] = 1
+            else:
+                dict_selected_pairs[ind].append(key_pair)
+                dict_selected_stat[ind] += 1
+        
+    
+#%%    
+# check if numer of needed pairs in each category are provided
+# there are very few cases of mismatch and that's because of repeating pairs
+# this hapens because some namings are repeated twice in one sentence 
+# this will be solved at the next step at unifying the pairs as a unique list
+mismatch_cases = []
+s = 0
+for key_ind in dict_selected_stat:
+    print (dict_selected_stat[key_ind])
+    s += dict_selected_stat[key_ind]
+    if dict_selected_stat[key_ind] !=  dict_rws[key_ind]:
+        mismatch_cases.append(key_ind)
+        print(dict_selected_stat[key_ind])
+        print(dict_rws[key_ind])
+
+#%% unifying the pairs as a unique list
+# the length of the final list is smaller than s because of the overlapping cases
+
+pool_selected = []
+for key, value in dict_selected_pairs.items():
+    for pair in value:
+        if pair not in pool_selected:
+            pool_selected.append(pair)
+
+
 #%%
 
-test = selected_pairs[79]
-word = ' '+ 'phone' + ' '
-for i_tuple in test:
-    cap = i_tuple[1]
-    if word in cap:
-        print(cap)
-        
-for key, list_i in selected_pairs.items():
-    if len(list_i) != dict_frequencies[key]:
-        print("there is a mismatch in " )
-        print(key)
+example_data = data[0]
+example_pool_selected = pool_selected[0]
 
-#%%
-        
-#unifying all selected pairs to include in train data
+pool_image_list = []
 
+for p in pool_selected:
+    imID = p[0]
+    pool_image_list.append(imID)
+
+    
 data_subset = []    
-for data_pair in data:
-    imID = data_pair['image_id']
-    caption = data_pair['caption']
-    if (imID, caption) in selected_pairs_all:
-        data_subset.append(data_pair)
-
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_pyp/MSCOCO/annotations/captions_train2014.json"
-with open(caption_json, 'r') as fp:
-    data_json = json.load(fp)
-data_annotations = data_json['annotations']
-data_json['annotations'] = data_subset
-# data_images = data_json['images']
-# data_json['images'] = []
+for d in data:
+    caption_d = d['caption']['text']
+    im = d['image']
+    imID= dict_img_path_to_id_all[im]
+    data_candidates = [ counter for counter, value in enumerate(pool_image_list) if value == imID]
+    for c in data_candidates:
+        pair = pool_selected[c]
+        cap = pair[1]
+        if cap == caption_d:
+            data_subset.append(d)
+    
 
 #%%
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/captions_train2014_subset4.json"
-with open(caption_json, "w") as fp:
-    json.dump(data_json,fp) 
+
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+with open(file_json, "w") as fp:
+    json.dump(data_subset,fp) 
     
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/captions_train2014_subset4.json"
-with open(caption_json, 'r') as fp:
+
+with open(file_json, 'r') as fp:
     data_json_test = json.load(fp)
 #%%
 
