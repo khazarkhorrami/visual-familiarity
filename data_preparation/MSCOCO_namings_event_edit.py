@@ -375,7 +375,7 @@ for ind, pool_lw in enumerate(all_possible_pairs_sorted):
 
 # 2 months to 4 months of simulation  (or going to 6 months and see when the learning starts to happen)
 #######        simulatin the language experinece       ########
-
+kh
 ###############################   input values ################################
 ##########################   select proper subset #############################  
 subset_name = 'subset4'
@@ -534,23 +534,27 @@ for d in data:
     
 
 #%%
+data_json_subset = {}
+data_json_subset ['data'] = data_subset
 
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, "w") as fp:
-    json.dump(data_subset,fp) 
+    json.dump(data_json_subset,fp) 
 
 
 #%%
 # testing 
 import json
     
-subset_name = 'subset0'
+subset_name = 'subset4'
 
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
     data_json_test = json.load(fp)
     
-print(len(data_json_test))
+data_subset_test = data_json_test['data']
+    
+print(len(data_subset_test))
 
 #%%
 
