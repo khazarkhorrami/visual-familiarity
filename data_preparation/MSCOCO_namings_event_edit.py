@@ -377,12 +377,47 @@ for ind, pool_lw in enumerate(all_possible_pairs_sorted):
 #######        simulatin the language experinece       ########
 
 ###############################   input values ################################
-    
+##########################   select proper subset #############################  
 subset_name = 'subset4'
     
 simulation_days = 240 # days
 minutes_per_day = 56.1
 beta = 1 # co-occurrence factor
+
+###############################
+subset_name = 'subset3'
+    
+simulation_days = 240 # days
+minutes_per_day = 56.1
+beta = 0.75 # co-occurrence factor
+
+###############################
+subset_name = 'subset2'
+    
+simulation_days = 120 # days
+minutes_per_day = 56.1
+beta = 1 # co-occurrence factor
+
+###############################
+subset_name = 'subset1'
+    
+simulation_days = 120 # days
+minutes_per_day = 56.1
+beta = 0.75 # co-occurrence factor
+
+
+###############################
+subset_name = 'subset0'
+    
+simulation_days = 120 # days
+minutes_per_day = 56.1
+beta = 0.50 # co-occurrence factor
+
+
+#%%
+total_time = (1/60) * simulation_days * minutes_per_day # hours
+total_time_co_occurrence = beta * total_time 
+print(total_time_co_occurrence)
 
 ###############################################################################
 
@@ -402,9 +437,6 @@ for item in rws_data:
 phi = rws_data_short
 
 ##################
-
-total_time = (1/60) * simulation_days * minutes_per_day # hours
-total_time_co_occurrence = beta * total_time 
 
 total_co_occurrence = total_time_co_occurrence * phi 
 total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
@@ -450,14 +482,13 @@ for key_pair, list_ind in pool_all.items():
 mismatch_cases = []
 s = 0
 for key_ind in dict_selected_stat:
-    print (dict_selected_stat[key_ind])
     s += dict_selected_stat[key_ind]
     if dict_selected_stat[key_ind] !=  dict_rws[key_ind]:
         mismatch_cases.append(key_ind)
-        print(dict_selected_stat[key_ind])
-        print(dict_rws[key_ind])
 
-#%% unifying the pairs as a unique list
+
+#%% 
+# unifying the pairs as a unique list
 # the length of the final list is smaller than s because of the overlapping cases
 
 pool_selected = []
@@ -467,7 +498,8 @@ for key, value in dict_selected_pairs.items():
             pool_selected.append(pair)
 
 
-#%% converting pool and data to dictionaries to make the search faster
+#%% 
+# converting pool and data to dictionaries to make the search faster
 
 dict_pool_selected = {}
 for p in pool_selected:
@@ -506,14 +538,21 @@ for d in data:
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, "w") as fp:
     json.dump(data_subset,fp) 
-    
 
+
+#%%
+# testing 
+import json
+    
+subset_name = 'subset0'
+
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
     data_json_test = json.load(fp)
+    
+print(len(data_json_test))
+
 #%%
-
-
-
 
 
 
