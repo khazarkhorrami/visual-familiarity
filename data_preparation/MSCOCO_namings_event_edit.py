@@ -352,45 +352,7 @@ label_word_final = [label_word_sorted[i] for i in ind_sorted]
 
 # you should work with "label_word_final"
 
-#%% RWS
 
-#######    real word statistic for namings frequencies ( # / hour)    ########
-
-from scipy.io import loadmat
-file_name = save_path + 'rws_counts_sorted.mat'
-rws_sorted = loadmat(file_name, variable_names = 'data')
-rws_data = rws_sorted['data'][0]   
-rws_data_short = rws_data[0:80]
-rws_data_unique = []
-for item in rws_data:
-    if item not in rws_data_unique:
-        rws_data_unique.append(item)
-
-phi = rws_data_short
-
-#%% RWS
-
-subset_name = 'subset4'
-
-# 2 months to 4 months of simulation  (or going to 6 months and see when the learning starts to happen)
-#######        simulatin the language experinece       ########
-
-simulation_days = 240 # days
-minutes_per_day = 56.1
-beta = 1 # co-occurrence factor
-
-total_time = (1/60) * simulation_days * minutes_per_day # hours
-total_time_co_occurrence = beta * total_time 
-
-total_co_occurrence = total_time_co_occurrence * phi 
-total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
-
-# this is comparable with "labels_sorted" and "words_sorted"
-# We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
-# In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
-dict_rws = {}
-for ind_label, tco in enumerate(total_co_occurrence_rounded):
-    dict_rws [ind_label] =tco
 #%% 
 from sklearn.utils import shuffle
 
@@ -408,6 +370,52 @@ for ind, pool_lw in enumerate(all_possible_pairs_sorted):
             pool_all[item].append(ind)
         else:
             pool_all[item].append(ind)
+            
+#%% RWS
+
+# 2 months to 4 months of simulation  (or going to 6 months and see when the learning starts to happen)
+#######        simulatin the language experinece       ########
+
+###############################   input values ################################
+    
+subset_name = 'subset4'
+    
+simulation_days = 240 # days
+minutes_per_day = 56.1
+beta = 1 # co-occurrence factor
+
+###############################################################################
+
+
+#######    real word statistic for namings frequencies ( # / hour)    ########
+
+from scipy.io import loadmat
+file_name = save_path + 'rws_counts_sorted.mat'
+rws_sorted = loadmat(file_name, variable_names = 'data')
+rws_data = rws_sorted['data'][0]   
+rws_data_short = rws_data[0:80]
+rws_data_unique = []
+for item in rws_data:
+    if item not in rws_data_unique:
+        rws_data_unique.append(item)
+
+phi = rws_data_short
+
+##################
+
+total_time = (1/60) * simulation_days * minutes_per_day # hours
+total_time_co_occurrence = beta * total_time 
+
+total_co_occurrence = total_time_co_occurrence * phi 
+total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
+
+# this is comparable with "labels_sorted" and "words_sorted"
+# We find N <= 104 images corresponding to those captions, reusing the same image for as many captions as possible. 
+# In the end, we have 104 unique image-caption pairs (which can reuse the same image) with “person” bounded box, and “man” spoken in the caption. 
+dict_rws = {}
+for ind_label, tco in enumerate(total_co_occurrence_rounded):
+    dict_rws [ind_label] = tco
+
 
 #%%
 # iterative algorithm 
@@ -459,28 +467,37 @@ for key, value in dict_selected_pairs.items():
             pool_selected.append(pair)
 
 
-#%%
+#%% converting pool and data to dictionaries to make the search faster
 
-example_data = data[0]
-example_pool_selected = pool_selected[0]
-
-pool_image_list = []
-
+dict_pool_selected = {}
 for p in pool_selected:
     imID = p[0]
-    pool_image_list.append(imID)
+    if imID not in dict_pool_selected:
+        dict_pool_selected [imID] = []
+        dict_pool_selected [imID].append(p[1])
+    else:
+        dict_pool_selected [imID].append(p[1])
 
-    
-data_subset = []    
+dict_data = {}
 for d in data:
     caption_d = d['caption']['text']
     im = d['image']
     imID= dict_img_path_to_id_all[im]
-    data_candidates = [ counter for counter, value in enumerate(pool_image_list) if value == imID]
-    for c in data_candidates:
-        pair = pool_selected[c]
-        cap = pair[1]
-        if cap == caption_d:
+    if imID not in dict_data:
+        dict_data[imID] = []
+        dict_data[imID].append(caption_d)
+    else:
+        dict_data[imID].append(caption_d)
+
+#%%    
+data_subset = []    
+for d in data:
+    caption_d = d['caption']['text']
+    im = d['image']
+    imID = dict_img_path_to_id_all[im]
+    if imID in dict_pool_selected:
+        candidate_caps = dict_pool_selected[imID]
+        if caption_d in candidate_caps:
             data_subset.append(d)
     
 
