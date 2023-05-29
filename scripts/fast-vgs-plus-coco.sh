@@ -20,9 +20,9 @@ python \
 --batch_size 64 \
 --val_batch_size 100 \
 --val_cross_batch_size 100 \
---n_epochs 50 \
+--n_epochs 70 \
 --n_print_steps 10 \
---n_val_steps 40 \
+--n_val_steps 156 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
