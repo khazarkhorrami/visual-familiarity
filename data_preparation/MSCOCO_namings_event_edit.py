@@ -546,7 +546,7 @@ with open(file_json, "w") as fp:
 # testing 
 import json
     
-subset_name = 'subset0'
+subset_name = 'subset2'
 
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
@@ -555,6 +555,7 @@ with open(file_json, 'r') as fp:
 data_subset_test = data_json_test['data']
     
 print(len(data_subset_test))
+print(len(data_subset_test)/64)
 
 #%%
 
