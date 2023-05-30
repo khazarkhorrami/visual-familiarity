@@ -658,7 +658,7 @@ class Trainer:
         # SpokenCOCO
             train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
             val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
-            # Kh: I change use_random to False
+            # Kh: I change use_random to False to avoide shuffling
             train_sampler = StatefulSampler(len(train_dataset), use_random=True)
             if self.progress['num_updates'] > 1 and self.indices is not None:
                 train_sampler.load_state_dict(self.indices)
