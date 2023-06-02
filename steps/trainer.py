@@ -219,11 +219,11 @@ class Trainer:
         # Khazar: here it saves the model in each call    
         save_progress(self)
         if self.progress['epoch'] <= 5 :
-            #save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+            #save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         elif self.progress['epoch'] > 5  and self.progress['epoch'] % 5 == 0:
-            #save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-            save_path = os.path.join(self.args.exp_dir, "bundle.pth")           
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+            #save_path = os.path.join(self.args.exp_dir, "bundle.pth")           
         else:
             save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
