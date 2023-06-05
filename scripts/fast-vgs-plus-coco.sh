@@ -7,6 +7,7 @@ raw_audio_base_path=$2
 fb_w2v2_weights_fn=$3
 exp_dir=$4
 libri_fn_root=$5
+twd=$6
 pretrained_root="/scratch/project_2001315/khazar_projects/FaST/hubertAndDINO"
 
 python \
@@ -16,6 +17,7 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
+--trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 64 \
 --val_batch_size 100 \
