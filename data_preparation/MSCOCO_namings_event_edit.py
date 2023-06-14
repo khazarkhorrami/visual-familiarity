@@ -592,9 +592,9 @@ with open(file_json, "w") as fp:
 # testing 
 import json
     
-subset_name = 'SSL'
+subset_name = 'subset2'
 
-file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
     data_json_test = json.load(fp)
     
