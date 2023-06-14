@@ -312,8 +312,8 @@ class DualEncoder(nn.Module):
     def forward(
         self,
         audio_feats,
-        images,
         attention_mask=None,
+        images=None,    
         # visual_feats=None,
         # visual_pos=None,
         visual_attention_mask=None, # this is not used, cause we always use all 36 features
