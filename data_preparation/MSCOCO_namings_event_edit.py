@@ -370,49 +370,55 @@ for ind, pool_lw in enumerate(all_possible_pairs_sorted):
             pool_all[item].append(ind)
         else:
             pool_all[item].append(ind)
-            
+kh            
 #%% RWS
 
 # 2 months to 4 months of simulation  (or going to 6 months and see when the learning starts to happen)
 #######        simulatin the language experinece       ########
-kh
+
 ###############################   input values ################################
 ##########################   select proper subset #############################  
-subset_name = 'subset4'
-    
-simulation_days = 240 # days
-minutes_per_day = 56.1
-beta = 1 # co-occurrence factor
+
+# consider 60, 120, 180 days with beta = 0.5
 
 ###############################
+
 subset_name = 'subset3'
     
-simulation_days = 240 # days
+simulation_days = 180 # days ( 6 months)
 minutes_per_day = 56.1
-beta = 0.75 # co-occurrence factor
+beta = 0.50 # co-occurrence factor
 
 ###############################
 subset_name = 'subset2'
     
-simulation_days = 120 # days
+simulation_days = 120 # days ( 4 months)
 minutes_per_day = 56.1
-beta = 1 # co-occurrence factor
+beta = 0.50 # co-occurrence factor
 
 ###############################
 subset_name = 'subset1'
     
-simulation_days = 120 # days
-minutes_per_day = 56.1
-beta = 0.75 # co-occurrence factor
-
-
-###############################
-subset_name = 'subset0'
-    
-simulation_days = 120 # days
+simulation_days = 60 # days ( 2 months)
 minutes_per_day = 56.1
 beta = 0.50 # co-occurrence factor
 
+###############################
+# Uniform (non-skewed) distribution
+subset_name = 'subset0A'
+    
+simulation_days = 120 # days ( 4 months)
+minutes_per_day = 56.1
+beta = 0.50 # co-occurrence factor
+
+###############################
+# Uniform (non-skewed) distribution
+# I discarded this set because the data was about 12K and there were many mismatch cases
+subset_name = 'subset0M' 
+    
+simulation_days = 120 # days ( 4 months)
+minutes_per_day = 56.1
+beta = 0.50 # co-occurrence factor
 
 #%%
 total_time = (1/60) * simulation_days * minutes_per_day # hours
@@ -429,15 +435,25 @@ file_name = save_path + 'rws_counts_sorted.mat'
 rws_sorted = loadmat(file_name, variable_names = 'data')
 rws_data = rws_sorted['data'][0]   
 rws_data_short = rws_data[0:80]
-rws_data_unique = []
-for item in rws_data:
-    if item not in rws_data_unique:
-        rws_data_unique.append(item)
+# rws_data_unique = []
+# for item in rws_data:
+#     if item not in rws_data_unique:
+#         rws_data_unique.append(item)
 
 phi = rws_data_short
 
+# for subset 0 (uniform distribution)
+phi_uniform_average = np.mean(phi)
+phi_uniformA = np.ones(len(phi))* phi_uniform_average
+
+phi_uniform_max = np.max(phi)
+phi_uniformM = np.ones(len(phi))* phi_uniform_max
 ##################
 
+# use phi_uniformA/phi_uniformM instead of phi for uniform distributions
+
+#total_co_occurrence = total_time_co_occurrence * phi_uniformA
+#total_co_occurrence = total_time_co_occurrence * phi_uniformM
 total_co_occurrence = total_time_co_occurrence * phi 
 total_co_occurrence_rounded = [int(i) for i in np.ceil(total_co_occurrence)]
 
@@ -542,11 +558,41 @@ with open(file_json, "w") as fp:
     json.dump(data_json_subset,fp) 
 
 
+
 #%%
+
+# getting SSL subset by removing the largest VGS subset from data
+
+subset_name = 'subset3'
+
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+with open(file_json, 'r') as fp:
+    data_json_vgs = json.load(fp)
+    
+data_subset_vgs = data_json_vgs['data']
+
+#%%
+
+# saving data SSL json file
+
+data_subset_SSL = []    
+for d in data:
+    if d not in data_subset_vgs:
+        data_subset_SSL.append(d)
+        
+data_json_SSL = {}
+data_json_SSL ['data'] = data_subset_SSL
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_SSL.json"
+with open(file_json, "w") as fp:
+    json.dump(data_json_SSL,fp) 
+
+
+#%%
+
 # testing 
 import json
     
-subset_name = 'subset0'
+subset_name = 'SSL'
 
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
@@ -557,21 +603,26 @@ data_subset_test = data_json_test['data']
 print(len(data_subset_test))
 print(len(data_subset_test)/64)
 
+
+
 #%%
 
+audio_dataset_json_file = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json'
+with open(audio_dataset_json_file, 'r') as fp:
+    data_json = json.load(fp)
+data = data_json['data']
+
+train_size = len (data)
 
 
+audio_dataset_json_file = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json'
+with open(audio_dataset_json_file, 'r') as fp:
+    data_json = json.load(fp)
+data = data_json['data']
 
+val_size = len (data)
 
-
-
-
-
-
-
-
-
-
-
-
-
+total_size = train_size + val_size
+total_time = 742 # hours
+size_per_hour = round(total_size / total_time )
+seconds_per_utt = round ((total_time/total_size) * 3600 , 2)
