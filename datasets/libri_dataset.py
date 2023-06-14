@@ -130,7 +130,7 @@ class LibriDataset(Dataset):
     @staticmethod
     def add_args(parser):
         parser.add_argument("--libri_fn_root", type=str, default="/data3/scratch/pyp/exp_pyp/libri/", help="from fairseq mae simple kmeans")
-        parser.add_argument("--libri_max_seq_len", type=float, default=10.)
+        parser.add_argument("--libri_max_seq_len", type=float, default=8.)
         parser.add_argument("--libri_val_bzs", type=int, default=64)
         parser.add_argument("--sample_rate", type=int, default=16000)
         parser.add_argument("--feature_rate", type=int, default=50, help="50")
@@ -144,7 +144,7 @@ class LibriDataset(Dataset):
             help = "whether or not add delta and delta-delta to the feature, only effective for spectrogram/fbank/mfcc"
         )
         parser.add_argument("--feature_type", type=str, default="wav", help="choose from wav/spectrogram/fbank/mfcc")
-        parser.add_argument("--max_keep_sample_size", type=int, default=16000*100)
+        parser.add_argument("--max_keep_sample_size", type=int, default=16000*80)
         parser.add_argument("--min_keep_sample_size", type=int, default=32000)
     def __init__(self, args, split):
         self.args = args
