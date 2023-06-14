@@ -12,44 +12,21 @@ import itertools
 import logging
 logger = logging.getLogger(__name__)
 
-
-
-# manifest_path = "/worktmp2/hxkhkh/current/FaST/data/LS/libri_fn_root/valid.tsv"
-# max_keep = 16000*100
-# min_keep = 32000
-
 def load_audio(manifest_path, max_keep, min_keep):
-    # Kh: I added this
-    data_path_root_splits = manifest_path.split('/')[0:-2]
-    root = '/'.join(data_path_root_splits)
-    trash = []
-    # Kh
     n_long, n_short = 0, 0
     names, inds, sizes = [], [], []
     with open(manifest_path) as f:
-        # Kh: I chaned this
-        #root = f.readline().strip()
-        # Kh
-        f.readline().strip()
+        root = f.readline().strip()
         for ind, line in enumerate(f):
             items = line.strip().split("\t")
             assert len(items) == 2, line
             sz = int(items[1])
             if min_keep is not None and sz < min_keep:
                 n_short += 1
-                trash.append(items)
             elif max_keep is not None and sz > max_keep:
                 n_long += 1
             else:
-                #kh: i changed this 
-                #names.append(items[0])
-                file_splits = items[0].split("/")[-5:]
-                file_name = '/'.join(file_splits)
-                
-                
-                names.append(file_name)
-                #kh
-                
+                names.append(items[0])
                 inds.append(ind)
                 sizes.append(sz)
     tot = ind + 1
@@ -60,10 +37,6 @@ def load_audio(manifest_path, max_keep, min_keep):
             f"longest-loaded={max(sizes)}, shortest-loaded={min(sizes)}"
         )
     )
-    # Kh: I changed root to my own defined root
-    # to have file_path = os.path.join(data_root, file_name)
-    # Kh
-    # return root, names, inds, tot, sizes
     return root, names, inds, tot, sizes
 
 
@@ -166,17 +139,11 @@ class LibriDataset(Dataset):
         return int(np.ceil(len(self)/num_steps))
 
     def _LoadAudioLabel(self, fn, label_key):
-        #Kh: "label_key" is file name without ".flac" but it is not used here
         x, sr = sf.read(fn, dtype = 'float32')
         assert sr == 16000
         length_orig = len(x)
         if length_orig > 16000 * self.args.libri_max_seq_len: 
             audio_length = int(16000 * self.args.libri_max_seq_len)
-            
-            # Kh: this part is diferent from COCO audio load
-            # in COCO for both train and val we have 
-            # x = x[:audio_length]
-            # ..............................................
             if "train" in self.split:
                 start_max = length_orig - audio_length
                 start = random.choice(range(start_max))
@@ -187,8 +154,6 @@ class LibriDataset(Dataset):
                     x = x[:audio_length]
             else:
                 x = x[:audio_length]
-            # Kh ..........................................   
-            
             x_norm = (x - np.mean(x)) / np.std(x) # normalize per instance
             x = torch.FloatTensor(x_norm)
         else:
