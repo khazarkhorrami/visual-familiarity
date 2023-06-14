@@ -50,7 +50,7 @@ class ImageCaptionDataset(Dataset):
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
         if split == "train":
             # original: audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
-            audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/coco/subsets/SpokenCOCO_train_subset2.json'
+            audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/subsets/SpokenCOCO_train_subset3.json'
             # on juova: audio_dataset_json_file = '/worktmp/khorrami/current/FaST/data/'
         elif split == "val" or split == "dev":
             if self.args.test:
