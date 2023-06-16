@@ -64,28 +64,28 @@ def load_audio(manifest_path, max_keep, min_keep):
     # to have file_path = os.path.join(data_root, file_name)
     # Kh
     # return root, names, inds, tot, sizes
-    return root, names, inds, tot, sizes
+    return root, names, inds, tot
 
 
-def load_label(label_path, inds, tot):
-    with open(label_path) as f:
-        labels = [line.rstrip() for line in f]
-        assert (
-            len(labels) == tot
-        ), f"number of labels does not match ({len(labels)} != {tot})"
-        labels = [labels[i] for i in inds]
-    return labels
+# def load_label(label_path, inds, tot):
+#     with open(label_path) as f:
+#         labels = [line.rstrip() for line in f]
+#         assert (
+#             len(labels) == tot
+#         ), f"number of labels does not match ({len(labels)} != {tot})"
+#         labels = [labels[i] for i in inds]
+#     return labels
 
 
-def load_label_offset(label_path, inds, tot):
-    with open(label_path) as f:
-        code_lengths = [len(line.encode("utf-8")) for line in f]
-        assert (
-            len(code_lengths) == tot
-        ), f"number of labels does not match ({len(code_lengths)} != {tot})"
-        offsets = list(itertools.accumulate([0] + code_lengths))
-        offsets = [(offsets[i], offsets[i + 1]) for i in inds]
-    return offsets
+# def load_label_offset(label_path, inds, tot):
+#     with open(label_path) as f:
+#         code_lengths = [len(line.encode("utf-8")) for line in f]
+#         assert (
+#             len(code_lengths) == tot
+#         ), f"number of labels does not match ({len(code_lengths)} != {tot})"
+#         offsets = list(itertools.accumulate([0] + code_lengths))
+#         offsets = [(offsets[i], offsets[i + 1]) for i in inds]
+#     return offsets
 
 
 def verify_label_lengths(
@@ -155,7 +155,7 @@ class LibriDataset(Dataset):
         elif "val" in split or "valid" in split or "dev" in split:
             manifest_path = os.path.join(self.args.libri_fn_root, "valid.tsv")
 
-        self.audio_root, self.audio_names, inds, tot, self.sizes = load_audio(
+        self.audio_root, self.audio_names, inds, tot = load_audio(
             manifest_path, self.args.max_keep_sample_size, self.args.min_keep_sample_size
         )
 
@@ -163,6 +163,13 @@ class LibriDataset(Dataset):
         return len(self.audio_names)
 
     def calculate_batch_size(self, num_steps):
+        print('.........here is calculating .............')
+        print('........ len self ........................')
+        print(len(self))
+        print('........ num steps  ........................')
+        print(num_steps)
+        print('........ calculated bs ........................')
+        print (str (int(np.ceil(len(self)/num_steps))))
         return int(np.ceil(len(self)/num_steps))
 
     def _LoadAudioLabel(self, fn, label_key):
