@@ -12,16 +12,17 @@ import itertools
 import logging
 logger = logging.getLogger(__name__)
 
-# kh
-# manifest_path = "/worktmp2/hxkhkh/current/FaST/data/LS/libri_fn_root/train.tsv"
+
+# manifest_path = "/worktmp2/hxkhkh/current/FaST/data/LS/libri_fn_root/valid.tsv"
 # max_keep = 16000*80
 # min_keep = 32000
-
+# kh
 def load_audio(manifest_path, max_keep, min_keep):
     # Kh: I added this
     data_path_root_splits = manifest_path.split('/')[0:-2]
     root = '/'.join(data_path_root_splits)
     trash = []
+    hours = []
     # Kh
     n_long, n_short = 0, 0
     names, inds, sizes = [], [], []
@@ -52,6 +53,7 @@ def load_audio(manifest_path, max_keep, min_keep):
                 
                 inds.append(ind)
                 sizes.append(sz)
+                hours.append((sz/16000)/3600)
     tot = ind + 1
     logger.info(
         (
