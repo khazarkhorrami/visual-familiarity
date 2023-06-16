@@ -83,7 +83,6 @@ class Trainer:
     def train(self):
         flag = True
         step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        last_av_step = int(step_per_epoch/2)
         data_start_time = time.time()
         #khazar
         print ('start of training method')
@@ -220,7 +219,7 @@ class Trainer:
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
             #save_path = os.path.join(self.args.exp_dir, "bundle.pth")
-        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 5 == 0:
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
             #save_path = os.path.join(self.args.exp_dir, "bundle.pth")           
         else:
@@ -487,39 +486,6 @@ class Trainer:
             print(self.args.coarse_to_fine_retrieve)
             print (" .................................")
             # khazar: I commented below lines  which calculated fine retrieval
-        #     if self.args.coarse_to_fine_retrieve:
-        #         print('....now it came inside fine retrieval ')
-        #         visual_indices, audio_indices = coarse_retrieve_one_to_many(coarse_cross_relationship_score_matrix.transpose(0,1), topk=self.args.topk) # transpose to have [audio_len, visual_len]
-        #         B = len(visual_indices)
-        #         val_cross_batch_size = self.args.val_cross_batch_size
-        #         num_steps = math.ceil(B / val_cross_batch_size)
-        #         cross_relationship_score_square = []
-        #         for i in tqdm(range(num_steps), disable=hide_progress):
-        #             visual_feats_square = img_feats_list[visual_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             audio_feats_square = audio_feats_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             extended_audio_attention_mask_square = extended_audio_attention_mask_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             cross_relationship_score = self.cross_encoder(audio_feats_square, extended_audio_attention_mask_square, visual_feats_square, extended_visual_attention_mask_square=None)
-        #             cross_relationship_score_square.append(cross_relationship_score.detach())
-
-        #         # do not test visual encoder ability here, might consider doing it in the future
-        #         # visual_feats = visual_feats_square[::(B+1)][:,1:]
-        #         cross_relationship_score_square = torch.cat(cross_relationship_score_square)
-        #     # logger.info(f"validation cross relationship score data type: {cross_relationship_score_square.dtype}")
-        #         recalls = fine_retrieve_one_to_many(cross_relationship_score_square, audio_img_id=audio_img_id_total, visual_img_id=img_img_id_list, visual_indices = visual_indices, audio_indices = audio_indices, topk=self.args.topk)
-        #     else:
-        #         print('....now it came inside else ')
-        #         cross_relationship_score_matrix = torch.zeros((len(img_img_id_list), audio_feats_total.shape[0])).to(self.device)
-        #         for i, img_id in enumerate(tqdm(img_img_id_list, disable=hide_progress)):
-        #             visual_feats_cur = img_id_to_img_feats[img_id].unsqueeze(0).repeat(audio_feats_total.shape[0],1,1)
-        #             # B = audio_feats_total.shape[0]
-        #             temp = self.cross_encoder(audio_feats_total, extended_audio_attention_mask_total, visual_feats_cur, None)
-        #             cross_relationship_score_matrix[i,:] = temp.squeeze(1)
-        #         recalls = calc_recalls_from_S_one_to_many(cross_relationship_score_matrix, row_img_id=img_img_id_list, column_img_id=audio_img_id_total)
-
-        # logger.info("Fine Retrieval Accuracy:")
-        # logger.info('Audio R@10 {A_r10:.3f} Image R@10 {I_r10:.3f} Average R@10 {r10_ave:.3f} over {N:d} validation pairs'.format(A_r10=recalls['A_r10'], I_r10=recalls['I_r10'], r10_ave=(recalls['A_r10']+recalls['I_r10'])/2, N=N_examples))
-        # logger.info('Audio R@5 {A_r5:.3f} Image R@5 {I_r5:.3f} Average R@5 {r5_ave:.3f} over {N:d} validation pairs'.format(A_r5=recalls['A_r5'], I_r5=recalls['I_r5'], r5_ave=(recalls['A_r5']+recalls['I_r5'])/2, N=N_examples))
-        # logger.info('Audio R@1 {A_r1:.3f} Image R@1 {I_r1:.3f} Average R@1 {ave_r1:.3f} over {N:d} validation pairs'.format(A_r1=recalls['A_r1'], I_r1=recalls['I_r1'], ave_r1=(recalls['A_r1']+recalls['I_r1'])/2,  N=N_examples))
 
         avg_acc_r10 = (recalls['A_r10'] + recalls['I_r10']) / 2
         avg_acc_r5 = (recalls['A_r5'] + recalls['I_r5']) / 2
@@ -678,7 +644,7 @@ class Trainer:
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
             print('------------- here is calculated libri bs ------------')
             print(libri_train_bzs)
-            libri_train_bzs = 6 #min(libri_train_bzs, 6)
+            libri_train_bzs = 32 #min(libri_train_bzs, 32)
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:

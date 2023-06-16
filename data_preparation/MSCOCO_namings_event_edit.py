@@ -592,7 +592,7 @@ with open(file_json, "w") as fp:
 # testing 
 import json
     
-subset_name = 'subset2'
+subset_name = 'subset1'
 
 file_json = "/worktmp2/hxkhkh/current/FaST/data/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
@@ -603,6 +603,31 @@ data_subset_test = data_json_test['data']
 print(len(data_subset_test))
 print(len(data_subset_test)/64)
 
+
+######### to measure the speech time
+import soundfile as sf
+import os 
+path_wav = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/'
+seconds_orig = []
+seconds_applied = []
+for d in data_subset_test:
+    audiofile = d['caption']['wav']
+    path = os.path.join(path_wav,audiofile)
+    x, sr = sf.read(path, dtype = 'float32')
+    length_orig = len(x)
+    time_orig = length_orig /sr
+    seconds_orig.append(time_orig)
+    
+    if length_orig > sr * 8:
+        seconds_applied.append(8)
+    else:
+        seconds_applied.append(time_orig)
+    
+hours = sum(seconds_orig)/3600
+print(' ..... total time is ....' + str(hours))
+
+hours_applied = sum(seconds_applied)/3600
+print(' ..... total time is ....' + str(hours_applied))
 
 
 #%%
