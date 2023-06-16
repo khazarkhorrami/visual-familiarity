@@ -669,9 +669,13 @@ class Trainer:
             # librispeech dataloaders
             # train
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
+	    print('--------- here is step per epoch------------')
+            print(step_per_epoch)
             # libri_train_dataset = libri_dataset_mm.LibriDataset(self.args, split="train")
             libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
+            print('------------- here is calculated libri bs------------')
+            print(libri_train_bzs)
             libri_train_bzs = min(libri_train_bzs, 4)
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
@@ -718,13 +722,13 @@ class Trainer:
         # N = self.args.n_epochs
         ############
         # model base1
-        # alpha = 0
+        alpha = 0
         ############
         # model base2
         # alpha = 1
         ############
         # model base3
-        alpha = 0.5
+        # alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
