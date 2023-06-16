@@ -30,7 +30,7 @@ python \
 --vit_checkpoint_key 'teacher' \
 --normalize \
 --xtrm_layers 1 \
---trm_layers 1 \
+--trm_layers 3 \
 --fine_matching_weight 0.0 \
 --coarse_matching_weight 1.0 \
 --libri_w2v2_weight 1.0 \
@@ -38,5 +38,6 @@ python \
 --feature_grad_mult 1.0 \
 --trim_mask \
 --encoder_layers 6 \
+--encoder_attention_heads 4 \
 --layer_use 4 \
 
