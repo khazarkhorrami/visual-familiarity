@@ -91,16 +91,19 @@ class Trainer:
         # Kh: steps pers epochs based on coco
         # step_per_epoch = int(self.train_data_length/self.args.batch_size)
         # Kh: steps pers epochs based on libri
-        step_per_epoch = int(self.libri_train_data_length/self.args.batch_size)
+        step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
+        step_per_epoch_coco = int(self.train_data_length/self.args.batch_size)
+        step_per_epoch = step_per_epoch_libri
         
-        data_start_time = time.time()
+        
         #khazar
         print ('start of training method')
         print ('...step_per_epoch for libri is....')
-        print(step_per_epoch)
+        print(step_per_epoch_libri)
         print ('...step_per_epoch for coco is....')
-        print(int(self.train_data_length/self.args.batch_size))
-
+        print(step_per_epoch_coco)
+        ###
+        data_start_time = time.time()
         
         while flag:
             logger.info('epoch starts here ')
@@ -109,15 +112,26 @@ class Trainer:
             libri_loader_iterator = iter(self.libri_train_loader)
             
             # kh: iterate based on libri
-            for i, libri_batch in enumerate(self.libri_train_loader):           
-                #batch = next(coco_loader_iterator)
-                #Kh: you can also do this for big LS batch sizes
-                try:
+            for i, libri_batch in enumerate(self.libri_train_loader): 
+                
+                # cur_step shows step within one epoch (0,step_per_epoch)
+                cur_step = self.progress['num_updates'] % step_per_epoch
+                
+                if cur_step < step_per_epoch_coco:
                     batch = next(coco_loader_iterator)
                     alpha = 0.5
-                except StopIteration:
-                    alpha = 0.0
-                    pass
+                else:
+                    alpha = 0
+                    
+                #batch = next(coco_loader_iterator)
+                #Kh: you can also do this for big LS batch sizes
+                # try:
+                #     batch = next(coco_loader_iterator)
+                #     alpha = 0.5
+                # except StopIteration:
+                #     alpha = 0.0
+                #     pass
+               
             # kh: iterate based on libri   
             # for i, batch in enumerate(self.train_loader):           
             #     #libri_batch = next(libri_loader_iterator)
@@ -139,7 +153,9 @@ class Trainer:
                 cur_lr = np.mean(self.optimizer.get_lr())
 
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
-                cur_step = self.progress['num_updates'] % step_per_epoch
+                # cur_step shows step within one epoch (0,step_per_epoch)
+                # I moved it to above
+                # cur_step = self.progress['num_updates'] % step_per_epoch
 
                 
                 cur_batch = {
