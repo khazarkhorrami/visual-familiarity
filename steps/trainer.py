@@ -51,9 +51,12 @@ class Trainer:
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
-        # self.test_loader, self.test_data_length = self._setup_testdataloader(arg.bundle_name)
-        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        
+        # self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        # Kh: if iterating based on libri then calculate number of iterations based on libri
+        self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        print (' ...here is total number of updates calculated at init ... ')
         self.optimizer = self._setup_optimizer()
         if torch.cuda.device_count() > 1:
             self.dual_encoder = nn.DataParallel(self.dual_encoder)
@@ -96,21 +99,24 @@ class Trainer:
             coco_loader_iterator = iter(self.train_loader)
             libri_loader_iterator = iter(self.libri_train_loader)
             
-            # for i, libri_batch in enumerate(self.libri_train_loader):           
-            #     #batch = next(coco_loader_iterator)
-            #     #Kh: you can also do this for big LS batch sizes
-            #     try:
-            #         batch = next(coco_loader_iterator)
-            #     except StopIteration:
-            #         pass
-                
-            for i, batch in enumerate(self.train_loader):           
-                #libri_batch = next(libri_loader_iterator)
+            # kh: iterate based on libri
+            for i, libri_batch in enumerate(self.libri_train_loader):           
+                #batch = next(coco_loader_iterator)
                 #Kh: you can also do this for big LS batch sizes
                 try:
-                    libri_batch = next(libri_loader_iterator)
+                    batch = next(coco_loader_iterator)
+                    alpha = 0.5
                 except StopIteration:
+                    alpha = 0.0
                     pass
+            # kh: iterate based on libri   
+            # for i, batch in enumerate(self.train_loader):           
+            #     #libri_batch = next(libri_loader_iterator)
+            #     #Kh: you can also do this for big LS batch sizes
+            #     try:
+            #         libri_batch = next(libri_loader_iterator)
+            #     except StopIteration:
+            #         pass
                       
                 data_end_time = time.time()
                 self.dual_encoder.train()
@@ -136,8 +142,8 @@ class Trainer:
                 
                 losses = self.forward(cur_batch)
                 
-                if self.use_libri_loss:
-                    losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
+                
+                losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
 
                 for key in losses:
                     if key in self.meters:
@@ -145,7 +151,7 @@ class Trainer:
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
-                weighted_loss = self.weight_loss(losses)
+                weighted_loss = self.weight_loss(losses, alpha)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
@@ -645,6 +651,10 @@ class Trainer:
             print('------------- here is the used libri bs ------------')
             print(libri_train_bzs)
             
+            print('------------- here is the n_per_epoch libri ------------')
+            print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
+            ###
+            
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
@@ -661,7 +671,7 @@ class Trainer:
             libri_valid_loader = None
             libri_train_sampler = None
 
-        return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
+        return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
         optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
@@ -683,14 +693,14 @@ class Trainer:
     def _setup_scheduler(self):
         pass
 
-    def weight_loss(self, losses):
+    def weight_loss(self, losses, alpha):
         
         # n = self.progress['num_updates']    
         # n = self.progress['epoch']
         # N = self.args.n_epochs
         ############
         # model base1
-        alpha = 0
+        # alpha = 0
         ############
         # model base2
         # alpha = 1
