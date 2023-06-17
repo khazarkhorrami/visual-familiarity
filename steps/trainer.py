@@ -94,10 +94,27 @@ class Trainer:
             logger.info('epoch starts here ')
             if self.use_libri_loss:
                 libri_loader_iterator = iter(self.libri_train_loader)
+                
             print ('khazar: train data length is ' + str(self.train_data_length))
+            print('.....Here is printing dat loader objects.........')
+            print('.............LS data.............................')
+            print(self.libri_train_loader)
+            print('.............LS data iter.............................')
+            print(iter(self.libri_train_loader))
+            print('.............COCO data.............................')
+            print(self.train_loader)
+            print('.............COCO data iter ............................')
+            print(iter(self.train_loader))
+            
             for i, batch in enumerate(self.train_loader):
                 if self.use_libri_loss:
                     libri_batch = next(libri_loader_iterator)
+                    # Kh: you can also do this for big LS batch sizes
+                    # try:
+                    #     libri_batch = next(libri_loader_iterator)
+                    # except StopIteration:
+                    #     pass
+                      
                 data_end_time = time.time()
                 self.dual_encoder.train()
                 self.cross_encoder.train()
@@ -112,13 +129,6 @@ class Trainer:
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
                 cur_step = self.progress['num_updates'] % step_per_epoch
 
-                # cur_batch = {
-                #         "visual_feats": batch['visual_feats'].to(self.device),
-                #         "visual_pos": batch['boxes'].to(self.device),
-                #         "audio": batch['audio'].to(self.device),
-                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                #         "img_id": batch['img_id'],
-                #         }
                 
                 cur_batch = {
                         "images": batch['images'].to(self.device),
@@ -128,6 +138,7 @@ class Trainer:
                         }
                 
                 losses = self.forward(cur_batch)
+                
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
 
@@ -136,22 +147,19 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                # khazar : this is for vfb0
-                # if cur_step < last_av_step:
-                #     alpha = 0.5
-                # else:
-                #     alpha = 0
-                # weighted_loss = self.weight_loss(losses, alpha)
                 
                 weighted_loss = self.weight_loss(losses)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                
+                #########
                 weighted_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 #########
+                
                 self.meters['data_time'].update(data_end_time - data_start_time)
                 self.meters['train_time'].update(time.time() - data_end_time)
    
@@ -520,14 +528,6 @@ class Trainer:
         for name in meter_names:
             meters[name] = AverageMeter()
         return meters
-
-    # def _setup_models_for_test(self):
-    #     dual_encoder_test = fast_vgs.DualEncoder(self.args)      
-    #     print_model_info(dual_encoder_test , print_model = True)
-    #     bundle = torch.load(os.path.join(self.args.exp_dir, "best_bundle.pth"))
-    #     dual_encoder_test.carefully_load_state_dict(bundle['dual_encoder'])
-    #     dual_encoder.to(self.device)
-    #     return dual_encoder_test
    
     def _setup_models(self):
         dual_encoder = fast_vgs.DualEncoder(self.args)
@@ -591,12 +591,6 @@ class Trainer:
         cross_encoder.to(self.device)
 
         return dual_encoder, cross_encoder, trainables, indices, libri_indices, optim_states
-    
-    # def _setup_testdataloader(self):    
-    #     test_dataset = libri_dataset.LibriDataset(self.args, split="train")
-    #     test_bs = 64                 
-    #     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=test_bs, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = test_dataset.collate, drop_last=False)            
-    #     return test_loader, len(test_dataset)
         
     def _setup_dataloader(self):
         if self.args.places:
@@ -644,7 +638,7 @@ class Trainer:
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
             print('------------- here is calculated libri bs ------------')
             print(libri_train_bzs)
-            libri_train_bzs = 64 #min(libri_train_bzs, 32)
+            libri_train_bzs = min(libri_train_bzs, 32)
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
