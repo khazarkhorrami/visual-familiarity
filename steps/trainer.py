@@ -120,8 +120,10 @@ class Trainer:
                 if cur_step < step_per_epoch_coco:
                     batch = next(coco_loader_iterator)
                     alpha = 0.5
+                    beta = 0.5
                 else:
                     alpha = 0
+                    beta = 0
                     
                 #batch = next(coco_loader_iterator)
                 #Kh: you can also do this for big LS batch sizes
@@ -176,7 +178,7 @@ class Trainer:
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
-                weighted_loss = self.weight_loss(losses, alpha)
+                weighted_loss = self.weight_loss(losses, alpha, beta)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
@@ -718,7 +720,7 @@ class Trainer:
     def _setup_scheduler(self):
         pass
 
-    def weight_loss(self, losses, alpha):
+    def weight_loss(self, losses, alpha, beta):
         
         # n = self.progress['num_updates']    
         # n = self.progress['epoch']
@@ -791,7 +793,7 @@ class Trainer:
         # print (' kh.............. here it is printing losses, coarse.............')
         # print(weighted_loss)
         if 'caption_w2v2_loss' in losses:
-            weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (1-alpha)
+            weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (beta)
             
             # print (' kh.............. here it is printing losses, w2v2.............')
             # print(losses['caption_w2v2_loss'])
