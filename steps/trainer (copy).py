@@ -49,7 +49,6 @@ class Trainer:
         self.meters = self._setup_meters()
         self.progress, self.total_progress = setup_progress(self)
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
-        # self.dual_encoder_test = _setup_models_for_test(self)
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
         self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
@@ -84,7 +83,6 @@ class Trainer:
     def train(self):
         flag = True
         step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        last_av_step = int(step_per_epoch/2)
         data_start_time = time.time()
         #khazar
         print ('start of training method')
@@ -96,10 +94,27 @@ class Trainer:
             logger.info('epoch starts here ')
             if self.use_libri_loss:
                 libri_loader_iterator = iter(self.libri_train_loader)
+                
             print ('khazar: train data length is ' + str(self.train_data_length))
+            print('.....Here is printing dat loader objects.........')
+            print('.............LS data.............................')
+            print(self.libri_train_loader)
+            print('.............LS data iter.............................')
+            print(iter(self.libri_train_loader))
+            print('.............COCO data.............................')
+            print(self.train_loader)
+            print('.............COCO data iter ............................')
+            print(iter(self.train_loader))
+            
             for i, batch in enumerate(self.train_loader):
                 if self.use_libri_loss:
                     libri_batch = next(libri_loader_iterator)
+                    # Kh: you can also do this for big LS batch sizes
+                    # try:
+                    #     libri_batch = next(libri_loader_iterator)
+                    # except StopIteration:
+                    #     pass
+                      
                 data_end_time = time.time()
                 self.dual_encoder.train()
                 self.cross_encoder.train()
@@ -114,13 +129,6 @@ class Trainer:
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
                 cur_step = self.progress['num_updates'] % step_per_epoch
 
-                # cur_batch = {
-                #         "visual_feats": batch['visual_feats'].to(self.device),
-                #         "visual_pos": batch['boxes'].to(self.device),
-                #         "audio": batch['audio'].to(self.device),
-                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                #         "img_id": batch['img_id'],
-                #         }
                 
                 cur_batch = {
                         "images": batch['images'].to(self.device),
@@ -130,30 +138,28 @@ class Trainer:
                         }
                 
                 losses = self.forward(cur_batch)
+                
                 if self.use_libri_loss:
-                    losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) # target_list = libri_batch['label'], 
+                    losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
 
                 for key in losses:
                     if key in self.meters:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                # khazar : this is for vfb0
-                # if cur_step < last_av_step:
-                #     alpha = 0.5
-                # else:
-                #     alpha = 0
-                # weighted_loss = self.weight_loss(losses, alpha)
                 
                 weighted_loss = self.weight_loss(losses)
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                
+                #########
                 weighted_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 #########
+                
                 self.meters['data_time'].update(data_end_time - data_start_time)
                 self.meters['train_time'].update(time.time() - data_end_time)
    
@@ -221,7 +227,7 @@ class Trainer:
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
             #save_path = os.path.join(self.args.exp_dir, "bundle.pth")
-        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 5 == 0:
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
             #save_path = os.path.join(self.args.exp_dir, "bundle.pth")           
         else:
@@ -488,39 +494,6 @@ class Trainer:
             print(self.args.coarse_to_fine_retrieve)
             print (" .................................")
             # khazar: I commented below lines  which calculated fine retrieval
-        #     if self.args.coarse_to_fine_retrieve:
-        #         print('....now it came inside fine retrieval ')
-        #         visual_indices, audio_indices = coarse_retrieve_one_to_many(coarse_cross_relationship_score_matrix.transpose(0,1), topk=self.args.topk) # transpose to have [audio_len, visual_len]
-        #         B = len(visual_indices)
-        #         val_cross_batch_size = self.args.val_cross_batch_size
-        #         num_steps = math.ceil(B / val_cross_batch_size)
-        #         cross_relationship_score_square = []
-        #         for i in tqdm(range(num_steps), disable=hide_progress):
-        #             visual_feats_square = img_feats_list[visual_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             audio_feats_square = audio_feats_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             extended_audio_attention_mask_square = extended_audio_attention_mask_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-        #             cross_relationship_score = self.cross_encoder(audio_feats_square, extended_audio_attention_mask_square, visual_feats_square, extended_visual_attention_mask_square=None)
-        #             cross_relationship_score_square.append(cross_relationship_score.detach())
-
-        #         # do not test visual encoder ability here, might consider doing it in the future
-        #         # visual_feats = visual_feats_square[::(B+1)][:,1:]
-        #         cross_relationship_score_square = torch.cat(cross_relationship_score_square)
-        #     # logger.info(f"validation cross relationship score data type: {cross_relationship_score_square.dtype}")
-        #         recalls = fine_retrieve_one_to_many(cross_relationship_score_square, audio_img_id=audio_img_id_total, visual_img_id=img_img_id_list, visual_indices = visual_indices, audio_indices = audio_indices, topk=self.args.topk)
-        #     else:
-        #         print('....now it came inside else ')
-        #         cross_relationship_score_matrix = torch.zeros((len(img_img_id_list), audio_feats_total.shape[0])).to(self.device)
-        #         for i, img_id in enumerate(tqdm(img_img_id_list, disable=hide_progress)):
-        #             visual_feats_cur = img_id_to_img_feats[img_id].unsqueeze(0).repeat(audio_feats_total.shape[0],1,1)
-        #             # B = audio_feats_total.shape[0]
-        #             temp = self.cross_encoder(audio_feats_total, extended_audio_attention_mask_total, visual_feats_cur, None)
-        #             cross_relationship_score_matrix[i,:] = temp.squeeze(1)
-        #         recalls = calc_recalls_from_S_one_to_many(cross_relationship_score_matrix, row_img_id=img_img_id_list, column_img_id=audio_img_id_total)
-
-        # logger.info("Fine Retrieval Accuracy:")
-        # logger.info('Audio R@10 {A_r10:.3f} Image R@10 {I_r10:.3f} Average R@10 {r10_ave:.3f} over {N:d} validation pairs'.format(A_r10=recalls['A_r10'], I_r10=recalls['I_r10'], r10_ave=(recalls['A_r10']+recalls['I_r10'])/2, N=N_examples))
-        # logger.info('Audio R@5 {A_r5:.3f} Image R@5 {I_r5:.3f} Average R@5 {r5_ave:.3f} over {N:d} validation pairs'.format(A_r5=recalls['A_r5'], I_r5=recalls['I_r5'], r5_ave=(recalls['A_r5']+recalls['I_r5'])/2, N=N_examples))
-        # logger.info('Audio R@1 {A_r1:.3f} Image R@1 {I_r1:.3f} Average R@1 {ave_r1:.3f} over {N:d} validation pairs'.format(A_r1=recalls['A_r1'], I_r1=recalls['I_r1'], ave_r1=(recalls['A_r1']+recalls['I_r1'])/2,  N=N_examples))
 
         avg_acc_r10 = (recalls['A_r10'] + recalls['I_r10']) / 2
         avg_acc_r5 = (recalls['A_r5'] + recalls['I_r5']) / 2
@@ -555,14 +528,6 @@ class Trainer:
         for name in meter_names:
             meters[name] = AverageMeter()
         return meters
-
-    # def _setup_models_for_test(self):
-    #     dual_encoder_test = fast_vgs.DualEncoder(self.args)      
-    #     print_model_info(dual_encoder_test , print_model = True)
-    #     bundle = torch.load(os.path.join(self.args.exp_dir, "best_bundle.pth"))
-    #     dual_encoder_test.carefully_load_state_dict(bundle['dual_encoder'])
-    #     dual_encoder.to(self.device)
-    #     return dual_encoder_test
    
     def _setup_models(self):
         dual_encoder = fast_vgs.DualEncoder(self.args)
@@ -626,12 +591,6 @@ class Trainer:
         cross_encoder.to(self.device)
 
         return dual_encoder, cross_encoder, trainables, indices, libri_indices, optim_states
-    
-    # def _setup_testdataloader(self):    
-    #     test_dataset = libri_dataset.LibriDataset(self.args, split="train")
-    #     test_bs = 64                 
-    #     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=test_bs, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = test_dataset.collate, drop_last=False)            
-    #     return test_loader, len(test_dataset)
         
     def _setup_dataloader(self):
         if self.args.places:
@@ -670,10 +629,16 @@ class Trainer:
             # librispeech dataloaders
             # train
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
+            print('--------- here is len data------------')
+            print(len(train_dataset))
+            print('--------- here is step per epoch------------')
+            print(step_per_epoch)
             # libri_train_dataset = libri_dataset_mm.LibriDataset(self.args, split="train")
             libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
-            libri_train_bzs = min(libri_train_bzs, 64)
+            print('------------- here is calculated libri bs ------------')
+            print(libri_train_bzs)
+            libri_train_bzs = 4#min(libri_train_bzs, 32)
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
@@ -719,13 +684,13 @@ class Trainer:
         # N = self.args.n_epochs
         ############
         # model base1
-        # alpha = 0
+        alpha = 0
         ############
         # model base2
         # alpha = 1
         ############
         # model base3
-        alpha = 0.5
+        # alpha = 0.5
         ############
         # model base4
         # alpha = 0.1
