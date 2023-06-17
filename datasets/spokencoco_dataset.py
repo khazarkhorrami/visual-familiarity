@@ -51,7 +51,7 @@ class ImageCaptionDataset(Dataset):
         if split == "train":
             # original: audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
             #audio_dataset_json_file = '/scratch/project_2001315/khazar_projects/FaST/data/coco/subsets/SpokenCOCO_train_subset2.json'
-            audio_dataset_json_file = '../../../../data/coco/subsets/SpokenCOCO_train_SSL.json'
+            audio_dataset_json_file = '../../../../data/coco/subsets/SpokenCOCO_train_subset1.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
