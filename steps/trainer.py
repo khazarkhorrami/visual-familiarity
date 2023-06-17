@@ -57,6 +57,8 @@ class Trainer:
         # Kh: if iterating based on libri then calculate number of iterations based on libri
         self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
         print (' ...here is total number of updates calculated at init ... ')
+        print (self.total_num_updates)
+        ###
         self.optimizer = self._setup_optimizer()
         if torch.cuda.device_count() > 1:
             self.dual_encoder = nn.DataParallel(self.dual_encoder)
@@ -85,7 +87,12 @@ class Trainer:
 
     def train(self):
         flag = True
-        step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        
+        # Kh: steps pers epochs based on coco
+        # step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        # Kh: steps pers epochs based on libri
+        step_per_epoch = int(self.libri_train_data_length/self.args.batch_size)
+        
         data_start_time = time.time()
         #khazar
         print ('start of training method')
