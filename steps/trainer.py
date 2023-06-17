@@ -638,7 +638,7 @@ class Trainer:
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
             print('------------- here is calculated libri bs ------------')
             print(libri_train_bzs)
-            libri_train_bzs = min(libri_train_bzs, 32)
+            libri_train_bzs = 4#min(libri_train_bzs, 32)
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
