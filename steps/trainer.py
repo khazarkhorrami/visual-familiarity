@@ -92,28 +92,25 @@ class Trainer:
         
         while flag:
             logger.info('epoch starts here ')
-            if self.use_libri_loss:
-                libri_loader_iterator = iter(self.libri_train_loader)
-                
-            print ('khazar: train data length is ' + str(self.train_data_length))
-            print('.....Here is printing dat loader objects.........')
-            print('.............LS data.............................')
-            print(self.libri_train_loader)
-            print('.............LS data iter.............................')
-            print(iter(self.libri_train_loader))
-            print('.............COCO data.............................')
-            print(self.train_loader)
-            print('.............COCO data iter ............................')
-            print(iter(self.train_loader))
             
-            for i, batch in enumerate(self.train_loader):
-                if self.use_libri_loss:
+            coco_loader_iterator = iter(self.train_loader)
+            libri_loader_iterator = iter(self.libri_train_loader)
+            
+            # for i, libri_batch in enumerate(self.libri_train_loader):           
+            #     #batch = next(coco_loader_iterator)
+            #     #Kh: you can also do this for big LS batch sizes
+            #     try:
+            #         batch = next(coco_loader_iterator)
+            #     except StopIteration:
+            #         pass
+                
+            for i, batch in enumerate(self.train_loader):           
+                #libri_batch = next(libri_loader_iterator)
+                #Kh: you can also do this for big LS batch sizes
+                try:
                     libri_batch = next(libri_loader_iterator)
-                    # Kh: you can also do this for big LS batch sizes
-                    # try:
-                    #     libri_batch = next(libri_loader_iterator)
-                    # except StopIteration:
-                    #     pass
+                except StopIteration:
+                    pass
                       
                 data_end_time = time.time()
                 self.dual_encoder.train()
@@ -628,17 +625,26 @@ class Trainer:
         if self.use_libri_loss:
             # librispeech dataloaders
             # train
+
+
+            libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+            
+            # below calculates batch size of libri based on steps per epoch obtained from COCO
+            ####
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
             print('--------- here is len data------------')
             print(len(train_dataset))
             print('--------- here is step per epoch------------')
-            print(step_per_epoch)
-            # libri_train_dataset = libri_dataset_mm.LibriDataset(self.args, split="train")
-            libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+            print(step_per_epoch)        
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
             print('------------- here is calculated libri bs ------------')
             print(libri_train_bzs)
+            ###
+            
             libri_train_bzs = 4#min(libri_train_bzs, 32)
+            print('------------- here is the used libri bs ------------')
+            print(libri_train_bzs)
+            
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
