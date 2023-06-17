@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# manifest_path = "/worktmp2/hxkhkh/current/FaST/data/LS/libri_fn_root/valid.tsv"
+# manifest_path = "/worktmp2/hxkhkh/current/FaST/data/LS/libri_fn_root/train.tsv"
 # max_keep = 16000*80
 # min_keep = 32000
 # kh
@@ -66,6 +66,12 @@ def load_audio(manifest_path, max_keep, min_keep):
     # to have file_path = os.path.join(data_root, file_name)
     # Kh
     # return root, names, inds, tot, sizes
+    
+    # Kh: I am testing small LS data
+    tot = int(tot/2)
+    names = names [0:tot]
+    inds = inds[0:tot]
+    
     return root, names, inds, tot
 
 
