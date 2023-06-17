@@ -96,9 +96,11 @@ class Trainer:
         data_start_time = time.time()
         #khazar
         print ('start of training method')
-        print ('kh: memory allocated at training time')
-        print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-        #print(len(self.train_loader))
+        print ('...step_per_epoch for libri is....')
+        print(step_per_epoch)
+        print ('...step_per_epoch for coco is....')
+        print(int(self.train_data_length/self.args.batch_size))
+
         
         while flag:
             logger.info('epoch starts here ')
@@ -654,7 +656,7 @@ class Trainer:
             print(libri_train_bzs)
             ###
             
-            libri_train_bzs = 4#min(libri_train_bzs, 32)
+            libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
             print('------------- here is the used libri bs ------------')
             print(libri_train_bzs)
             
