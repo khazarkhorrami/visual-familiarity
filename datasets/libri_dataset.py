@@ -68,9 +68,9 @@ def load_audio(manifest_path, max_keep, min_keep):
     # return root, names, inds, tot, sizes
     
     # Kh: I am testing small LS data
-    tot = int(tot/2)
-    names = names [0:tot]
-    inds = inds[0:tot]
+    # tot = int(tot/2)
+    # names = names [0:tot]
+    # inds = inds[0:tot]
     
     return root, names, inds, tot
 
@@ -157,8 +157,11 @@ class LibriDataset(Dataset):
         print('........ num steps  ........................')
         print(num_steps)
         print('........ calculated bs ........................')
-        print (str (int(np.ceil(len(self)/num_steps))))
-        return int(np.ceil(len(self)/num_steps))
+        #bs = int(np.ceil(len(self)/num_steps))
+        # KH: I removed ceil since then it ends iterating LS sooner than SC and produces error
+        bs = int(len(self)/num_steps)
+        print (bs)
+        return bs
 
     def _LoadAudioLabel(self, fn, label_key):
         #Kh: "label_key" is file name without ".flac" but it is not used here
