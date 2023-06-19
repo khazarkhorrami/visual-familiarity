@@ -759,6 +759,7 @@ class Trainer:
         pass
 
     def weight_loss(self, losses, alpha, beta):
+        weighted_loss = 0
         if 'coarse_matching_loss' in losses: 
             weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
         if 'caption_w2v2_loss' in losses:
