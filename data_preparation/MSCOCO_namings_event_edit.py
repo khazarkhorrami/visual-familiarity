@@ -631,6 +631,7 @@ print(' ..... total time is ....' + str(hours_applied))
 
 
 #%%
+######### to get statistics of COCO
 
 audio_dataset_json_file = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json'
 with open(audio_dataset_json_file, 'r') as fp:
@@ -651,3 +652,41 @@ total_size = train_size + val_size
 total_time = 742 # hours
 size_per_hour = round(total_size / total_time )
 seconds_per_utt = round ((total_time/total_size) * 3600 , 2)
+
+#%%
+########## to copy images and speech of subsets 
+
+import json
+import os
+import shutil    
+
+path_images = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/MSCOCO/'
+path_wav = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/'
+
+dest_images = '/worktmp2/hxkhkh/current/FaST/data/coco_example/subset1/images/'
+dest_wavs = '/worktmp2/hxkhkh/current/FaST/data/coco_example/subset1/wavs/'
+
+subset_name = 'subset1'
+file_json = "/worktmp2/hxkhkh/current/FaST/data/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+with open(file_json, 'r') as fp:
+    data_json_test = json.load(fp)
+    
+data_subset_test = data_json_test['data']
+for counter, item in enumerate(data_subset_test):
+    image = item['image']
+    wav = item['caption']['wav']
+    image_file = os.path.join(path_images, image)
+    wav_file = os.path.join(path_wav, wav)
+    
+    # use names or replace with index
+    # im = (image.split('/'))[-1]
+    # w = (wav.split('/'))[-1]
+    # print(im)
+    # print(w)
+    im = str(counter) + '.jpg'
+    w = str(counter) + '.wav'
+    image_dest_file = os.path.join(dest_images, im)
+    wav_dest_file = os.path.join(dest_wavs, w)
+    shutil.copy(image_file, image_dest_file)
+    shutil.copy(wav_file, wav_dest_file)
+    
