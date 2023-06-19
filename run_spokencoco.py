@@ -78,6 +78,6 @@ if args.validate:
     my_trainer.validate_one_to_many(hide_progress=False)
 else:
     my_trainer = trainer.Trainer(args)
-    my_trainer.train_ssl()
+    my_trainer.train()
 
 
