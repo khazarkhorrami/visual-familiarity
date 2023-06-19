@@ -207,7 +207,7 @@ class Trainer:
             
             # kh: iterate based on libri
             for i, libri_batch in enumerate(self.libri_train_loader): 
-                
+                self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                 # cur_step shows step within one epoch (0,step_per_epoch)
                 cur_step = self.progress['num_updates'] % step_per_epoch
                      
