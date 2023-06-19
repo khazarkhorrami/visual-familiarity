@@ -249,7 +249,6 @@ class Trainer:
 
                 # logging
                 if self.progress['num_updates'] % self.args.n_print_steps == 0:
-                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                     log_out = {}
                     log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
                     log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"

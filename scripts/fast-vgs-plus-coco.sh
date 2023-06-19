@@ -20,9 +20,9 @@ python \
 --batch_size 64 \
 --val_batch_size 100 \
 --val_cross_batch_size 100 \
---n_epochs 30 \
---n_print_steps 100 \
---n_val_steps 9100 \
+--n_epochs 70 \
+--n_print_steps 500 \
+--n_val_steps 4383 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
@@ -37,7 +37,5 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 6 \
---encoder_attention_heads 4 \
---layer_use 4 \
+--layer_use 7 \
 
