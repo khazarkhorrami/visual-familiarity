@@ -51,9 +51,14 @@ class Trainer:
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
-        # self.test_loader, self.test_data_length = self._setup_testdataloader(arg.bundle_name)
-        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        
+        # self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        # Kh: if iterating based on libri then calculate number of iterations based on libri
+        self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        print (' ...here is total number of updates calculated at init ... ')
+        print (self.total_num_updates)
+        ###
         self.optimizer = self._setup_optimizer()
         if torch.cuda.device_count() > 1:
             self.dual_encoder = nn.DataParallel(self.dual_encoder)
@@ -66,18 +71,11 @@ class Trainer:
     
     def forward(self, batch):
         audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls, losses = self.dual_encoder(audio_feats = batch['audio'], attention_mask = batch['audio_attention_mask'], images = batch['images'])
-                                                                                                                    #, visual_feats = batch['visual_feats'], visual_pos = batch['visual_pos'])#, target_list = batch['label'])
-        # audio_cls = audio_cls[0:self.avportion]
-        # visual_cls = visual_cls[0:self.avportion]
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
         losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id']) # [0:self.avportion]
-        #B = visual_feats.shape[0]
-        # visual_feats_square = visual_feats.repeat(B,1,1)
-        # audio_feats_square = audio_feats.repeat_interleave(B, dim=0)
-        #extended_audio_attention_mask_square = extended_audio_attention_mask.repeat_interleave(B, dim=0)
-        # cross_relationship_score_square = self.cross_encoder(audio_feats_square, extended_audio_attention_mask_square, visual_feats_square)
-        # cross_relationship_score_matrix = cross_relationship_score_square.view(B,B)
-        #losses["fine_matching_loss"] = fast_vgs.Margin_InfoNCE_loss(cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id'])
+        return losses
+    def forward_ssl (self, libri_batch):
+        losses = self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)
         return losses
 
     def train(self):
@@ -115,10 +113,10 @@ class Trainer:
                     break
                 
                 cur_lr = np.mean(self.optimizer.get_lr())
-
+    
                 self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
                 cur_step = self.progress['num_updates'] % step_per_epoch
-
+    
                 
                 cur_batch = {
                         "images": batch['images'].to(self.device),
@@ -131,7 +129,7 @@ class Trainer:
                 
                 if self.use_libri_loss:
                     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
-
+    
                 for key in losses:
                     if key in self.meters:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
@@ -139,8 +137,103 @@ class Trainer:
                 
                 
                 weighted_loss = self.weight_loss(losses)
-
+    
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
+                self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                
+                #########
+                weighted_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                #########
+                
+                self.meters['data_time'].update(data_end_time - data_start_time)
+                self.meters['train_time'].update(time.time() - data_end_time)
+    
+                self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
+                self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
+    
+                # logging
+                if self.progress['num_updates'] % self.args.n_print_steps == 0:
+                    
+                    log_out = {}
+                    log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                    log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
+                    log_out['num_updates'] = self.progress['num_updates']
+                    log_out['lr'] = f"{cur_lr:.7f}"
+                    for key in self.meters:
+                        if self.meters[key].val != 0 or self.meters[key].avg != 0:
+                            log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                    logger.info(log_out)
+                    if np.isnan(self.meters['weighted_loss'].avg):
+                        logger.info("training diverged...")
+                        return
+                    
+               
+                # validation and save models
+                if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                    
+                    r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
+                ########    
+                self.progress['num_updates'] += 1
+                self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+                data_start_time = time.time()
+                #print(self.progress['num_updates'])
+    def train_ssl(self):
+        flag = True     
+        # Kh: steps pers epochs based on coco
+        # step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        # Kh: steps pers epochs based on libri
+        step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
+        step_per_epoch_coco = int(self.train_data_length/self.args.batch_size)
+        step_per_epoch = step_per_epoch_libri
+        
+        
+        #khazar
+        print ('start of training method')
+        print ('...step_per_epoch for libri is....')
+        print(step_per_epoch_libri)
+        print ('...step_per_epoch for coco is....')
+        print(step_per_epoch_coco)
+        ###
+        data_start_time = time.time()
+        
+        while flag:
+            logger.info('epoch starts here ')
+            
+            # coco_loader_iterator = iter(self.train_loader)
+            # libri_loader_iterator = iter(self.libri_train_loader)
+            
+            # kh: iterate based on libri
+            for i, libri_batch in enumerate(self.libri_train_loader): 
+                
+                # cur_step shows step within one epoch (0,step_per_epoch)
+                cur_step = self.progress['num_updates'] % step_per_epoch
+                     
+                data_end_time = time.time()
+                self.dual_encoder.train()
+                if self.progress['num_updates'] > self.total_num_updates:
+                    flag = False
+                    r10, r5, r1 = self.validate_and_save()
+                    self.writer.close()
+                    break
+                
+                cur_lr = np.mean(self.optimizer.get_lr())
+
+                self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])                 
+                losses = self.forward_ssl (libri_batch)
+
+                for key in losses:
+                    if key in self.meters:
+                        self.meters[key].update(losses[key].mean().cpu().item(), libri_batch.shape[0])
+                        self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                
+                alpha = 0
+                beta = 0
+                weighted_loss = self.weight_loss(losses, alpha, beta)
+
+                self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch.shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
                 
                 #########
@@ -425,9 +518,6 @@ class Trainer:
             
             print ('khazar: memory allocated before cat')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=1) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=2) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=3) / 1024 ** 3)
             
             
             audio_cls_total = torch.cat(audio_cls_total)  
@@ -438,19 +528,7 @@ class Trainer:
             
             print ('khazar: memory allocated after cat')
             print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=1) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=2) / 1024 ** 3)
-            # print(torch.cuda.memory_allocated(device=3) / 1024 ** 3)
-            
-            # khazar: I commented below lines
-            
-            # Kh: start
-            
-            # img_feats_list = torch.stack(img_feats_list)
-            # audio_feats_total = torch.cat(audio_feats_total)
-            # extended_audio_attention_mask_total = torch.cat(extended_audio_attention_mask_total)
-           
-            # Kh : end
+
             audio_img_id_total = np.concatenate(audio_img_id_total)
             img_img_id_list = np.array(img_img_id_list)
 
@@ -618,17 +696,30 @@ class Trainer:
         if self.use_libri_loss:
             # librispeech dataloaders
             # train
+
+
+            libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+            
+            # below calculates batch size of libri based on steps per epoch obtained from COCO
+            ####
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
             print('--------- here is len data------------')
             print(len(train_dataset))
             print('--------- here is step per epoch------------')
-            print(step_per_epoch)
-            # libri_train_dataset = libri_dataset_mm.LibriDataset(self.args, split="train")
-            libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+            print(step_per_epoch)        
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
             print('------------- here is calculated libri bs ------------')
             print(libri_train_bzs)
-            libri_train_bzs = min(libri_train_bzs, self.args.batch_size)
+            ###
+            
+            libri_train_bzs = min(libri_train_bzs, 64)
+            print('------------- here is the used libri bs ------------')
+            print(libri_train_bzs)
+            
+            print('------------- here is the n_per_epoch libri ------------')
+            print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
+            ###
+            
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
             if self.progress['num_updates'] > 1 and self.libri_indices is not None:
@@ -645,7 +736,7 @@ class Trainer:
             libri_valid_loader = None
             libri_train_sampler = None
 
-        return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
+        return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
         optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
@@ -667,38 +758,19 @@ class Trainer:
     def _setup_scheduler(self):
         pass
 
-    def weight_loss(self, losses):
-        
-        # n = self.progress['num_updates']    
-        # n = self.progress['epoch']
-        # N = self.args.n_epochs
-        ############
-        # model base1
-        alpha = 0
-        ############
-        # model base2
-        # alpha = 1
-        ############
-        # model base3
-        # alpha = 0.5
-        ############       
-        #khazar: I removed 'fine_matching_loss' below line
-        weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha #+ losses['fine_matching_loss'] * self.args.fine_matching_weight
-        
-        # print (' kh.............. here it is printing losses, coarse.............')
-        # print(weighted_loss)
+    def weight_loss(self, losses, alpha, beta):
+        if 'coarse_matching_loss' in losses: 
+            weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
         if 'caption_w2v2_loss' in losses:
-            weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (1-alpha)
-            
-            # print (' kh.............. here it is printing losses, w2v2.............')
-            # print(losses['caption_w2v2_loss'])
-            # print(losses['caption_w2v2_loss'].mean())
+            weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (beta)           
         if 'libri_w2v2_loss' in losses:
             weighted_loss += losses['libri_w2v2_loss'].mean() * self.args.libri_w2v2_weight
         if 'caption_hubert_loss' in losses:
             weighted_loss += losses['caption_hubert_loss'].mean() * self.args.caption_hubert_weight
         if 'libri_hubert_loss' in losses:
             weighted_loss += losses['libri_hubert_loss'].mean() * self.args.libri_hubert_weight
+        else:
+            weighted_loss = losses
         
         return weighted_loss
     
