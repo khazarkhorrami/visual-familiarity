@@ -229,9 +229,7 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                alpha = 0
-                beta = 0
-                weighted_loss = self.weight_loss(losses, alpha, beta)
+                weighted_loss = losses['libri_w2v2_loss'].mean() * self.args.libri_w2v2_weight
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
@@ -759,9 +757,9 @@ class Trainer:
         pass
 
     def weight_loss(self, losses, alpha, beta):
-        weighted_loss = 0
-        if 'coarse_matching_loss' in losses: 
-            weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
+        
+        
+        weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
         if 'caption_w2v2_loss' in losses:
             weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (beta)           
         if 'libri_w2v2_loss' in losses:
@@ -770,8 +768,7 @@ class Trainer:
             weighted_loss += losses['caption_hubert_loss'].mean() * self.args.caption_hubert_weight
         if 'libri_hubert_loss' in losses:
             weighted_loss += losses['libri_hubert_loss'].mean() * self.args.libri_hubert_weight
-        else:
-            weighted_loss = losses
+
         
         return weighted_loss
     
