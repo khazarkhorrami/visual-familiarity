@@ -215,7 +215,7 @@ class Trainer:
                 self.dual_encoder.train()
                 if self.progress['num_updates'] > self.total_num_updates:
                     flag = False
-                    r10, r5, r1 = self.validate_and_save()
+                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                     self.writer.close()
                     break
                 
@@ -266,13 +266,39 @@ class Trainer:
                
                 # validation and save models
                 if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                     
-                    r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
                 ########    
                 self.progress['num_updates'] += 1
                 self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
                 data_start_time = time.time()
                 #print(self.progress['num_updates'])
+                
+    def validate_and_save_ssl(self, n_save_ind = 0):  
+        
+        self.validate_libri()
+        N_examples = self.valid_loader.dataset.__len__()
+        # khazar: N_examples = 25035
+        print('kh: below it should print n_example ....')
+        print('N_example is ' + str(N_examples))
+        
+        save_progress(self)
+        if self.progress['epoch'] <= 5 :
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        else:
+            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        torch.save(
+            {
+                "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
+                "optimizer":  self.optimizer.state_dict(),
+                "indices": self.train_sampler.state_dict(),
+                "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
+            },save_path
+        )
+        logger.info(f"save models, indices, acc and other statistics at {save_path} and {self.args.exp_dir}/progress.pkl at global step {self.progress['num_updates']}")
         
     def validate_and_save(self, libri=False, places=False , n_save_ind = 0):
         # khazar: I added "n_save_ind" argument to save intermediate models 
@@ -307,10 +333,8 @@ class Trainer:
         save_progress(self)
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-            #save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-            #save_path = os.path.join(self.args.exp_dir, "bundle.pth")           
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
         else:
             save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
@@ -701,16 +725,12 @@ class Trainer:
             # below calculates batch size of libri based on steps per epoch obtained from COCO
             ####
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
-            print('--------- here is len data------------')
-            print(len(train_dataset))
-            print('--------- here is step per epoch------------')
-            print(step_per_epoch)        
             libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
-            print('------------- here is calculated libri bs ------------')
+            print('------------- here is the calculated libri bs ------------')
             print(libri_train_bzs)
             ###
             
-            libri_train_bzs = min(libri_train_bzs, 64)
+            libri_train_bzs = libri_train_bzs #min(libri_train_bzs, 64)
             print('------------- here is the used libri bs ------------')
             print(libri_train_bzs)
             
