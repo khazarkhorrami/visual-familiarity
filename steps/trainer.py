@@ -226,14 +226,14 @@ class Trainer:
 
                 for key in losses:
                     if key in self.meters:
-                        self.meters[key].update(losses[key].mean().cpu().item(), libri_batch.shape[0])
+                        self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 alpha = 0
                 beta = 0
                 weighted_loss = self.weight_loss(losses, alpha, beta)
 
-                self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch.shape[0])
+                self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
                 
                 #########
