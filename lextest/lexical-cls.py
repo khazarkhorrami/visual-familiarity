@@ -1,11 +1,16 @@
 import os
 #############################################################################
-#twd = '/worktmp/khorrami/current/FaST/experiments/model19base3/9252_bundle.pth'
-#target_layer = 2
+#twd = e.g., '../experiments/model19base3/9252_bundle.pth'
+#target_layer = e.g., 2
 total_layers = 12
 trimTF = True
 
-wav_path = '/scratch/specog/lextest/data/COCO/'
+# Paths for data, select testing on COCO/CDI
+wav_path_COCO = '/scratch/specog/lextest/data/COCO/'
+wav_path_CDI = '/worktmp2/hxkhkh/current/lextest/data/CDI/'
+wav_path = wav_path_COCO
+
+# Path for saving embeddings
 save_path = '/scratch/specog/lextest/embedds/'
 os.makedirs(save_path, exist_ok=True)
 #############################################################################
@@ -14,44 +19,47 @@ import argparse
 import soundfile as sf
 import numpy as np
 import torch
-import json
 import numpy
 # for model
 from models.w2v2_model import  Wav2Vec2Model_cls , ConvFeatureExtractionModel
-
 from steps import trainer
 from steps.utils import *
 from steps.trainer_utils import *
 from models import fast_vgs, w2v2_model
 from datasets import spokencoco_dataset, libri_dataset
 
-#############################################################################
+#%% writting resamples files, 
+# run this section only once if you want to save resampled data and 
+# use sf for reading them (sf is faster than librosa)
+
+# import librosa
+# import os 
+# import soundfile as sf
+# import time
+# t1 = time.time()
+
+# wav_path = '/worktmp2/hxkhkh/current/lextest/COCO_lextest/COCO_synth/'
+# new_path = '/worktmp2/hxkhkh/current/lextest/data/COCO/'
+
+# SR = 16000
+# wav_files = os.listdir(wav_path)
+
+# for counter, wav_file in enumerate(wav_files):
+    
+#     x, sr = librosa.load(wav_path + wav_file, dtype = 'float32', sr = SR)
+#     #sf.write(new_path + wav_file , x, SR)
+    
+# t2 = time.time()
+# print(t2-t1)
+#%%
 
 def LoadAudio( path):
     x, sr = sf.read(path, dtype = 'float32')
     assert sr == 16000
-    length_orig = len(x)
-    audio_length = length_orig
-    x_norm = (x - np.mean(x)) / np.std(x)
-      
-    return x_norm, audio_length
+    # x, sr = librosa.load(path, dtype = 'float32', sr = 16000)
+    x_norm = (x - np.mean(x)) / np.std(x)     
+    return x_norm, len(x)
 
-
-#%% Use this section only once to save resampled files
-
-# resampling synthesized wav file to 16KHz
-# import soundfile as sf
-# import os
-# import json
-# wav_path = '/worktmp2/hxkhkh/current/lextest/data/COCO_synth/'
-# new_path = '/worktmp2/hxkhkh/current/lextest/data/COCO/'
-# import librosa
-# SAMPLE_RATE = 16000
-# wav_files_json = os.listdir('/worktmp2/hxkhkh/current/lextest/data/COCO_synth')
-# for counter, wav_file in enumerate(wav_files_json):
-#     y, sr = librosa.load(wav_path + wav_file, dtype = 'float32')
-#     x = librosa.resample(y, orig_sr=sr, target_sr=SAMPLE_RATE)
-#     sf.write(new_path + wav_file , x, SAMPLE_RATE)
 #%%
 
 # loading Model
@@ -74,7 +82,7 @@ args = parser.parse_args()
 #..............................
 
 # input args
-mytwd = args.mytwd # "/worktmp2/hxkhkh/current/FaST/exp/E75_bundle.pth"
+mytwd = args.mytwd 
 args.layer_use = int(args.mytarget_layer)
 
 
@@ -107,10 +115,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conv1_trm1_trm3.to(device)
 conv1_trm1_trm3.eval()
 
-wav_files_json = os.listdir(wav_path)
+wav_files = os.listdir(wav_path)
 
 with torch.no_grad():
-    for counter, wav_file in enumerate(wav_files_json):
+    for counter, wav_file in enumerate(wav_files):
         print(counter)
         signal_peng,l =  LoadAudio(wav_path + wav_file) 
         
