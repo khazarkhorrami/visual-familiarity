@@ -119,7 +119,7 @@ class LibriDataset(Dataset):
     def add_args(parser):
         parser.add_argument("--libri_fn_root", type=str, default="/data3/scratch/pyp/exp_pyp/libri/", help="from fairseq mae simple kmeans")
         parser.add_argument("--libri_max_seq_len", type=float, default=8)
-        parser.add_argument("--libri_val_bzs", type=int, default=4)
+        parser.add_argument("--libri_val_bzs", type=int, default=64)
         parser.add_argument("--sample_rate", type=int, default=16000)
         parser.add_argument("--feature_rate", type=int, default=50, help="50")
         parser.add_argument("--label_rate", type = int, default=100, help="the number of labels per second of audio. 100 if mfcc, 50 is MAE features")
