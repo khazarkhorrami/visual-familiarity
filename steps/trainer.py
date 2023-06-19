@@ -730,7 +730,7 @@ class Trainer:
             print(libri_train_bzs)
             ###
             
-            libri_train_bzs = libri_train_bzs #min(libri_train_bzs, 64)
+            libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
             print('------------- here is the used libri bs ------------')
             print(libri_train_bzs)
             
