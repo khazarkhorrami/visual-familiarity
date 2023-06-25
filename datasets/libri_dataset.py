@@ -46,8 +46,7 @@ def load_audio(manifest_path, max_keep, min_keep):
                 #names.append(items[0])
                 file_splits = items[0].split("/")[-5:]
                 file_name = '/'.join(file_splits)
-                
-                
+                         
                 names.append(file_name)
                 #kh
                 
