@@ -35,7 +35,7 @@ def read_tsv_LS_Peng(file_path, max_keep, min_keep):
             else:
                 #kh: i changed this 
                 #names.append(items[0])
-                file_splits = items[0].split("/")[-5:]
+                file_splits = items[0].split("/")[-4:]
                 file_name = '/'.join(file_splits)
                          
                 names.append(file_name)
@@ -58,12 +58,12 @@ def read_wav_json(file_path):
         wavs.append(w)
     return wavs
 
-def combine_LS_SC (ls_names,ls_path, sc_names, sc_path):
+def combine_LS_SC (ls_names, sc_names):
     all_names = []
     for item in ls_names: 
-        all_names.append(os.path.join(ls_path, item))
+        all_names.append(os.path.join('LS','wavs', item))
     for item in sc_names:
-        all_names.append(os.path.join(sc_path, item))
+        all_names.append(os.path.join('coco_pyp','SpokenCOCO',item))
     random.shuffle(all_names)
     return all_names
             
@@ -74,26 +74,47 @@ def write_list_to_tsv(file_path, data_list):
         writer = csv.writer(tsv_file, delimiter='\t')
         for item in data_list:
             writer.writerow([item])
+
+
+#%%
+
+# Combining LS train and COCO SSL train as "train.tsv"  
+
 # File paths
-tsv_file_path = '../../../FaST/data/LS/libri_fn_root/train.tsv'
-json_file_path = '../../../FaST/data/coco/subsets/SpokenCOCO_train_SSL.json'
-combined_tsv_file_path = '../../../FaST/data/combined_output.tsv'
+tsv_file_path = '../../../FaST/datavf/libri_fn_root/train.tsv'
+json_file_path = '../../../FaST/datavf/coco/subsets/SpokenCOCO_train_SSL.json'
+out_file_path = '../../../FaST/datavf/ssl_root/train.tsv'
 
-
+# File names
 ls_names, inds, tot = read_tsv_LS_Peng(tsv_file_path, max_keep = 16000*80, min_keep = 32000)
-
 sc_names = read_wav_json(json_file_path)
 
-# Combine the data
-
-ls_path = '../../../FaST/data/LS'
-sc_path = '../../../FaST/data/coco_pyp/SpokenCOCO'
-combined_data_list = combine_LS_SC (ls_names,ls_path, sc_names, sc_path)
+# Combine the LS and SC train data
+combined_data_list = combine_LS_SC (ls_names, sc_names)
 
 # Write combined data to a new TSV file
-write_list_to_tsv(combined_tsv_file_path, combined_data_list)
+write_list_to_tsv(out_file_path, combined_data_list)
 
-print('Data combined and saved to', combined_tsv_file_path)
+# Test the file content
+test_data = read_tsv(out_file_path)
 
-test_data = read_tsv(combined_tsv_file_path)
+#%%
 
+# Recreating LS "val.tsv" with the correct paths 
+
+# File paths
+tsv_file_path = '../../../FaST/datavf/libri_fn_root/valid.tsv'
+out_file_path = '../../../FaST/datavf/ssl_root/valid.tsv'
+
+# File names
+ls_names, inds, tot = read_tsv_LS_Peng(tsv_file_path, max_keep = 16000*80, min_keep = 32000)
+sc_names = []
+
+# Combine the LS and SC train data
+combined_data_list = combine_LS_SC (ls_names, sc_names)
+
+# Write combined data to a new TSV file
+write_list_to_tsv(out_file_path, combined_data_list)
+
+# Test the file content
+test_data = read_tsv(out_file_path)
