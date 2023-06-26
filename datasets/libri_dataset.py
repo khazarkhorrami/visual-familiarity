@@ -17,61 +17,56 @@ logger = logging.getLogger(__name__)
 # max_keep = 16000*80
 # min_keep = 32000
 # kh
-def load_audio(manifest_path, max_keep, min_keep):
-    # Kh: I added this
-    data_path_root_splits = manifest_path.split('/')[0:-2]
-    root = '/'.join(data_path_root_splits)
-    trash = []
-    hours = []
-    # Kh
-    n_long, n_short = 0, 0
-    names, inds, sizes = [], [], []
-    with open(manifest_path) as f:
-        # Kh: I chaned this
-        #root = f.readline().strip()
-        # Kh
-        f.readline().strip()
-        for ind, line in enumerate(f):
-            items = line.strip().split("\t")
-            assert len(items) == 2, line
-            sz = int(items[1])
-            if min_keep is not None and sz < min_keep:
-                n_short += 1
+import csv
+def read_tsv(file_path):
+    with open(file_path, 'r', encoding='utf-8') as tsv_file:
+        reader = csv.reader(tsv_file, delimiter='\t')
+        names = [row[0] for row in reader]
+    return names
+
+# def load_audio(manifest_path, max_keep, min_keep):
+#     # Kh: I added this
+#     trash = []
+#     hours = []
+#     # Kh
+#     n_long, n_short = 0, 0
+#     names, inds, sizes = [], [], []
+#     with open(manifest_path) as f:
+#         # Kh: I chaned this
+#         #root = f.readline().strip()
+#         # Kh
+#         f.readline().strip()
+#         for ind, line in enumerate(f):
+#             items = line.strip().split("\t")
+#             assert len(items) == 2, line
+#             sz = int(items[1])
+#             if min_keep is not None and sz < min_keep:
+#                 n_short += 1
                 
-            elif max_keep is not None and sz > max_keep:
-                n_long += 1
-                trash.append(items)
-            else:
-                #kh: i changed this 
-                #names.append(items[0])
-                file_splits = items[0].split("/")[-5:]
-                file_name = '/'.join(file_splits)
+#             elif max_keep is not None and sz > max_keep:
+#                 n_long += 1
+#                 trash.append(items)
+#             else:
+#                 #kh: i changed this 
+#                 #names.append(items[0])
+#                 file_splits = items[0].split("/")[-5:]
+#                 file_name = '/'.join(file_splits)
                          
-                names.append(file_name)
-                #kh
+#                 names.append(file_name)
+#                 #kh
                 
-                inds.append(ind)
-                sizes.append(sz)
-                hours.append((sz/16000)/3600)
-    tot = ind + 1
-    logger.info(
-        (
-            f"max_keep={max_keep}, min_keep={min_keep}, "
-            f"loaded {len(names)}, skipped {n_short} short and {n_long} long, "
-            f"longest-loaded={max(sizes)}, shortest-loaded={min(sizes)}"
-        )
-    )
-    # Kh: I changed root to my own defined root
-    # to have file_path = os.path.join(data_root, file_name)
-    # Kh
-    # return root, names, inds, tot, sizes
-    
-    # Kh: I am testing small LS data
-    # tot = int(tot/2)
-    # names = names [0:tot]
-    # inds = inds[0:tot]
-    
-    return root, names, inds, tot
+#                 inds.append(ind)
+#                 sizes.append(sz)
+#                 hours.append((sz/16000)/3600)
+#     logger.info(
+#         (
+#             f"max_keep={max_keep}, min_keep={min_keep}, "
+#             f"loaded {len(names)}, skipped {n_short} short and {n_long} long, "
+#             f"longest-loaded={max(sizes)}, shortest-loaded={min(sizes)}"
+#         )
+#     )
+ 
+#     return names
 
 
 
@@ -116,7 +111,8 @@ def load_audio(manifest_path, max_keep, min_keep):
 class LibriDataset(Dataset):
     @staticmethod
     def add_args(parser):
-        parser.add_argument("--libri_fn_root", type=str, default="/data3/scratch/pyp/exp_pyp/libri/", help="from fairseq mae simple kmeans")
+        parser.add_argument("--libri_fn_root", type=str, default="../../../../datavf/ssl_root/", help="root for tsv files")
+        parser.add_argument("--data_root", type=str, default="../../../../data/", help="data folder")
         parser.add_argument("--libri_max_seq_len", type=float, default=8)
         parser.add_argument("--libri_val_bzs", type=int, default=64)
         parser.add_argument("--sample_rate", type=int, default=16000)
@@ -141,8 +137,9 @@ class LibriDataset(Dataset):
             manifest_path = os.path.join(self.args.libri_fn_root, "train.tsv")
         elif "val" in split or "valid" in split or "dev" in split:
             manifest_path = os.path.join(self.args.libri_fn_root, "valid.tsv")
-
-        self.audio_root, self.audio_names, inds, tot = load_audio(
+        
+        self.audio_root= self.args.data_root # "path/to/data/folder/"
+        self.audio_names = read_tsv(
             manifest_path, self.args.max_keep_sample_size, self.args.min_keep_sample_size
         )
 
