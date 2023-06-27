@@ -144,7 +144,7 @@ for wpath in SSL_data:
     seconds_orig.append(time_orig)
     
     # check if the total time is still less than 6 Months
-    if (sum(seconds_orig)/3600) <= sec6M :
+    if (sum(seconds_orig)) <= sec6M :
         SSL_6M.append(wpath)
         seconds_6M.append(time_orig)
     else:
