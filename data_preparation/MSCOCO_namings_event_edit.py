@@ -159,7 +159,7 @@ def find_dict_image_to_nouns (dict_image_id_to_captions):
 
 data = read_captions_from_json()
 dict_image_id_to_captions = find_dict_image_to_captions (data)
-
+kh
                  
 #%% step 3
 
@@ -560,29 +560,51 @@ with open(file_json, "w") as fp:
 
 
 #%%
+import json
 
 # getting SSL subset by removing the largest VGS subset from data
 
+# reading the whole data
+
+audio_dataset_json_file = '/worktmp2/hxkhkh/current/FaST/data/coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json'
+with open(audio_dataset_json_file, 'r') as fp:
+    data_json = json.load(fp)
+data = data_json['data']
+
+
+# reading vgs subsets to be reduced from the data
+
+
 subset_name = 'subset3'
 
-file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+file_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
     data_json_vgs = json.load(fp)
     
-data_subset_vgs = data_json_vgs['data']
+data_subset3_vgs = data_json_vgs['data']
+
+
+subset_name = 'subset0A'
+
+file_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+with open(file_json, 'r') as fp:
+    data_json_vgs = json.load(fp)
+    
+data_subset0A_vgs = data_json_vgs['data']
 
 #%%
+
 
 # saving data SSL json file
 
 data_subset_SSL = []    
 for d in data:
-    if d not in data_subset_vgs:
+    if d not in data_subset3_vgs and d not in data_subset0A_vgs:
         data_subset_SSL.append(d)
         
 data_json_SSL = {}
 data_json_SSL ['data'] = data_subset_SSL
-file_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/subsets/SpokenCOCO_train_SSL.json"
+file_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_SSL.json"
 with open(file_json, "w") as fp:
     json.dump(data_json_SSL,fp) 
 
@@ -592,9 +614,9 @@ with open(file_json, "w") as fp:
 # testing 
 import json
     
-subset_name = 'subset1'
+subset_name = 'SSL'
 
-file_json = "/worktmp2/hxkhkh/current/FaST/data/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
+file_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_" + subset_name +  ".json"
 with open(file_json, 'r') as fp:
     data_json_test = json.load(fp)
     
