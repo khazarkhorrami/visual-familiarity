@@ -100,11 +100,28 @@ test_data = read_tsv(out_file_path)
 
 #%%
 
+# Recreating LS "train.tsv" with the correct paths 
+
+# File paths
+tsv_file_path = '../../../FaST/datavf/libri_fn_root/Pengfiles/train.tsv'
+out_file_path = '../../../FaST/datavf/libri_fn_root/train.tsv'
+
+# File names
+ls_names, inds, tot = read_tsv_LS_Peng(tsv_file_path, max_keep = 16000*80, min_keep = 32000)
+sc_names = []
+
+# Combine the LS and SC train data
+combined_data_list = combine_LS_SC (ls_names, sc_names)
+
+# Write combined data to a new TSV file
+write_list_to_tsv(out_file_path, combined_data_list)
+#%%
+
 # Recreating LS "val.tsv" with the correct paths 
 
 # File paths
-tsv_file_path = '../../../FaST/datavf/libri_fn_root/valid.tsv'
-out_file_path = '../../../FaST/datavf/ssl_root/valid.tsv'
+tsv_file_path = '../../../FaST/datavf/libri_fn_root/Pengfiles/valid.tsv'
+out_file_path = '../../../FaST/datavf/libri_fn_root/valid.tsv'
 
 # File names
 ls_names, inds, tot = read_tsv_LS_Peng(tsv_file_path, max_keep = 16000*80, min_keep = 32000)
