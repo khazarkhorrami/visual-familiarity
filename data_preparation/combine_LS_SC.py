@@ -75,7 +75,7 @@ def write_list_to_tsv(file_path, data_list):
         for item in data_list:
             writer.writerow([item])
 
-
+kh
 #%%
 
 # Combining LS train and COCO SSL train as "train.tsv"  
@@ -118,3 +118,60 @@ write_list_to_tsv(out_file_path, combined_data_list)
 
 # Test the file content
 test_data = read_tsv(out_file_path)
+
+#%%
+
+file_path = '../../../FaST/datavf/ssl_root/train.tsv'
+SSL_data = read_tsv(file_path)
+
+SSL_6M = []
+SSL_res = []
+sec6M = 1049* 3600
+# measuring the total time 
+import soundfile as sf
+import os 
+path_root = '../../../FaST/data'
+seconds_orig = []
+seconds_applied = []
+seconds_6M = []
+seconds_res = []
+for wpath in SSL_data:
+    
+    path = os.path.join(path_root,wpath)
+    x, sr = sf.read(path, dtype = 'float32')
+    length_orig = len(x)
+    time_orig = length_orig /sr
+    seconds_orig.append(time_orig)
+    
+    # check if the total time is still less than 6 Months
+    if (sum(seconds_orig)/3600) <= sec6M :
+        SSL_6M.append(wpath)
+        seconds_6M.append(time_orig)
+    else:
+        SSL_res.append(wpath)
+        seconds_res.append(time_orig)
+        
+    # measure applied seconds     
+    if length_orig > sr * 8:
+        seconds_applied.append(8)
+    else:
+        seconds_applied.append(time_orig)
+    
+hours = sum(seconds_orig)/3600
+print(' ..... total time original is ....' + str(hours))
+
+hours_applied = sum(seconds_applied)/3600
+print(' ..... total time applied is ....' + str(hours_applied))
+
+hours_6M = sum(seconds_6M)/3600
+print(' ..... total time SSL 6M is ....' + str(hours_6M))
+
+hours_res = sum(seconds_res)/3600
+print(' ..... total time res is ....' + str(hours_res))
+
+# Write SSL 6M data to a new TSV file
+out_file_path = '../../../FaST/datavf/ssl_root/train6M.tsv'
+write_list_to_tsv(out_file_path, SSL_6M )
+
+out_file_path = '../../../FaST/datavf/ssl_root/trainRes.tsv'
+write_list_to_tsv(out_file_path, SSL_res )
