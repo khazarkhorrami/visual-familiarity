@@ -5,8 +5,8 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 data_root=$1
 fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
 exp_dir="../../exp/"
-libri_fn_root= "../../../../datavf/ssl_root/"
-pretrained_root="/scratch/project_2001315/khazar_projects/FaST/hubertAndDINO"
+libri_fn_root="../../../../datavf/ssl_root/"
+pretrained_root="../../../../hubertAndDINO"
 
 python \
 ../run_spokencoco.py \
