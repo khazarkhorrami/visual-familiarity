@@ -115,8 +115,9 @@ combined_data_list = combine_LS_SC (ls_names, sc_names)
 
 # Write combined data to a new TSV file
 write_list_to_tsv(out_file_path, combined_data_list)
-
+#%%
 # Test the file content
+out_file_path = '../../../FaST/datavf/ssl_root/trainRes.tsv'
 test_data = read_tsv(out_file_path)
 
 #%%
