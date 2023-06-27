@@ -140,7 +140,7 @@ class LibriDataset(Dataset):
         
         self.audio_root= self.args.data_root # "path/to/data/folder/"
         self.audio_names = read_tsv(
-            manifest_path, self.args.max_keep_sample_size, self.args.min_keep_sample_size
+            manifest_path#, self.args.max_keep_sample_size, self.args.min_keep_sample_size
         )
 
     def __len__(self):
