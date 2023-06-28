@@ -96,10 +96,6 @@ class LibriDataset(Dataset):
 
         if "train" in split:
             manifest_path = os.path.join(self.args.libri_fn_root, "train.tsv")
-        elif "train6M" in split:
-            manifest_path = os.path.join(self.args.libri_fn_root, "train6M.tsv")
-        elif "trainRes" in split:
-            manifest_path = os.path.join(self.args.libri_fn_root, "trainRes.tsv")
         elif "val" in split or "valid" in split or "dev" in split:
             manifest_path = os.path.join(self.args.libri_fn_root, "valid.tsv")
         
