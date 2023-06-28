@@ -3,6 +3,7 @@ import csv
 import json
 import os
 import random
+import soundfile as sf
 
 
 # Function to read data from a TSV file
@@ -58,6 +59,8 @@ def read_wav_json(file_path):
         wavs.append(w)
     return wavs
 
+# Function to combine LS and SC data
+# Note that due to the shuffling, the function should be run only once 
 def combine_LS_SC (ls_names, sc_names):
     all_names = []
     for item in ls_names: 
@@ -81,18 +84,29 @@ kh
 # Combining LS train and COCO SSL train as "train.tsv"  
 
 # File paths
-tsv_file_path = '../../../FaST/datavf/libri_fn_root/train.tsv'
+tsv_file_path = '../../../FaST/datavf/libri_fn_root/Pengfiles/train.tsv'
 json_file_path = '../../../FaST/datavf/coco/subsets/SpokenCOCO_train_SSL.json'
-out_file_path = '../../../FaST/datavf/ssl_root/train.tsv'
+
 
 # File names
 ls_names, inds, tot = read_tsv_LS_Peng(tsv_file_path, max_keep = 16000*80, min_keep = 32000)
 sc_names = read_wav_json(json_file_path)
 
-# Combine the LS and SC train data
-combined_data_list = combine_LS_SC (ls_names, sc_names)
 
-# Write combined data to a new TSV file
+
+# Write SSL Libri to a new TSV file
+combined_data_list = combine_LS_SC (ls_names, [])
+out_file_path = '../../../FaST/datavf/libri_fn_root/train.tsv'
+write_list_to_tsv(out_file_path, combined_data_list)
+
+# Write SSL COCO to a new TSV file
+combined_data_list = combine_LS_SC ([], sc_names)
+out_file_path = '../../../FaST/datavf/ssl_COCO/train.tsv'
+write_list_to_tsv(out_file_path, combined_data_list)
+
+# Write combined data (LS + COCO) to a new TSV file
+combined_data_list = combine_LS_SC (ls_names, sc_names)
+out_file_path = '../../../FaST/datavf/ssl_root/train.tsv'
 write_list_to_tsv(out_file_path, combined_data_list)
 
 # Test the file content
@@ -138,6 +152,8 @@ out_file_path = '../../../FaST/datavf/ssl_root/trainRes.tsv'
 test_data = read_tsv(out_file_path)
 
 #%%
+# measuring the total time 
+# selecting SSL 6M and SSL Res (SSL_total - SSL_6M)
 
 file_path = '../../../FaST/datavf/ssl_root/train.tsv'
 SSL_data = read_tsv(file_path)
@@ -145,9 +161,7 @@ SSL_data = read_tsv(file_path)
 SSL_6M = []
 SSL_res = []
 sec6M = 1049* 3600
-# measuring the total time 
-import soundfile as sf
-import os 
+
 path_root = '../../../FaST/data'
 seconds_orig = []
 seconds_applied = []
@@ -193,3 +207,106 @@ write_list_to_tsv(out_file_path, SSL_6M )
 
 out_file_path = '../../../FaST/datavf/ssl_root/trainRes.tsv'
 write_list_to_tsv(out_file_path, SSL_res )
+
+#%%
+# measuring the total time 
+# selecting SSL sub1, sub2, sub3
+
+import soundfile as sf
+import os 
+file_path = '../../../FaST/datavf/sslRes_root/train.tsv'
+SSL_res = read_tsv(file_path)
+
+file_path = '../../../FaST/datavf/ssl6M_root/train.tsv'
+SSL_6M = read_tsv(file_path)
+
+
+sec2M = 5.83 * 60 * 3600
+sec4M = 5.83 * 120 * 3600
+sec6M = 5.83 * 180 * 3600
+
+path_root = '../../../FaST/data'
+
+SSL_sub1 = []
+SSL_sub2 = []
+SSL_sub3 = []
+
+
+seconds_orig = []
+seconds_sub1 = []
+seconds_sub2 = []
+seconds_sub3 = []
+
+for wpath in SSL_res:
+    
+    path = os.path.join(path_root,wpath)
+    x, sr = sf.read(path, dtype = 'float32')
+    length_orig = len(x)
+    time_orig = length_orig /sr
+    seconds_orig.append(time_orig)
+    
+    # check if the total time is still less than 6 Months
+    if (sum(seconds_orig)) <= sec2M :
+        
+        SSL_sub1.append(wpath)
+        seconds_sub1.append(time_orig)
+        SSL_sub2.append(wpath)
+        seconds_sub2.append(time_orig)
+        SSL_sub3.append(wpath)
+        seconds_sub3.append(time_orig)
+    elif (sum(seconds_orig)) <= sec4M :
+        SSL_sub2.append(wpath)
+        seconds_sub2.append(time_orig)
+        SSL_sub3.append(wpath)
+        seconds_sub3.append(time_orig)
+    elif (sum(seconds_orig)) <= sec6M :
+        SSL_sub3.append(wpath)
+        seconds_sub3.append(time_orig)
+    
+#%%
+# Fill the rest with SSL 6 M
+
+for wpath in SSL_6M:
+    
+    path = os.path.join(path_root,wpath)
+    x, sr = sf.read(path, dtype = 'float32')
+    length_orig = len(x)
+    time_orig = length_orig /sr
+    seconds_orig.append(time_orig)
+    
+    # check if the total time is still less than 6 Months
+    
+    # if (sum(seconds_orig)) <= sec2M :
+    #     SSL_sub1.append(wpath)
+    #     seconds_sub1.append(time_orig)
+    if (sum(seconds_orig)) <= sec4M :
+        SSL_sub2.append(wpath)
+        seconds_sub2.append(time_orig)
+        SSL_sub3.append(wpath)
+        seconds_sub3.append(time_orig)
+    elif (sum(seconds_orig)) <= sec6M :
+        SSL_sub3.append(wpath)
+        seconds_sub3.append(time_orig)
+    else:
+        break
+#%%        
+# Check the total time
+
+h = sum(seconds_sub1)/3600
+print(' ..... total time sub1 ....' + str(h))
+
+h = sum(seconds_sub2)/3600
+print(' ..... total time sub2 ....' + str(h))
+
+h = sum(seconds_sub3)/3600
+print(' ..... total time sub3 ....' + str(h))
+
+# Write SSL subsets to a new TSV file
+out_file_path = '../../../FaST/datavf/ssl_sub1_root/train.tsv'
+write_list_to_tsv(out_file_path, SSL_sub1 )
+
+out_file_path = '../../../FaST/datavf/ssl_sub2_root/train.tsv'
+write_list_to_tsv(out_file_path, SSL_sub2 )
+
+out_file_path = '../../../FaST/datavf/ssl_sub3_root/train.tsv'
+write_list_to_tsv(out_file_path, SSL_sub3 )
