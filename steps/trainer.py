@@ -51,7 +51,11 @@ class Trainer:
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        # for notrmal training:
+        # self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        
+        # for pretraining
+        self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
         
         # self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         # Kh: if iterating based on libri then calculate number of iterations based on libri
@@ -74,6 +78,7 @@ class Trainer:
         coarse_cross_relationship_score_matrix = visual_cls @ audio_cls.transpose(0,1)
         losses['coarse_matching_loss'] = fast_vgs.Margin_InfoNCE_loss(coarse_cross_relationship_score_matrix, margin=self.args.margin, img_id = batch['img_id']) # [0:self.avportion]
         return losses
+    
     def forward_ssl (self, libri_batch):
         losses = self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)
         return losses
@@ -680,6 +685,8 @@ class Trainer:
 
         return dual_encoder, cross_encoder, trainables, indices, libri_indices, optim_states
         
+    
+    
     def _setup_dataloader(self):
         if self.args.places:
             # raise NotImplementedError
@@ -716,8 +723,6 @@ class Trainer:
         if self.use_libri_loss:
             # librispeech dataloaders
             # train
-
-
             libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
             
             # below calculates batch size of libri based on steps per epoch obtained from COCO
@@ -751,8 +756,42 @@ class Trainer:
             libri_train_loader = None
             libri_valid_loader = None
             libri_train_sampler = None
-
+           
         return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
+
+def _setup_dataloader_sl(self):
+
+    libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+    
+    # below calculates batch size of libri based on steps per epoch obtained from COCO
+    ####
+    step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
+    libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
+    print('------------- here is the calculated libri bs ------------')
+    print(libri_train_bzs)
+    ###
+    
+    libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
+    print('------------- here is the used libri bs ------------')
+    print(libri_train_bzs)
+    
+    print('------------- here is the n_per_epoch libri ------------')
+    print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
+    ###
+    
+    logger.info(f"librispeech train batch size: {libri_train_bzs}")
+    libri_train_sampler = StatefulSampler(len(libri_train_dataset))
+    if self.progress['num_updates'] > 1 and self.libri_indices is not None:
+        libri_train_sampler.load_state_dict(self.libri_indices)
+    libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
+    
+    # val
+    # libri_val_dataset = libri_dataset_mm.LibriDataset(self.args, split="val")
+    libri_val_dataset = libri_dataset.LibriDataset(self.args, split="val")
+    logger.info(f"librispeech val batch size: {self.args.libri_val_bzs}")
+    libri_valid_loader = torch.utils.data.DataLoader(libri_val_dataset, batch_size=self.args.libri_val_bzs, num_workers=self.args.num_workers, pin_memory=True, collate_fn = libri_val_dataset.collate, drop_last=True)
+    
+    return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
         optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
