@@ -131,18 +131,22 @@ class LibriDataset(Dataset):
             # Kh: this part is diferent from COCO audio load
             # in COCO for both train and val we have 
             # x = x[:audio_length]
+            
+            # here selects a random initial time
             # ..............................................
-            if "train" in self.split:
-                start_max = length_orig - audio_length
-                start = random.choice(range(start_max))
-                x_temp = x[start:(start+audio_length)]
-                if np.linalg.norm(x_temp) != 0:
-                    x = x_temp
-                else:
-                    x = x[:audio_length]
-            else:
-                x = x[:audio_length]
-            # Kh ..........................................   
+            # if "train" in self.split:
+            #     start_max = length_orig - audio_length
+            #     start = random.choice(range(start_max))
+            #     x_temp = x[start:(start+audio_length)]
+            #     if np.linalg.norm(x_temp) != 0:
+            #         x = x_temp
+            #     else:
+            #         x = x[:audio_length]
+            # else:
+            #     x = x[:audio_length]
+            # Kh .......................................... 
+            # here starts always from time zero
+            x = x[:audio_length]
             
             x_norm = (x - np.mean(x)) / np.std(x) # normalize per instance
             x = torch.FloatTensor(x_norm)
