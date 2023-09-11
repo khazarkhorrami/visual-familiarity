@@ -89,8 +89,8 @@ class Trainer:
         data_start_time = time.time()
         #khazar
         print ('start of training method')
-        print ('kh: memory allocated at training time')
-        print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
+        # print ('kh: memory allocated at training time')
+        # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
         #print(len(self.train_loader))
         
         while flag:
@@ -199,8 +199,6 @@ class Trainer:
         print ('start of training method')
         print ('...step_per_epoch for libri is....')
         print(step_per_epoch_libri)
-        print ('...step_per_epoch for coco is....')
-        #print(step_per_epoch_coco)
         ###
         data_start_time = time.time()
         
@@ -541,8 +539,8 @@ class Trainer:
                 # if i>= 300:
                 #     break
             
-            print ('khazar: memory allocated before cat')
-            print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
+            # print ('khazar: memory allocated before cat')
+            # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
             
             
             audio_cls_total = torch.cat(audio_cls_total)  
@@ -550,9 +548,6 @@ class Trainer:
             
             img_cls_list = torch.stack(img_cls_list)
             #img_cls_list = img_cls_list.cuda(device=1)
-            
-            print ('khazar: memory allocated after cat')
-            print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
 
             audio_img_id_total = np.concatenate(audio_img_id_total)
             img_img_id_list = np.array(img_img_id_list)
@@ -563,9 +558,6 @@ class Trainer:
             avg_acc_r1_coarse = (recalls['A_r1'] + recalls['I_r1']) / 2
             self.writer.add_scalar("acc_coarse", avg_acc_coarse, self.progress['num_updates'])
             self.writer.add_scalar("acc_r1_coarse", avg_acc_r1_coarse, self.progress['num_updates'])
-            print ('kh: memory at the end of coarse')
-            print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-            #print(torch.cuda.memory_allocated(device=1) / 1024 ** 3)
             
             ############################################################### khazar: logging validation loss
             l_out = {}
@@ -728,18 +720,8 @@ class Trainer:
             # below calculates batch size of libri based on steps per epoch obtained from COCO
             ####
             step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
-            libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
-            print('------------- here is the calculated libri bs ------------')
-            print(libri_train_bzs)
-            ###
-            
+            libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch) 
             libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
-            print('------------- here is the used libri bs ------------')
-            print(libri_train_bzs)
-            
-            print('------------- here is the n_per_epoch libri ------------')
-            print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
-            ###
             
             logger.info(f"librispeech train batch size: {libri_train_bzs}")
             libri_train_sampler = StatefulSampler(len(libri_train_dataset))
@@ -763,10 +745,9 @@ class Trainer:
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
-        print('------------- here is the used libri bs ------------')
-        print(libri_train_bzs)
+        libri_train_bzs = self.args.batch_size 
         
+        print ("############# here is inside LS dataloader ##################")
         print('------------- here is the n_per_epoch libri ------------')
         print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
         ###
