@@ -279,11 +279,10 @@ class Trainer:
     def validate_and_save_ssl(self, n_save_ind = 0):  
         
         self.validate_libri()
-        N_examples = self.valid_loader.dataset.__len__()
+        #N_examples = self.valid_loader.dataset.__len__()
         # khazar: N_examples = 25035
         print('kh: below it should print n_example ....')
-        print('N_example is ' + str(N_examples))
-        
+
         save_progress(self)
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
