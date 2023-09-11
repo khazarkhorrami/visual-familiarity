@@ -759,39 +759,39 @@ class Trainer:
            
         return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
 
-def _setup_dataloader_sl(self):
-
-    libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+    def _setup_dataloader_sl(self):
     
-    # below calculates batch size of libri based on steps per epoch obtained from COCO
-    ####
-    step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
-    libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
-    print('------------- here is the calculated libri bs ------------')
-    print(libri_train_bzs)
-    ###
-    
-    libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
-    print('------------- here is the used libri bs ------------')
-    print(libri_train_bzs)
-    
-    print('------------- here is the n_per_epoch libri ------------')
-    print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
-    ###
-    
-    logger.info(f"librispeech train batch size: {libri_train_bzs}")
-    libri_train_sampler = StatefulSampler(len(libri_train_dataset))
-    if self.progress['num_updates'] > 1 and self.libri_indices is not None:
-        libri_train_sampler.load_state_dict(self.libri_indices)
-    libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
-    
-    # val
-    # libri_val_dataset = libri_dataset_mm.LibriDataset(self.args, split="val")
-    libri_val_dataset = libri_dataset.LibriDataset(self.args, split="val")
-    logger.info(f"librispeech val batch size: {self.args.libri_val_bzs}")
-    libri_valid_loader = torch.utils.data.DataLoader(libri_val_dataset, batch_size=self.args.libri_val_bzs, num_workers=self.args.num_workers, pin_memory=True, collate_fn = libri_val_dataset.collate, drop_last=True)
-    
-    return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
+        libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
+        
+        # below calculates batch size of libri based on steps per epoch obtained from COCO
+        ####
+        step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
+        libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
+        print('------------- here is the calculated libri bs ------------')
+        print(libri_train_bzs)
+        ###
+        
+        libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
+        print('------------- here is the used libri bs ------------')
+        print(libri_train_bzs)
+        
+        print('------------- here is the n_per_epoch libri ------------')
+        print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
+        ###
+        
+        logger.info(f"librispeech train batch size: {libri_train_bzs}")
+        libri_train_sampler = StatefulSampler(len(libri_train_dataset))
+        if self.progress['num_updates'] > 1 and self.libri_indices is not None:
+            libri_train_sampler.load_state_dict(self.libri_indices)
+        libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
+        
+        # val
+        # libri_val_dataset = libri_dataset_mm.LibriDataset(self.args, split="val")
+        libri_val_dataset = libri_dataset.LibriDataset(self.args, split="val")
+        logger.info(f"librispeech val batch size: {self.args.libri_val_bzs}")
+        libri_valid_loader = torch.utils.data.DataLoader(libri_val_dataset, batch_size=self.args.libri_val_bzs, num_workers=self.args.num_workers, pin_memory=True, collate_fn = libri_val_dataset.collate, drop_last=True)
+        
+        return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
         optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
