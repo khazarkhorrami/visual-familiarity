@@ -191,7 +191,7 @@ class Trainer:
         # step_per_epoch = int(self.train_data_length/self.args.batch_size)
         # Kh: steps pers epochs based on libri
         step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
-        step_per_epoch_coco = int(self.train_data_length/self.args.batch_size)
+        #step_per_epoch_coco = int(self.train_data_length/self.args.batch_size)
         step_per_epoch = step_per_epoch_libri
         
         
@@ -200,7 +200,7 @@ class Trainer:
         print ('...step_per_epoch for libri is....')
         print(step_per_epoch_libri)
         print ('...step_per_epoch for coco is....')
-        print(step_per_epoch_coco)
+        #print(step_per_epoch_coco)
         ###
         data_start_time = time.time()
         
