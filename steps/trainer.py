@@ -763,14 +763,6 @@ class Trainer:
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        # below calculates batch size of libri based on steps per epoch obtained from COCO
-        ####
-        step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
-        libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch)
-        print('------------- here is the calculated libri bs ------------')
-        print(libri_train_bzs)
-        ###
-        
         libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
         print('------------- here is the used libri bs ------------')
         print(libri_train_bzs)
