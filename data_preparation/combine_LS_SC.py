@@ -310,3 +310,25 @@ write_list_to_tsv(out_file_path, SSL_sub2 )
 
 out_file_path = '../../../FaST/datavf/ssl_sub3_root/train.tsv'
 write_list_to_tsv(out_file_path, SSL_sub3 )
+
+#%%
+
+# separate SC and LS in SSL6M
+
+save_path_SC = "/worktmp2/hxkhkh/current/FaST/datavf/ssl6M_SC/train.tsv"
+save_path_LS = "/worktmp2/hxkhkh/current/FaST/datavf/ssl6M_LS/train.tsv"
+path_mix = "/worktmp2/hxkhkh/current/FaST/datavf/ssl6M_root"
+
+data_mix = read_tsv(os.path.join(path_mix, "train.tsv"))
+
+data_SC = []
+data_LS = []
+
+for d in data_mix:
+    if d[0] == "c":
+        data_SC.append(d)
+    else:
+        data_LS.append(d)
+
+write_list_to_tsv(save_path_SC, data_SC)
+write_list_to_tsv(save_path_LS, data_LS )
