@@ -18,9 +18,9 @@ python \
 --batch_size 64 \
 --val_batch_size 64 \
 --val_cross_batch_size 100 \
---n_epochs 30 \
+--n_epochs 100 \
 --n_print_steps 500 \
---n_val_steps 13577 \
+--n_val_steps 5783 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
