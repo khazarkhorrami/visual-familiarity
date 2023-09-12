@@ -51,8 +51,8 @@ class Trainer:
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        # for notrmal training:
-        # self.train_loader, self.valid_loader, self.valid_loader2, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        # for normal training:
+        # self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
         
         # for pretraining
         self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
@@ -86,13 +86,9 @@ class Trainer:
     def train(self):
         flag = True
         step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        #step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         data_start_time = time.time()
-        #khazar
-        print ('start of training method')
-        # print ('kh: memory allocated at training time')
-        # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-        #print(len(self.train_loader))
-        
+
         while flag:
             logger.info('epoch starts here ')
             if self.use_libri_loss:
@@ -679,37 +675,15 @@ class Trainer:
     
     
     def _setup_dataloader(self):
-        if self.args.places:
-            # raise NotImplementedError
-            train_dataset = places_dataset.ImageCaptionDataset(self.args, split='train')
-            val_seen_dataset = places_dataset.ImageCaptionDataset(self.args, split='val_seen')
-            val_unseen_dataset = places_dataset.ImageCaptionDataset(self.args, split='val_unseen')
-            train_sampler = StatefulSampler(len(train_dataset))
-            if self.progress['num_updates'] > 1 and self.indices is not None:
-                train_sampler.load_state_dict(self.indices)
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
-            valid_loader = torch.utils.data.DataLoader(val_seen_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_seen_dataset.collate)
-            valid_loader2 = torch.utils.data.DataLoader(val_unseen_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_unseen_dataset.collate)
-        elif self.args.flickr8k:
-            train_dataset = flickr8k_dataset.ImageCaptionDataset(self.args, split='train')
-            val_dataset = flickr8k_dataset.ImageCaptionDataset(self.args, split='val')
-            train_sampler = StatefulSampler(len(train_dataset))
-            if self.progress['num_updates'] > 1 and self.indices is not None:
-                train_sampler.load_state_dict(self.indices)
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
-            valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)
-            valid_loader2 = None
-        else:
         # SpokenCOCO
-            train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
-            val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
-            # Kh: I change use_random to False to avoide shuffling
-            train_sampler = StatefulSampler(len(train_dataset), use_random=True)
-            if self.progress['num_updates'] > 1 and self.indices is not None:
-                train_sampler.load_state_dict(self.indices)
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
-            valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)
-            valid_loader2 = None
+        train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
+        val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
+        # Kh: I change use_random to False to avoide shuffling
+        train_sampler = StatefulSampler(len(train_dataset), use_random=True)
+        if self.progress['num_updates'] > 1 and self.indices is not None:
+            train_sampler.load_state_dict(self.indices)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
+        valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)
 
         if self.use_libri_loss:
             # librispeech dataloaders
@@ -738,7 +712,7 @@ class Trainer:
             libri_valid_loader = None
             libri_train_sampler = None
            
-        return train_loader, valid_loader, valid_loader2, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
+        return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
 
     def _setup_dataloader_sl(self):
     
