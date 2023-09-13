@@ -18,7 +18,7 @@ python \
 --batch_size 64 \
 --val_batch_size 64 \
 --val_cross_batch_size 100 \
---n_epochs 30 \
+--n_epochs 10 \
 --n_print_steps 500 \
 --n_val_steps 5783 \
 --lr 0.0001 \
@@ -35,7 +35,5 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 6 \
---encoder_attention_heads 4 \
---layer_use 4 \
+--layer_use 7 \
 
