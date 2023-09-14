@@ -52,7 +52,7 @@ class Trainer:
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
         # for normal training:
-        self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
         
         # for pretraining
         # self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
@@ -713,7 +713,7 @@ class Trainer:
             libri_valid_loader = None
             libri_train_sampler = None
            
-        return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset), len(libri_train_dataset) # kh: I added the last return item
+        return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
 
     def _setup_dataloader_sl(self):
     
