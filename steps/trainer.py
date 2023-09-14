@@ -53,13 +53,13 @@ class Trainer:
         
         # for normal training:
         self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
-        
         # for pretraining
         # self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
         
-        # self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
-        # Kh: if iterating based on libri then calculate number of iterations based on libri
-        self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        # for normal training:
+        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        # for pretraining
+        # self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
         print (' ...here is total number of updates calculated at init ... ')
         print (self.total_num_updates)
         ###
