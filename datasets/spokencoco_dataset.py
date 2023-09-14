@@ -49,8 +49,10 @@ class ImageCaptionDataset(Dataset):
         self.split = split
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
         if split == "train":
-            audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
-            #audio_dataset_json_file = '../../../../datavf/coco/subsets/SpokenCOCO_train_subset3.json'
+            # for original data
+            #audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
+            # for subsets
+            audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_subset1.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
@@ -67,7 +69,14 @@ class ImageCaptionDataset(Dataset):
         
         
         self.audio_base_path = os.path.join(args.data_root, "coco_pyp/SpokenCOCO") #args.raw_audio_base_path
-        self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        # for otiginal images
+        #self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        
+        # for masked and blured images:
+        if split == "train":
+            self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked/subset1")
+        elif split == "val" or split == "dev":
+            self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
         if "train" not in split:
             self.image_transform = transforms.Compose(
