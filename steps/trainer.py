@@ -138,7 +138,7 @@ class Trainer:
                 
                 alpha = 0.5
                 beta = 0.5
-                weighted_loss = self.weight_loss(self, losses, alpha, beta) #self.weight_loss(losses)
+                weighted_loss = self.weight_loss(losses, alpha, beta) #self.weight_loss(losses)
     
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
