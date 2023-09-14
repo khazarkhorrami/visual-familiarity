@@ -15,8 +15,8 @@ python \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 16 \
---val_batch_size 16 \
+--batch_size 4 \
+--val_batch_size 4 \
 --val_cross_batch_size 16 \
 --n_epochs 30 \
 --n_print_steps 50 \
