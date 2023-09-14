@@ -138,7 +138,7 @@ class Trainer:
                 
                 alpha = 0.5
                 beta = 0.5
-                weighted_loss = weight_loss(self, losses, alpha, beta) #self.weight_loss(losses)
+                weighted_loss = self.weight_loss(self, losses, alpha, beta) #self.weight_loss(losses)
     
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
@@ -761,8 +761,6 @@ class Trainer:
         pass
 
     def weight_loss(self, losses, alpha, beta):
-        
-        
         weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
         if 'caption_w2v2_loss' in losses:
             weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (beta)           
