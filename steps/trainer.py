@@ -52,10 +52,10 @@ class Trainer:
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
         # for normal training:
-        # self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
+        self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length, self.libri_train_data_length = self._setup_dataloader()
         
         # for pretraining
-        self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
+        # self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
         
         # self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         # Kh: if iterating based on libri then calculate number of iterations based on libri
@@ -136,8 +136,9 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                
-                weighted_loss = self.weight_loss(losses)
+                alpha = 0.5
+                beta = 0.5
+                weighted_loss = weight_loss(self, losses, alpha, beta) #self.weight_loss(losses)
     
                 self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
