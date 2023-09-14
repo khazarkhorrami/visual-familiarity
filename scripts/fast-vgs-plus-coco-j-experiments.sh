@@ -7,6 +7,7 @@ fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
 exp_dir="../../exp/"
 libri_fn_root="../../../../datavf/ssl6M_SC/"
 pretrained_root="../../../../hubertAndDINO"
+twd="../../twd/"
 
 python \
 ../run_spokencoco.py \
@@ -14,6 +15,7 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
+--trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 4 \
 --val_batch_size 4 \
