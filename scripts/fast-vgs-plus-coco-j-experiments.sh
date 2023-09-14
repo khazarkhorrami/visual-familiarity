@@ -21,7 +21,7 @@ python \
 --val_cross_batch_size 16 \
 --n_epochs 20 \
 --n_print_steps 50 \
---n_val_steps 2000 \
+--n_val_steps 4000 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
