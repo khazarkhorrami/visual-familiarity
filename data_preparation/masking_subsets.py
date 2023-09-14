@@ -147,39 +147,75 @@ def run_masking (im_path, savePath):
     
     cv2.imwrite(savePath + name , masked_image)
 
+def run_bluring (im_path, savePath):
+    im_name = im_path.split('/')[1]
+    img = img_filenames_to_all [im_name] 
+    
+    image_id = img ['id']
+    h = img ['height']
+    w = img ['width']
+    name = img ['file_name']
+    imPath = os.path.join(dataDir, dataType,name )
+    image = cv2.imread(imPath)
+  
+    ################################## getting mask from annotation
+    annId_img = coco.getAnnIds( imgIds=image_id, iscrowd=False) 
+    anns_image = coco.loadAnns(annId_img)
+    mask_annitem = numpy.zeros([h,w])
+    for item in anns_image : # constructing true mask by ading all mask items
+        mask_temp = coco.annToMask(item)
+        mask_annitem = mask_annitem + mask_temp
+    mask_binary = 1 * (mask_annitem > 0 )
+    mask_binary_uint = numpy.array(mask_binary, dtype=numpy.uint8)
+    mask = 1 * mask_binary_uint
 
+    ################################## masking the image
+    masked_image = copy.deepcopy (image)
+    masked_image[:,:,0] = image[:,:,0] * mask
+    masked_image[:,:,1] = image[:,:,1] * mask
+    masked_image[:,:,2] = image[:,:,2] * mask
+    
+    blured_image = cv2.blur(image,(30,30),0)
+    masked_image_blur = copy.deepcopy (blured_image)
+    masked_image_blur[:,:,0] = blured_image[:,:,0] * (1- mask)
+    masked_image_blur[:,:,1] = blured_image[:,:,1] * (1- mask)
+    masked_image_blur[:,:,2] = blured_image[:,:,2] * (1- mask)
+    blurmasked_image = masked_image_blur + masked_image 
+    
+    cv2.imwrite(savePath + name , blurmasked_image)
+    
 #%%
 #subset 1
 file_path = path_sub1
 images_subset = read_wav_json(file_path)
 
-savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/masked/subset1/'
+savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/blured/subset1/'
 for item_path in images_subset:
-    run_masking (item_path, savePath)
+    run_bluring (item_path, savePath)
    
 #%%   
 #subset 2
 file_path = path_sub2
 images_subset = read_wav_json(file_path)
 
-savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/masked/subset2/'
+savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/blured/subset2/'
 for item_path in images_subset:
-    run_masking (item_path, savePath)
+    run_bluring (item_path, savePath)
     
 #%%
 #subset 3
 file_path = path_sub3
 images_subset = read_wav_json(file_path)
 
-savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/masked/subset3/'
+savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/blured/subset3/'
 for item_path in images_subset:
-    run_masking (item_path, savePath)
+    run_bluring (item_path, savePath)
 
 #%%
 #subset 0A
 file_path = path_sub0A
 images_subset = read_wav_json(file_path)
 
-savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/masked/subset0A/'
+savePath = '/worktmp2/hxkhkh/current/FaST/datavf/coco/images/blured/subset0A/'
 for item_path in images_subset:
-    run_masking (item_path, savePath)
+    run_bluring (item_path, savePath)
