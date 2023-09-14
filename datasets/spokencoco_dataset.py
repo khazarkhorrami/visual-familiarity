@@ -70,13 +70,13 @@ class ImageCaptionDataset(Dataset):
         
         self.audio_base_path = os.path.join(args.data_root, "coco_pyp/SpokenCOCO") #args.raw_audio_base_path
         # for otiginal images
-        self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        # self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
         # for masked and blured images:
-        # if split == "train":
-        #     self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked/subset1")
-        # elif split == "val" or split == "dev":
-        #     self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        if split == "train":
+            self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked/subset1")
+        elif split == "val" or split == "dev":
+            self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
         if "train" not in split:
             self.image_transform = transforms.Compose(
