@@ -52,7 +52,7 @@ class ImageCaptionDataset(Dataset):
             # for original data
             #audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
             # for subsets
-            audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_subset1.json'
+            audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_subset2.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
