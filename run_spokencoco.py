@@ -71,8 +71,6 @@ else:
 args.places = False
 args.flickr8k = False
 
-print ('############# here is printing ssl ###############')
-print(args.ssl)
 
 if args.validate:
     my_trainer = trainer.Trainer(args)
