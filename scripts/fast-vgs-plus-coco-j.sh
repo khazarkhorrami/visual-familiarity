@@ -11,7 +11,7 @@ twd="../../twd/"
 
 python \
 ../run_spokencoco.py \
---image_type "normal" \
+--image_type "blurred" \
 --subset "subset3" \
 --data_root ${data_root} \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
