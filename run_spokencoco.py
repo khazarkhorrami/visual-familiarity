@@ -31,6 +31,8 @@ parser.add_argument("--resume", action="store_true", dest="resume", help="load f
 parser.add_argument("--validate", action="store_true", default=False, help="temp, if call trainer_variants rather than trainer")
 parser.add_argument("--test", action="store_true", default=False, help="test the model on test set")
 
+parser.add_argument("--ssl", action="store_true", default=False, help="only ssl training")
+
 # args_1 = parser.parse_args()
 # print ('................. we are printing args ..........................')
 # logger.info(args_1)
