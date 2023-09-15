@@ -83,13 +83,13 @@ class ImageCaptionDataset(Dataset):
         elif args.image_type == "masked":
             print ('############# here is training on masked images ###############')
             if split == "train":
-                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked/subset1")
+                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked" , args.subset)
             elif split == "val" or split == "dev":
                 self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         elif args.image_type == "blurred":
             print ('############# here is training on blurred images ###############')
             if split == "train":
-                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/blured/subset1")
+                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/blured" , args.subset)
             elif split == "val" or split == "dev":
                 self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
