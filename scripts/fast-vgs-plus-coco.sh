@@ -10,17 +10,18 @@ pretrained_root="../../../../hubertAndDINO"
 
 python \
 ../run_spokencoco.py \
+--ssl \
 --data_root ${data_root} \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 64 \
---val_batch_size 64 \
+--batch_size 128 \
+--val_batch_size 128 \
 --val_cross_batch_size 100 \
---n_epochs 70 \
---n_print_steps 40 \
---n_val_steps 200 \
+--n_epochs 50 \
+--n_print_steps 100 \
+--n_val_steps 1000 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
@@ -31,7 +32,7 @@ python \
 --trm_layers 1 \
 --fine_matching_weight 0.0 \
 --coarse_matching_weight 1.0 \
---libri_w2v2_weight 0.0 \
+--libri_w2v2_weight 1.0 \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
