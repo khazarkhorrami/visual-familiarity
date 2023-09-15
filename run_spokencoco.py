@@ -80,9 +80,11 @@ if args.validate:
 else:
     my_trainer = trainer.Trainer(args)
     if ssl:
+        print ('############# here is seeing ssl is True ###############')
         # for only SSL training
         my_trainer.train_ssl()
     else:
+        print ('############# here is seeing ssl is False ###############')
         # for VGS+ training
         my_trainer.train()
 
