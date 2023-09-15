@@ -11,7 +11,7 @@ twd="../../twd/"
 
 python \
 ../run_spokencoco.py \
---ssl 1 \
+--ssl \
 --data_root ${data_root} \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
