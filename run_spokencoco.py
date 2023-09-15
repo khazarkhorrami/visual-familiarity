@@ -71,16 +71,18 @@ else:
 args.places = False
 args.flickr8k = False
 
-print(args.ssl)
+ssl = print(args.ssl)
 
 if args.validate:
     my_trainer = trainer.Trainer(args)
     my_trainer.validate_one_to_many(hide_progress=False)
 else:
     my_trainer = trainer.Trainer(args)
-    # for SSL pretraining
-    #my_trainer.train_ssl()
-    # for normal VGS+ training
-    my_trainer.train()
+    if ssl:
+        # for only SSL training
+        my_trainer.train_ssl()
+    else:
+        # for VGS+ training
+        my_trainer.train()
 
 
