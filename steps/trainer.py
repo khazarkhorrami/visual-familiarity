@@ -51,15 +51,20 @@ class Trainer:
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        # for normal training:
-        self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
-        # for pretraining
-        # self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_sl()
+        if args.ssl:
+            # for ssl pretraining
+            self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
+        else:
+            # for normal training:
+            self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
         
-        # for normal training:
-        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
-        # for pretraining
-        # self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        if args.ssl:
+            # for ssl pretraining
+            self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        else:
+            # for normal training:
+            self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        
         print (' ...here is total number of updates calculated at init ... ')
         print (self.total_num_updates)
         ###
@@ -717,7 +722,7 @@ class Trainer:
            
         return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
 
-    def _setup_dataloader_sl(self):
+    def _setup_dataloader_ssl(self):
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
