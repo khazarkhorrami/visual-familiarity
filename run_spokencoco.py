@@ -72,14 +72,14 @@ args.places = False
 args.flickr8k = False
 
 print ('############# here is printing ssl ###############')
-ssl = print(args.ssl)
+print(args.ssl)
 
 if args.validate:
     my_trainer = trainer.Trainer(args)
     my_trainer.validate_one_to_many(hide_progress=False)
 else:
     my_trainer = trainer.Trainer(args)
-    if ssl:
+    if args.ssl:
         print ('############# here is seeing ssl is True ###############')
         # for only SSL training
         my_trainer.train_ssl()
