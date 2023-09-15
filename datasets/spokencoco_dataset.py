@@ -39,6 +39,7 @@ class ImageCaptionDataset(Dataset):
         parser.add_argument("--data_root", type=str, default="../../../../data/")
         #parser.add_argument("--raw_audio_base_path", type=str, default="../../../../data/coco_pyp/SpokenCOCO")
         parser.add_argument("--image_type", type=str, default="normal")
+        parser.add_argument("--subset", type=str, default="all")
         parser.add_argument("--img_feat_len", type=int, help="num of img feats we will use", choices=list(range(1,37)), default=36)
         parser.add_argument("--audio_feat_len", type=float, help="maximal audio length", default=8.)
         parser.add_argument("--val_audio_feat_len", type=float, help="maximal audio length", default=10.)
@@ -50,10 +51,12 @@ class ImageCaptionDataset(Dataset):
         self.split = split
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
         if split == "train":
-            # for original data
-            #audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
-            # for subsets
-            audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_subset2.json'
+            if args.subset == "all":
+                # for original data
+                audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_unrolled_karpathy.json")
+            else:
+                # for subsets
+                audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_' + args.subset + '.json'
         elif split == "val" or split == "dev":
             if self.args.test:
                 audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
@@ -73,13 +76,21 @@ class ImageCaptionDataset(Dataset):
         
         if args.image_type == "normal":
             # for otiginal images
+            print ('############# here is training on normal data ###############')
             self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        elif args.image_type == "masked":
+            if split == "train":
+                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/masked/subset1")
+            elif split == "val" or split == "dev":
+                self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        elif args.image_type == "blurred":
+            if split == "train":
+                self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/blured/subset1")
+            elif split == "val" or split == "dev":
+                self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
         # for masked and blured images:
-        # if split == "train":
-        #     self.image_base_path = os.path.join('../../../../datavf/', "coco_pyp/MSCOCO/blured/subset1")
-        # elif split == "val" or split == "dev":
-        #     self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        
         
         if "train" not in split:
             self.image_transform = transforms.Compose(
