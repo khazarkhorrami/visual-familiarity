@@ -49,6 +49,7 @@ class Trainer:
         self.meters = self._setup_meters()
         self.progress, self.total_progress = setup_progress(self)
         self.dual_encoder, self.cross_encoder, self.trainables, self.indices, self.libri_indices, self.optim_states = self._setup_models()
+        # now this is used to check if after VGS/VGS+ epoch we want SSL-only one.(Default: False( weight = 0))
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
         if args.ssl:
@@ -236,7 +237,7 @@ class Trainer:
                         self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
                         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                weighted_loss = losses['libri_w2v2_loss'].mean() * self.args.libri_w2v2_weight
+                weighted_loss = losses['libri_w2v2_loss'].mean() #* self.args.libri_w2v2_weight
 
                 self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
                 self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
