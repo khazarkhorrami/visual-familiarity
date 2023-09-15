@@ -38,6 +38,7 @@ class ImageCaptionDataset(Dataset):
     def add_args(parser):
         parser.add_argument("--data_root", type=str, default="../../../../data/")
         #parser.add_argument("--raw_audio_base_path", type=str, default="../../../../data/coco_pyp/SpokenCOCO")
+        parser.add_argument("--image_type", type=str, default="normal")
         parser.add_argument("--img_feat_len", type=int, help="num of img feats we will use", choices=list(range(1,37)), default=36)
         parser.add_argument("--audio_feat_len", type=float, help="maximal audio length", default=8.)
         parser.add_argument("--val_audio_feat_len", type=float, help="maximal audio length", default=10.)
@@ -69,8 +70,10 @@ class ImageCaptionDataset(Dataset):
         
         
         self.audio_base_path = os.path.join(args.data_root, "coco_pyp/SpokenCOCO") #args.raw_audio_base_path
-        # for otiginal images
-        self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
+        
+        if args.image_type == "normal":
+            # for otiginal images
+            self.image_base_path = os.path.join(args.data_root, "coco_pyp/MSCOCO")
         
         # for masked and blured images:
         # if split == "train":
