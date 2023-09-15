@@ -50,9 +50,6 @@ args = parser.parse_args()
 
 os.makedirs(args.exp_dir, exist_ok=True)
 
-print('#################### resume #######################')
-print(args.resume)
-
 if args.resume or args.validate:
     resume = args.resume
     assert(bool(args.exp_dir))
@@ -72,6 +69,7 @@ else:
 args.places = False
 args.flickr8k = False
 
+print(args.ssl)
 
 if args.validate:
     my_trainer = trainer.Trainer(args)
