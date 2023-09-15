@@ -84,6 +84,7 @@ class Trainer:
         return losses
 
     def train(self):
+        print ('############# here is inside train function ###############')
         flag = True
         step_per_epoch = int(self.train_data_length/self.args.batch_size)
         #step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
@@ -183,6 +184,7 @@ class Trainer:
                 data_start_time = time.time()
                 #print(self.progress['num_updates'])
     def train_ssl(self):
+        print ('############# here is inside train_ssl function ###############')
         flag = True     
         # Kh: steps pers epochs based on coco
         # step_per_epoch = int(self.train_data_length/self.args.batch_size)
