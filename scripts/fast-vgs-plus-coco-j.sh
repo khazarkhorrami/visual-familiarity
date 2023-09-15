@@ -11,9 +11,8 @@ twd="../../twd/"
 
 python \
 ../run_spokencoco.py \
---ssl \
 --image_type "normal" \
---subset "subset2" \
+--subset "subset3" \
 --data_root ${data_root} \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
@@ -22,9 +21,9 @@ python \
 --batch_size 6 \
 --val_batch_size 6 \
 --val_cross_batch_size 16 \
---n_epochs 20 \
+--n_epochs 30 \
 --n_print_steps 50 \
---n_val_steps 4000 \
+--n_val_steps 5000 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
