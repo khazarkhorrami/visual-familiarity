@@ -32,10 +32,10 @@ for img_id in img_ids:
    
 #%%
 
-path_sub1 = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_subset1.json"
-path_sub2 = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_subset2.json"
-path_sub3 = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_subset3.json"
-path_sub0A = "/worktmp2/hxkhkh/current/FaST/datavf/coco/subsets/SpokenCOCO_train_subset0A.json"
+path_sub1 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/SpokenCOCO_train_subset1.json"
+path_sub2 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/SpokenCOCO_train_subset2.json"
+path_sub3 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/SpokenCOCO_train_subset3.json"
+path_sub0A = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/SpokenCOCO_train_subset0A.json"
 
 import json  
 def read_wav_json(file_path):
