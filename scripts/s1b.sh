@@ -30,7 +30,7 @@ python \
 --vit_checkpoint_key 'teacher' \
 --normalize \
 --xtrm_layers 1 \
---trm_layers 1 \
+--trm_layers 6 \
 --fine_matching_weight 0.0 \
 --coarse_matching_weight 1.0 \
 --libri_w2v2_weight 0.0 \
