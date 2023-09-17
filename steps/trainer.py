@@ -70,6 +70,11 @@ class Trainer:
         print (self.total_num_updates)
         ###
         self.optimizer = self._setup_optimizer()
+        ## khazar : if using SGD
+        # lr = self.args.lr
+        # optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+
+
         if torch.cuda.device_count() > 1:
             self.dual_encoder = nn.DataParallel(self.dual_encoder)
             self.cross_encoder = nn.DataParallel(self.cross_encoder)
