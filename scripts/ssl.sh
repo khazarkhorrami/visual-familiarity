@@ -23,7 +23,7 @@ python \
 --n_print_steps 100 \
 --n_val_steps 4265 \
 --seed 0 \
---lr 0.01 \
+--lr 0.1 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
 --vit_patch_size 8 \
