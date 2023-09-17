@@ -18,8 +18,8 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 16 \
---val_batch_size 16 \
+--batch_size 4 \
+--val_batch_size 4 \
 --val_cross_batch_size 16 \
 --n_epochs 30 \
 --n_print_steps 50 \
@@ -39,7 +39,7 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 6 \
---encoder_attention_heads 4 \
+--encoder_layers 8 \
+--encoder_attention_heads 8 \
 --layer_use 4 \
 
