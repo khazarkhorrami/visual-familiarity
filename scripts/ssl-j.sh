@@ -1,5 +1,5 @@
 #!/bin/sh
-export PATH="/projappl/project_2001315/khazar/con/vf/bin:$PATH"
+source activate fastvgs
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
@@ -16,11 +16,11 @@ python \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 128 \
---val_batch_size 128 \
---val_cross_batch_size 100 \
+--batch_size 16 \
+--val_batch_size 16 \
+--val_cross_batch_size 16 \
 --n_epochs 50 \
---n_print_steps 100 \
+--n_print_steps 50 \
 --n_val_steps 4265 \
 --seed 0 \
 --lr 0.01 \
@@ -37,5 +37,7 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---layer_use 7 \
+--encoder_layers 6 \
+--encoder_attention_heads 4 \
+--layer_use 4 \
 
