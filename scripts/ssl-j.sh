@@ -39,7 +39,5 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 12 \
---encoder_attention_heads 12 \
---layer_use 4 \
+--layer_use 7 \
 
