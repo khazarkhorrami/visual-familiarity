@@ -22,7 +22,7 @@ python \
 --n_epochs 30 \
 --n_print_steps 50 \
 --n_val_steps 5000 \
---seed 0 \
+--seed 1 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
