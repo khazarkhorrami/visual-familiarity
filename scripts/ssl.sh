@@ -22,8 +22,7 @@ python \
 --n_epochs 50 \
 --n_print_steps 100 \
 --n_val_steps 4265 \
---seed 0 \
---lr 0.1 \
+--lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
 --vit_patch_size 8 \
@@ -37,5 +36,7 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---layer_use 7 \
+--encoder_layers 6 \
+--encoder_attention_heads 4 \
+--layer_use 4 \
 
