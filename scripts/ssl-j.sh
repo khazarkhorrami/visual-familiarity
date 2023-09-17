@@ -19,11 +19,11 @@ python \
 --batch_size 16 \
 --val_batch_size 16 \
 --val_cross_batch_size 16 \
---n_epochs 50 \
+--n_epochs 30 \
 --n_print_steps 50 \
---n_val_steps 4265 \
+--n_val_steps 5000 \
 --seed 0 \
---lr 0.1 \
+--lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
 --vit_patch_size 8 \
