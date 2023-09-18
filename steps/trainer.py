@@ -305,7 +305,6 @@ class Trainer:
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
                 "optimizer":  self.optimizer.state_dict(),
-                "indices": self.train_sampler.state_dict(),
                 "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
             },save_path
         )
