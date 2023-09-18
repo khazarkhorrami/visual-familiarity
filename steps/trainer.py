@@ -652,7 +652,8 @@ class Trainer:
             bundle = torch.load(os.path.join(self.args.exp_dir, "bundle.pth"))
             dual_encoder.carefully_load_state_dict(bundle['dual_encoder'])
             #cross_encoder.carefully_load_state_dict(bundle['cross_encoder'])
-            indices = bundle['indices']
+            indices = None
+            #indices = bundle['indices']
             libri_indices = bundle['libri_indices']
             optim_states = bundle['optimizer']
             logger.info("loaded parameters and data indices from epoch %d, global step %d" % (self.progress['epoch'], self.progress['num_updates']))
