@@ -302,6 +302,15 @@ class DualEncoder(nn.Module):
         audio_feats = self.trm2(audio_feats, extended_audio_attention_mask)
         cls_token_coarse = self.trm2_proj(audio_feats[:,0])
         return audio_feats, cls_token_coarse, extended_audio_attention_mask, losses
+    
+    def forward_audio_khazar(self, audio_feats):
+    
+        self.conv1_trm1_trm3.eval()
+        trm13_out = self.conv1_trm1_trm3(audio_feats, mask=False, features_only=True, tgt_layer=self.args.layer_use)
+        cls_token_coarse = self.audio_cls_token_proj_coarse(trm13_out['cls_token'])
+        
+        return cls_token_coarse
+
 
     def forward_libri(self, audio_feats, audio_attention_mask):
         trm13_out = self.conv1_trm1_trm3(audio_feats, padding_mask=audio_attention_mask, mask=True)
