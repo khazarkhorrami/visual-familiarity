@@ -135,7 +135,7 @@ def run_bluring (im_path, savePath):
     blurmasked_image = masked_image_blur + masked_image 
     
     #cv2.imwrite(savePath + name , blurmasked_image)
-kh    
+    
 #%%
 #subset test (5 K images)
 file_path = path_test_images
@@ -174,7 +174,7 @@ for im_path in images_test:
             
         dict_images_test[im_path]['cat_ids'] = cat_ids  
 #%%
-# measure overlap of objects
+# For each category id, get images
 dict_id_to_image = {}
 
 for key, value in dict_images_test.items():
@@ -189,17 +189,54 @@ for key, value in dict_images_test.items():
 
 #%%
 # measure overlap of objects
-def measure_overlaps (objID, imName):
-    overlap = 5 #in pixels
-    return overlap
 
-for key, value in dict_id_to_image:
+dic_obj_sorted_image = {}
+
+for key, value in dict_id_to_image.items():
+    objID = key
+    
+    temp_image_names = []
+    temp_overlaps = []
     for image_candidate in value:
-        overlap = measure_overlaps (key, image_candidate)
-        # sort overlaps and save the image listbased on sorted values
-        # So the selection is going from less overlap to more overlap
-#%%
         
+        info = dict_images_test [image_candidate]
+        # index_objID = [i for i in range(len(info['cat_ids'])) if info['cat_ids'][i] == objID ]
+        # index_rest = [i for i in range(len(info['cat_ids'])) if info['cat_ids'][i] != objID ]
+        h = info['h']
+        w = info['w']
+        anns_image = info['anns_image']
+        mask_obj = numpy.zeros([h,w])
+        mask_rest = numpy.zeros([h,w])
+        for item in anns_image : # constructing true mask by ading all mask items
+            mask_temp = coco.annToMask(item)
+            if item['category_id'] == objID:
+                mask_obj = mask_obj + mask_temp
+            else:
+                mask_rest = mask_rest + mask_temp
+        # converting the mask to 0 and 1 binary values        
+        mask_binary_obj = 1 * (mask_obj > 0 )
+        mask_binary_rest = 1 * (mask_rest > 0 )
+        
+        # we add both binary masks,
+        # the number of elements bigger than 1 will show the number of overlapping pixels
+        mask_all = mask_binary_obj + mask_binary_rest
+        mask_overlap = 1 * (mask_all > 1 )
+        
+        overlap = sum(sum(mask_overlap))
+        print(overlap)
+        temp_image_names.append(image_candidate)
+        temp_overlaps.append(overlap)
+    # sorting overlaps and save the image list based on sorted values    
+    sorted_args = numpy.argsort(temp_overlaps) 
+    temp_image_names_sorted = [temp_image_names[i] for i in sorted_args]
+    dic_obj_sorted_image[objID] = temp_image_names_sorted
+    
+    
+#%% next, read images from "dic_obj_sorted_image"   and for each key (objID) select the first 20 candidates
+# and save the masked version of those candidates where the mask is only applied on the ID objects     
+       
+#%%
+# Example        
 im_path = images_test [10]
 # savePath = '../../semtest/images/'
 # for item_path in images_test:
