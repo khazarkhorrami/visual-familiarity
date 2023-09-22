@@ -9,7 +9,7 @@ import copy
 ###############################################################################
                 ############# masking images #############
 ###############################################################################
-
+saveDir = "../../../semtest/images"
 dataDir='../../data/coco_pyp/MSCOCO'
 dataType='val2014'
 annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
@@ -194,9 +194,10 @@ dic_obj_sorted_image = {}
 
 for key, value in dict_id_to_image.items():
     objID = key
-    
+    dic_obj_sorted_image[objID] = {}
     temp_image_names = []
     temp_overlaps = []
+    temp_obj_area_ratio = []
     for image_candidate in value:
         
         info = dict_images_test [image_candidate]
@@ -204,6 +205,7 @@ for key, value in dict_id_to_image.items():
         # index_rest = [i for i in range(len(info['cat_ids'])) if info['cat_ids'][i] != objID ]
         h = info['h']
         w = info['w']
+        area = h*w
         anns_image = info['anns_image']
         mask_obj = numpy.zeros([h,w])
         mask_rest = numpy.zeros([h,w])
@@ -217,71 +219,88 @@ for key, value in dict_id_to_image.items():
         mask_binary_obj = 1 * (mask_obj > 0 )
         mask_binary_rest = 1 * (mask_rest > 0 )
         
+        area_object = sum(sum(mask_binary_obj))
+        obj_area_ratio = round(area_object/area,2)
         # we add both binary masks,
         # the number of elements bigger than 1 will show the number of overlapping pixels
         mask_all = mask_binary_obj + mask_binary_rest
-        mask_overlap = 1 * (mask_all > 1 )
-        
+        mask_overlap = 1 * (mask_all > 1 )      
         overlap = sum(sum(mask_overlap))
-        print(overlap)
-        temp_image_names.append(image_candidate)
-        temp_overlaps.append(overlap)
+        #print(overlap)
+        if obj_area_ratio >= 0.05:
+            temp_image_names.append(image_candidate)
+            temp_overlaps.append(overlap)
+            temp_obj_area_ratio.append(obj_area_ratio)
     # sorting overlaps and save the image list based on sorted values    
     sorted_args = numpy.argsort(temp_overlaps) 
     temp_image_names_sorted = [temp_image_names[i] for i in sorted_args]
-    dic_obj_sorted_image[objID] = temp_image_names_sorted
+    temp_obj_area_ratio_sorted = [temp_obj_area_ratio[i] for i in sorted_args]
+    dic_obj_sorted_image[objID]['areas'] = temp_obj_area_ratio_sorted
+    dic_obj_sorted_image[objID]['images'] = temp_image_names_sorted
     
-    
+   
+#%%
+
+# record which iObject category does not have 20 candidates
+dict_poor_candidates = {}
+for key, dict_images in dic_obj_sorted_image.items():
+    objID = key
+    images_list = dict_images ['images']
+    if len(images_list) < 20:
+        dict_poor_candidates [objID] = len(images_list)
+         
 #%% next, read images from "dic_obj_sorted_image"   and for each key (objID) select the first 20 candidates
 # and save the masked version of those candidates where the mask is only applied on the ID objects     
-       
-#%%
-# Example        
-im_path = images_test [10]
-# savePath = '../../semtest/images/'
-# for item_path in images_test:
-#     run_bluring (item_path, savePath)
-   
-im_name = im_path.split('/')[1]
-img = img_filenames_to_all [im_name] 
-
-image_id = img ['id']
-h = img ['height']
-w = img ['width']
-name = img ['file_name']
-imPath = os.path.join(dataDir, dataType,name )
-image = cv2.imread(imPath)
-
-################################## getting mask from annotation
-annId_img = coco.getAnnIds( imgIds=image_id, iscrowd=False) 
-anns_image = coco.loadAnns(annId_img)
-mask_annitem = numpy.zeros([h,w])
-for item in anns_image : # constructing true mask by ading all mask items
-    mask_temp = coco.annToMask(item)
-    mask_annitem = mask_annitem + mask_temp
-mask_binary = 1 * (mask_annitem > 0 )
-mask_binary_uint = numpy.array(mask_binary, dtype=numpy.uint8)
-mask = 1 * mask_binary_uint
-
-################################## masking the image
-masked_image = copy.deepcopy (image)
-masked_image[:,:,0] = image[:,:,0] * mask
-masked_image[:,:,1] = image[:,:,1] * mask
-masked_image[:,:,2] = image[:,:,2] * mask
-
-blured_image = cv2.blur(image,(30,30),0)
-masked_image_blur = copy.deepcopy (blured_image)
-masked_image_blur[:,:,0] = blured_image[:,:,0] * (1- mask)
-masked_image_blur[:,:,1] = blured_image[:,:,1] * (1- mask)
-masked_image_blur[:,:,2] = blured_image[:,:,2] * (1- mask)
-blurmasked_image = masked_image_blur + masked_image
-
-######################### plotting the results
-plt.subplot(2,2,1)
-plt.imshow(image)
-plt.subplot(2,2,2)
-plt.imshow(mask)
-plt.subplot(2,2,3)
-plt.imshow(masked_image)
-plt.subplot(2,2,4)
-plt.imshow(blurmasked_image)
+for key, dict_images in dic_obj_sorted_image.items():
+    objID = key
+    images_list = dict_images ['images']
+    obj_area_list = dict_images ['areas']
+    # bia inja sharte area ra barresi kon
+    testset = images_list [0:20]
+    for counter, image_candidate in enumerate(testset):
+        
+        info = dict_images_test [image_candidate]
+        h = info['h']
+        w = info['w']
+        anns_image = info['anns_image']
+        mask_obj = numpy.zeros([h,w])
+        
+        name = info ['image_name']
+        imPath = os.path.join(dataDir, dataType,name )
+        image = cv2.imread(imPath)
+        
+        for item in anns_image : # constructing true mask by ading all mask items
+            mask_temp = coco.annToMask(item)
+            if item['category_id'] == objID:
+                mask_obj = mask_obj + mask_temp
+            # else:
+            #     mask_rest = mask_rest + mask_temp
+        # converting the mask to 0 and 1 binary values        
+        mask_binary_obj = 1 * (mask_obj > 0 )
+        # mask_binary_rest = 1 * (mask_rest > 0 )
+      
+        mask_binary_uint = numpy.array(mask_binary_obj, dtype=numpy.uint8)
+        mask = 1 * mask_binary_uint
+        ################################## masking the image
+        masked_image = copy.deepcopy (image)
+        masked_image[:,:,0] = image[:,:,0] * mask
+        masked_image[:,:,1] = image[:,:,1] * mask
+        masked_image[:,:,2] = image[:,:,2] * mask
+        ################################## masking the blurred image
+        blured_image = cv2.blur(image,(30,30),0)
+        masked_image_blur = copy.deepcopy (blured_image)
+        masked_image_blur[:,:,0] = blured_image[:,:,0] * (1- mask)
+        masked_image_blur[:,:,1] = blured_image[:,:,1] * (1- mask)
+        masked_image_blur[:,:,2] = blured_image[:,:,2] * (1- mask)
+        blurmasked_image = masked_image_blur + masked_image 
+        ##################################
+        
+        label_obj = cats[objID]['name']
+        area_obj = obj_area_list [counter]
+        save_name = label_obj + '_' + str(counter) + '_' + str(area_obj) +'.jpg'
+        
+        save_path_masked = os.path.join(saveDir, 'masked', save_name )
+        save_path_blurred = os.path.join(saveDir, 'blurred', save_name )
+        
+        cv2.imwrite(save_path_masked , masked_image)  
+        cv2.imwrite(save_path_blurred , blurmasked_image)
