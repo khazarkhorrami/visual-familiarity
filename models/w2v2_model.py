@@ -334,7 +334,7 @@ class Wav2Vec2Model_cls(BaseFairseqModel):
         )
 
         parser.add_argument(
-            "--layer_use", type=int, help="which layer feat to use to input to second tranformer, range from 0 to encoder_layer - 1", default=4
+            "--layer_use", type=int, help="which layer feat to use to input to second tranformer, range from 0 to encoder_layer - 1", default=7
         )
         
         parser.add_argument(

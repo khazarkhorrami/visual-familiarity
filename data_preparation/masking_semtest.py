@@ -272,9 +272,11 @@ for key, dict_images in dict_obj_sorted_image.items():
         
         save_path_masked = os.path.join(saveDir, 'masked', save_name )
         save_path_blurred = os.path.join(saveDir, 'blurred', save_name )
+        save_path_original = os.path.join(saveDir, 'original', save_name )
         
-        cv2.imwrite(save_path_masked , masked_image)  
-        cv2.imwrite(save_path_blurred , blurmasked_image)
+        # cv2.imwrite(save_path_masked , masked_image)  
+        # cv2.imwrite(save_path_blurred , blurmasked_image)
+        # cv2.imwrite(save_path_original , image)
         
         saved_names.append(save_name)
         area_ratios.append(area_obj)
@@ -284,11 +286,11 @@ for key, dict_images in dict_obj_sorted_image.items():
     dict_saved_images [objID]['categories'] = cat_obj
     dict_saved_images [objID]['label'] = label_obj
     
-file_json = "/worktmp2/hxkhkh/current/semtest/images/" + "semtest_images.json"
-with open(file_json, "w") as fp:
-    json.dump(dict_saved_images,fp) 
+# file_json = "/worktmp2/hxkhkh/current/semtest/images/" + "semtest_images.json"
+# with open(file_json, "w") as fp:
+#     json.dump(dict_saved_images,fp) 
 #%% testing json file
-with open(file_json, 'r', encoding='utf-8') as json_file:
-    data_json_saved = json.load(json_file) 
+# with open(file_json, 'r', encoding='utf-8') as json_file:
+#     data_json_saved = json.load(json_file) 
     
     
