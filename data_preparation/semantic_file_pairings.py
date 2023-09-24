@@ -55,3 +55,6 @@ with open(file_json_pairings, "w") as fp:
 
 with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
     data_pairings = json.load(json_file) 
+
+#%%
+
