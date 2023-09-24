@@ -33,7 +33,7 @@ for img_id in img_ids:
 all_labels, cats_id_to_short_name = change_labels (cats_id_to_name)   
 #%%
 
-path_dict_obj_to_word = "../../datavf/coco_pyp/dict_words_selected.json"
+
 
 def read_images_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as json_file:
@@ -45,7 +45,7 @@ def read_images_json(file_path):
         images.append(im)
     return images
 #%%
-
+path_dict_obj_to_word = "../../datavf/coco_pyp/dict_words_selected.json"
 with open(path_dict_obj_to_word, 'r', encoding='utf-8') as json_file:
     dict_obj_to_word = json.load(json_file)
 
@@ -268,7 +268,7 @@ for key, dict_images in dict_obj_sorted_image.items():
         #saving using the short name
         label_obj = cats_id_to_short_name[objID]
         area_obj = obj_area_list [counter]
-        save_name = label_obj + '_' + str(counter) + '.jpg'
+        save_name = label_obj + '_' + str(counter + 1) + '.jpg'
         
         save_path_masked = os.path.join(saveDir, 'masked', save_name )
         save_path_blurred = os.path.join(saveDir, 'blurred', save_name )
@@ -290,4 +290,5 @@ with open(file_json, "w") as fp:
 #%% testing json file
 with open(file_json, 'r', encoding='utf-8') as json_file:
     data_json_saved = json.load(json_file) 
-d = data_json_saved['data']
+    
+    
