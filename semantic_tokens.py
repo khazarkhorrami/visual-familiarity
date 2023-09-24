@@ -7,9 +7,8 @@ import time
 import torch
 import numpy
 import os
+import json
 from PIL import Image
-# for model
-#os.chdir('../') # worktmp2/hxkhkh/current/FaST/visual-familiarity
 from steps import trainer
 from steps.utils import *
 from steps.trainer_utils import *
@@ -36,16 +35,21 @@ def LoadImage(path):
 
 #%%
 save_path = '../../semtest/Smatrix/'
- 
+file_json_pairings =  "../../semtest/semtest_files_pairings.json"  
+
+audio_path = '../../semtest/COCO/'
+image_path = '../../semtest/images/masked/'
+#%% reading test datafile names 
+with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
+    data_pairings = json.load(json_file) 
+
+wav_files = []
+img_files = []
+for key, value in data_pairings.items():
+    wav_files.append(os.path.join(audio_path, key))
+    img_files.append(os.path.join(image_path, value))
+    
 #%%
-audio_path = "/worktmp2/hxkhkh/current/FaST/data/coco_example/subset1/wavs/"#"../../lextest/data/COCO/"
-
-
-visual_path = "/worktmp2/hxkhkh/current/FaST/data/coco_example/subset1/images/"
-
-
-#%%
-
 
 # loading Model
 device = 'cpu'
@@ -133,35 +137,20 @@ def find_visual_token (signal):
 #%% For audio
 # There are 1600 wav files for COCO
 
-wav_files = os.listdir(audio_path)
-wav_names = [ item for item in range(0,1280)]
-wav_files = [str(item) + '.wav' for item in wav_names]
-
 audio_cls_total = []
 start = time.time()
 with torch.no_grad():
     for counter, wav_file in enumerate(wav_files):
         print(counter)   
         #########################
-        audio_file_path = os.path.join(audio_path, wav_file)
-        signal,l =  LoadAudio(audio_file_path) # (Array of float32) 
+        signal,l =  LoadAudio(wav_file) # (Array of float32) 
         audio_cls_tensor, audio_cls_np = find_audio_token (signal) #(768,) (Array of float32)
         audio_cls_total.append(audio_cls_tensor)
-        
-        #.......................................
-        # save_name = wav_file.split('.')[0]
-        # save_file = os.path.join(save_path, save_name )
-        # np.save(save_file, audio_cls_np)
 
 end = time.time()
 time_audio = end - start
 print(end - start)        
 #%% For visual    
-# 
-
-#img_files = os.listdir(visual_path)
-img_names = [item for item in range(0, 1280)]
-img_files = [str(item) + '.jpg' for item in img_names]
 
 
 visual_cls_total = []
@@ -170,15 +159,14 @@ with torch.no_grad():
     for counter, img_file in enumerate(img_files):
         print(counter)   
         #########################
-        img_file_path = os.path.join(visual_path, img_file)
-        signal =  LoadImage(img_file_path) # (Array of float32) 
+        signal =  LoadImage(img_file) # (Array of float32) 
         visual_cls_tensor, visual_cls_np = find_visual_token (signal) #(768,) (Array of float32)
         visual_cls_total.append(visual_cls_tensor)  
 
 end = time.time()
 time_visual = end - start
 print(end - start) 
-        
+kh        
 #%% matchmap
 d = len(audio_cls_total)# 1000
 audio_cls_total = audio_cls_total [0:d]
