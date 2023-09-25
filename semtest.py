@@ -1,17 +1,32 @@
 import numpy as np
+import json
 
 S_path = '../../semtest/Smatrix/'
 
-S = np.load(S_path + "Sbest.npy")
+S = np.load(S_path + "Sbest_utterances.npy")  
+    
+file = "/worktmp2/hxkhkh/current/semtest/semtest_files_pairings.json"
+with open(file, 'r', encoding='utf-8') as json_file:
+    data = json.load(json_file)
+words = []
+objects = []
+categories_all = []
+for key, value in data.items():
+    words.append(key)
+    objects.append(value)
+    categories_all.append(value.split('_')[0])
+
 
 #%%
 
 dict_word_to_obj_ind = {}
 
 tt = []
+categories = []
 for t in range(0,1600,20):
     x = list(range(t,t+20))
     tt.append(x)
+    categories.append(categories_all[t])
     
 for chunk in tt:
     for element in chunk:
@@ -20,6 +35,17 @@ for chunk in tt:
     
 #%% random S
 #S = np.random.randint(-1, 1, size=(1600, 1600))
+#%%
+# measurement 0: recall@10
+hits = 0
+for counter in range(len(S)):
+    row = S[counter, :]
+    inspection_window = list(np.argsort((row))[0:10])
+    if counter in inspection_window:
+        hits += 1
+        
+recall =  hits/ 1600  
+    
 #%%
 # measurement 1
 # random 0.25 ( 1/80 *20)
@@ -89,13 +115,13 @@ def find_degree_per_row (row_index):
    
 scores_degree_all = []
 scores_degree_cats = []
-scores_degree_cats_average = []
+scores_degree_cats_average = {}
 
 for category_index in range(80):
     d_cat = find_degree_per_category (category_index)
     scores_degree_all.extend(d_cat)
     scores_degree_cats.append(d_cat)
-    scores_degree_cats_average.append(np.average(d_cat))
+    scores_degree_cats_average[categories[category_index]] = np.average(d_cat)
     
     
 

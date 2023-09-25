@@ -8,12 +8,13 @@ import shutil
 # 3 we select 1 utterance for each test image
 # 4 we save the new extracted data in info_semtest to know what samples we use for semtest from original COCO
 # 5 we save the utterances in semtest/utterances folder using lexical namings
+
 #%%
 # 1
 file_original_images= '../../../semtest/images/semtest_images.json'
 with open(file_original_images, 'r', encoding='utf-8') as json_file:
     images_semtest = json.load(json_file) 
- 
+
 # 2
 path_train_json_res = "../../datavf/coco_pyp/subsets/SpokenCOCO_train_SSL.json"
 with open(path_train_json_res, 'r', encoding='utf-8') as json_file:
@@ -45,10 +46,8 @@ for cat, info_cat in images_semtest.items():
     info_semtest[cat]['utterances'] = wavs_list
 #%%
 # 5
-dataDir = '../../data/coco_pyp/SpokenCOCO/'
-saveDir = '/worktmp2/hxkhkh/current/semtest/utterances/'
-file_json_pairings =  "../../../semtest/semtest_files_pairings.json" 
-# reading test datafile names 
+
+file_json_pairings =  "../../../semtest/semtest_files_pairings.json"  
 with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
     data_pairings_word_to_object = json.load(json_file)
 
@@ -56,16 +55,32 @@ data_pairings_object_to_word = {}
 for key, value in data_pairings_word_to_object.items():
     data_pairings_object_to_word[value] = key
     
+#%%
+
+dataDir_img = '../../data/coco_pyp/MSCOCO/'
+saveDir_img = '/worktmp2/hxkhkh/current/semtest/images/original/'
+
+dataDir_wav = '../../data/coco_pyp/SpokenCOCO/'
+saveDir_wav = '/worktmp2/hxkhkh/current/semtest/utterances/'
+
+
+    
 dict_utterances = {}
 for cat, info in info_semtest.items():
+    images = info['images']
     utterances = info['utterances']
     names_imgs = info['names']
     for counter, uttr in enumerate(utterances):
-        file_origin = os.path.join(dataDir, uttr)
-        name_img = names_imgs [counter]
-        name_wav =  data_pairings_object_to_word[name_img]
-        file_target = os.path.join(saveDir, name_wav)
         
-        shutil.copy(file_origin, file_target)
+        img = images[counter]
+        name_img = names_imgs [counter]
+        file_origin_img = os.path.join(dataDir_img, img)
+        file_target_img = os.path.join(saveDir_img, name_img)
+        shutil.copy(file_origin_img, file_target_img)
+        
+        file_origin_wav = os.path.join(dataDir_wav, uttr)
+        name_wav =  data_pairings_object_to_word[name_img]
+        file_target_wav = os.path.join(saveDir_wav, name_wav)
+        shutil.copy(file_origin_wav, file_target_wav)
         
  
