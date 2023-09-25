@@ -304,25 +304,25 @@ class DualEncoder(nn.Module):
         cls_token_coarse = self.trm2_proj(audio_feats[:,0])
         return audio_feats, cls_token_coarse, extended_audio_attention_mask, losses
     
-    def forward_audio_khazar(self, audio_feats):
+    # def forward_audio_khazar(self, audio_feats):
     
-        self.conv1_trm1_trm3.eval()
-        trm13_out = self.conv1_trm1_trm3(audio_feats, mask=False, features_only=True, tgt_layer=self.args.layer_use)
+    #     self.conv1_trm1_trm3.eval()
+    #     trm13_out = self.conv1_trm1_trm3(audio_feats, mask=False, features_only=True, tgt_layer=self.args.layer_use)
         
-        non_padding_mask = ~trm13_out['padding_mask']
-        w2v2_nframes = non_padding_mask.int().sum(-1)
-        audio_feats = self.conv2(trm13_out['layer_feats'])
-        pooling_ratio = round(trm13_out['layer_feats'].shape[1] / audio_feats.shape[1])
-        nframes = torch.div(w2v2_nframes, pooling_ratio).to(w2v2_nframes.dtype)
-        attention_mask = torch.arange(len(audio_feats[0])).unsqueeze(0).to(audio_feats.device) >= nframes.unsqueeze(1)
+    #     non_padding_mask = ~trm13_out['padding_mask']
+    #     w2v2_nframes = non_padding_mask.int().sum(-1)
+    #     audio_feats = self.conv2(trm13_out['layer_feats'])
+    #     pooling_ratio = round(trm13_out['layer_feats'].shape[1] / audio_feats.shape[1])
+    #     nframes = torch.div(w2v2_nframes, pooling_ratio).to(w2v2_nframes.dtype)
+    #     attention_mask = torch.arange(len(audio_feats[0])).unsqueeze(0).to(audio_feats.device) >= nframes.unsqueeze(1)
         
-        #cls_token_coarse = self.audio_cls_token_proj_coarse(trm13_out['cls_token'])     
-        cls_token = self.audio_cls_token_proj_pre(trm13_out['cls_token'])
-        audio_feats = torch.cat([cls_token.unsqueeze(1), audio_feats],dim=1)
-        audio_feats = self.trm2(audio_feats, extended_audio_attention_mask = None)
-        cls_token_coarse = self.trm2_proj(audio_feats[:,0])
+    #     #cls_token_coarse = self.audio_cls_token_proj_coarse(trm13_out['cls_token'])     
+    #     cls_token = self.audio_cls_token_proj_pre(trm13_out['cls_token'])
+    #     audio_feats = torch.cat([cls_token.unsqueeze(1), audio_feats],dim=1)
+    #     audio_feats = self.trm2(audio_feats, extended_audio_attention_mask = None)
+    #     cls_token_coarse = self.trm2_proj(audio_feats[:,0])
         
-        return cls_token_coarse
+    #     return cls_token_coarse
 
 
     def forward_libri(self, audio_feats, audio_attention_mask):
