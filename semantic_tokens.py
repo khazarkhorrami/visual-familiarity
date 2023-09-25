@@ -16,8 +16,59 @@ from models import fast_vgs, w2v2_model
 
 from datasets import spokencoco_dataset, libri_dataset
 import torchvision.transforms as transforms
-#%%
 
+#%% below is related to reading test data
+#%%
+save_path = '../../semtest/Smatrix/'
+file_json_pairings =  "../../semtest/semtest_files_pairings.json"  
+
+audio_path = '../../semtest/COCO/'
+image_path = '../../semtest/images/original/'
+# reading test datafile names 
+with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
+    data_pairings = json.load(json_file) 
+
+wav_files = []
+img_files = []
+for key, value in data_pairings.items():
+    wav_files.append(os.path.join(audio_path, key))
+    img_files.append(os.path.join(image_path, value))
+
+#%%
+def LoadAudio(path):
+    x, sr = sf.read(path, dtype = 'float32')
+    assert sr == 16000
+    # x, sr = librosa.load(path, dtype = 'float32', sr = 16000)
+    x_norm = (x - np.mean(x)) / np.std(x)
+    x = torch.FloatTensor(x_norm)      
+    return x, len(x)
+
+image_transform = transforms.Compose(
+    [transforms.Resize(256, interpolation=Image.BICUBIC), transforms.CenterCrop(224), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
+# def LoadAudio(path):
+#     x, sr = sf.read(path, dtype = 'float32')
+#     assert sr == 16000
+#     length_orig = len(x)
+#     audio_feat_len = 10
+#     if length_orig > 16000 * audio_feat_len:
+#         audio_length = int(16000 * audio_feat_len)
+#         x = x[:audio_length]
+#         x_norm = (x - np.mean(x)) / np.std(x)
+#         x = torch.FloatTensor(x_norm) 
+#     else:
+#         audio_length = length_orig
+#         new_x = torch.zeros(int(16000 * audio_feat_len))
+#         x_norm = (x - np.mean(x)) / np.std(x)
+#         new_x[:audio_length] = torch.FloatTensor(x_norm) 
+#         x = new_x
+#     return x, audio_length
+
+def LoadImage(path):
+    img = Image.open(path).convert('RGB')    
+    img = image_transform(img)
+    return img
+#%% 
 # loading Model
 device = 'cpu'
 # adding all args
@@ -60,49 +111,18 @@ dual_encoder.carefully_load_state_dict(bundle['dual_encoder'])
 dual_encoder.to(device)
 dual_encoder.eval()
 
-#%% below is related to reading test data
-#%%
-save_path = '../../semtest/Smatrix/'
-file_json_pairings =  "../../semtest/semtest_files_pairings.json"  
-
-audio_path = '../../semtest/COCO/'
-image_path = '../../semtest/images/original/'
-#%% reading test datafile names 
-with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
-    data_pairings = json.load(json_file) 
-
-wav_files = []
-img_files = []
-for key, value in data_pairings.items():
-    wav_files.append(os.path.join(audio_path, key))
-    img_files.append(os.path.join(image_path, value))
-#%%
-def LoadAudio(path):
-    x, sr = sf.read(path, dtype = 'float32')
-    assert sr == 16000
-    # x, sr = librosa.load(path, dtype = 'float32', sr = 16000)
-    x_norm = (x - np.mean(x)) / np.std(x)     
-    return x_norm, len(x)
-
-def LoadImage(path):
-    img = Image.open(path).convert('RGB')
-    image_transform = transforms.Compose(
-        [transforms.RandomResizedCrop(224, interpolation=Image.BICUBIC), transforms.RandomHorizontalFlip(0.5), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-    img = image_transform(img)
-    return img
 
 #%%
 
 def find_audio_token (signal, l):
-    audio_signal = torch.tensor(signal ,dtype=torch.float).to(device)
-    input_signal = audio_signal.view(1, -1)
+    input_signal = signal.view(1, -1)
     
     col_audio = torch.nn.utils.rnn.pad_sequence(input_signal, batch_first=True)
     col_al = torch.LongTensor(l).view(1, -1)
     
     audio_attention_mask = torch.arange(len(col_audio[0])).unsqueeze(0) >= col_al.unsqueeze(1)
     audio_feats, cls_token_coarse, extended_audio_attention_mask, losses = dual_encoder.forward_audio(audio_feats = input_signal, audio_attention_mask=audio_attention_mask, test = True)  
-    audio_cls = audio_cls_tensor[0] # (1, 768)
+    audio_cls = cls_token_coarse[0] # (1, 768)
     audio_cls_np = audio_cls.cpu().detach().numpy()
     return cls_token_coarse, audio_cls_np
 
@@ -113,7 +133,7 @@ def find_visual_token (signal):
     visual_cls = cls_token_coarse[0] # (1, 768)
     visual_cls_np = visual_cls.cpu().detach().numpy()
     return cls_token_coarse, visual_cls_np
-
+#%%
 #%% For visual    
 # There are 1600 jpg files from MSCOCO (masked/blurred)
 visual_cls_list = []
@@ -131,7 +151,6 @@ end = time.time()
 time_visual = end - start
 print(end - start) 
 #%%
-
 #%% For audio
 # There are 1600 wav files for COCO
 audio_cls_list = []
@@ -152,8 +171,6 @@ print(end - start)
 #%% matchmap
 
 start = time.time()
-
-
 visual_cls_list = torch.cat(visual_cls_list)
 audio_cls_list = torch.cat(audio_cls_list)
 
@@ -167,6 +184,17 @@ print(end - start)
 np.save( os.path.join(save_path, "Sbest") , matchmap_np)
 
 #%%
-cos = torch.nn.CosineSimilarity(dim=1)
-s = cos(visual_cls_list, audio_cls_list)
-print(s)
+
+S = []
+cos = torch.nn.CosineSimilarity(dim=0)
+for j in range(1600):
+    s_rows = []
+    for i in range(1600):
+        v = visual_cls_list [j]
+        a = audio_cls_list [i]
+        sim = cos(v, a)
+        sim = sim.cpu().detach().numpy()
+        s_rows.append(sim)
+    S.append(s_rows)
+Sarray = np.array(S)
+np.save( os.path.join(save_path, "Sbest") , Sarray)
