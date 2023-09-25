@@ -33,7 +33,7 @@ for counter in range(len(S)):
     red_window_index = [i for i in range(0,1600) if i not in green_window_index]
     red_window = [row [i] for i in red_window_index]
     
-    inspection_window = list(np.argsort(abs(row)) [0:20])
+    inspection_window = list(np.argsort((row)) [0:20])
     score_row = len(set(inspection_window).intersection(green_window_index))
     scores_cats.append(score_row)
     
@@ -49,3 +49,59 @@ print(np.average(scores_cats))
 
 #%%
 # measurement 3
+
+def find_degree_per_category (category_index):
+    chunk_rows = tt [category_index]
+    d_category = []
+    for row_index in chunk_rows:
+        d = find_degree_per_row (row_index)
+        d_category.append(d)
+    return d_category
+
+#### here calculates degree for each row 
+def find_degree_per_row (row_index):
+    row = S[row_index, :]
+    green_window_index = dict_word_to_obj_ind [row_index]
+    green_window = [row [i] for i in green_window_index]
+    red_window_index = [i for i in range(0,1600) if i not in green_window_index]
+    red_window = [row [i] for i in red_window_index]
+    degree_row = []
+    for q in green_window:
+         
+        z = []
+        z.append(q)
+        z.extend(red_window)
+        z_sorted = list(np.argsort(z))
+        argq = z_sorted.index(0) #978
+        # shifting indexs by 1 to avoid zero in denominator
+        after = 1581 -  ( argq + 2)
+        degree = after / (argq +1 )
+        degree_row.append(degree)
+    return np.average(degree_row)
+##############################################
+# example 
+# row_index = 50
+# d = find_degree_per_row (row_index)
+
+# category_index = 0
+# d_cat = find_degree_per_category (category_index)
+#%%
+   
+scores_degree_all = []
+scores_degree_cats = []
+scores_degree_cats_average = []
+
+for category_index in range(80):
+    d_cat = find_degree_per_category (category_index)
+    scores_degree_all.extend(d_cat)
+    scores_degree_cats.append(d_cat)
+    scores_degree_cats_average.append(np.average(d_cat))
+    
+    
+
+    
+    
+    
+    
+    
+    
