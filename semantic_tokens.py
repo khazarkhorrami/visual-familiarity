@@ -22,7 +22,7 @@ import torchvision.transforms as transforms
 save_path = '../../semtest/Smatrix/'
 file_json_pairings =  "../../semtest/semtest_files_pairings.json"  
 
-audio_path = '../../semtest/COCO/'
+audio_path = '../../semtest/utterances/'
 image_path = '../../semtest/images/original/'
 # reading test datafile names 
 with open(file_json_pairings, 'r', encoding='utf-8') as json_file:
@@ -94,10 +94,9 @@ mytwd = '/worktmp2/hxkhkh/current/FaST/experiments/vfbase3/bundle.pth'
 args.encoder_layers = 12
 args.trim_mask = True
 args.normalize = True
-args.encoder_attention_heads = 12
 args.layer_use = 7
+args.trm_layers = 6
 ############################################## defining the model based on ARGS
-
 dual_encoder = fast_vgs.DualEncoder(args)
 dual_encoder.to(device)
 dual_encoder.eval()
@@ -166,35 +165,34 @@ with torch.no_grad():
 end = time.time()
 time_audio = end - start
 print(end - start)        
-
        
 #%% matchmap
 
 start = time.time()
-visual_cls_list = torch.cat(visual_cls_list)
-audio_cls_list = torch.cat(audio_cls_list)
+visual_cls = torch.cat(visual_cls_list)
+audio_cls = torch.cat(audio_cls_list)
 
-matchmap = visual_cls_list @ audio_cls_list.transpose(0,1)
+matchmap = audio_cls @ visual_cls.transpose(0,1)
 matchmap_np = matchmap.cpu().detach().numpy()
 
 end = time.time()
 time_matchmap = end - start
 print(end - start) 
 
-np.save( os.path.join(save_path, "Sbest") , matchmap_np)
+np.save( os.path.join(save_path, "Sbest_utterances") , matchmap_np)
 
 #%%
 
 S = []
 cos = torch.nn.CosineSimilarity(dim=0)
-for j in range(1600):
+for i in range(1600):
     s_rows = []
-    for i in range(1600):
-        v = visual_cls_list [j]
-        a = audio_cls_list [i]
-        sim = cos(v, a)
+    a = audio_cls [i]
+    for j in range(1600):
+        v = visual_cls_list [j]  
+        sim = cos(a, v)
         sim = sim.cpu().detach().numpy()
         s_rows.append(sim)
     S.append(s_rows)
 Sarray = np.array(S)
-np.save( os.path.join(save_path, "Sbest") , Sarray)
+np.save( os.path.join(save_path, "Sbest_utterances") , Sarray)
