@@ -3,7 +3,7 @@ import json
 
 S_path = '../../semtest/Smatrix/'
 
-S = np.load(S_path + "Sbest_utterances.npy")  
+S = np.load(S_path + "S3_words_masked.npy")  
     
 file = "/worktmp2/hxkhkh/current/semtest/semtest_files_pairings.json"
 with open(file, 'r', encoding='utf-8') as json_file:
@@ -40,12 +40,13 @@ for chunk in tt:
 hits = 0
 for counter in range(len(S)):
     row = S[counter, :]
-    inspection_window = list(np.argsort((row))[0:10])
+    row_sorted = list(np.argsort((row))[::-1])
+    inspection_window = row_sorted [0:10]
     if counter in inspection_window:
         hits += 1
         
 recall =  hits/ 1600  
-    
+print(round(recall,3))    
 #%%
 # measurement 1
 # random 0.25 ( 1/80 *20)
@@ -59,12 +60,13 @@ for counter in range(len(S)):
     red_window_index = [i for i in range(0,1600) if i not in green_window_index]
     red_window = [row [i] for i in red_window_index]
     
-    inspection_window = list(np.argsort((row)) [0:20])
+    row_sorted =  list(np.argsort((row))[::-1])
+    inspection_window = row_sorted[0:20]
     score_row = len(set(inspection_window).intersection(green_window_index))
     scores_cats.append(score_row)
     
     
-print(np.average(scores_cats))
+print(round(np.average(scores_cats) ,3 ))
 # S3_testm : 0.28125
 # S3_testb : 0.2543
 
@@ -97,7 +99,7 @@ def find_degree_per_row (row_index):
         z = []
         z.append(q)
         z.extend(red_window)
-        z_sorted = list(np.argsort(z))
+        z_sorted = list(np.argsort(z)[::-1])
         argq = z_sorted.index(0) #978
         # shifting indexs by 1 to avoid zero in denominator
         after = 1581 -  ( argq + 2)
@@ -124,7 +126,7 @@ for category_index in range(80):
     scores_degree_cats_average[categories[category_index]] = np.average(d_cat)
     
     
-
+print(round(np.average(scores_degree_all) , 3))
     
     
     

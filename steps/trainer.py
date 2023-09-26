@@ -506,14 +506,14 @@ class Trainer:
                         #"label": batch['label']
                         }
                 
-                loss_val = self.forward(cur_batch)
+                #loss_val = self.forward(cur_batch)
                 
                 key = 'vloss_av'
                 #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
-                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['images'].shape[0])
+                #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 key = 'vloss_cap'
-                self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['images'].shape[0])
+                #self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
@@ -596,7 +596,92 @@ class Trainer:
         self.writer.add_scalar("acc_r5", avg_acc_r5, self.progress['num_updates'])
         self.writer.add_scalar("acc_r1", avg_acc_r1, self.progress['num_updates'])
         return avg_acc_r10, avg_acc_r5, avg_acc_r1
+    
+    
+    def validate_khazar(self):
+        # frame_counts = []
+        with torch.no_grad():
+            # get single modal representations
+            audio_feats_total = [] 
+            extended_audio_attention_mask_total = []
+            visual_feats_total = [] 
+            #img_id_total = []
+            audio_cls_total = []
+            visual_cls_total = []
+            for i, batch in enumerate(self.valid_loader):
+                self.dual_encoder.eval()
+                self.cross_encoder.eval()
+                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), images = batch['images'].to(self.device), test = True)
+                audio_cls_total.append(audio_cls)
+                visual_cls_total.append(visual_cls)
+                audio_feats_total.append(audio_feats.detach()) # still on cude after .detach(), just removed from graph, so no gradient
+                extended_audio_attention_mask_total.append(extended_audio_attention_mask.detach())
+                visual_feats_total.append(visual_feats.detach())
+                #img_id_total.append(batch['img_id'])
+                # if i>= 20:
+                #     break
+            audio_feats_total = torch.cat(audio_feats_total)
+            extended_audio_attention_mask_total = torch.cat(extended_audio_attention_mask_total)
+            visual_feats_total = torch.cat(visual_feats_total)
+            #img_id_total = np.concatenate(img_id_total)
+    
+            visual_cls_total = torch.cat(visual_cls_total)
+            audio_cls_total = torch.cat(audio_cls_total)
+            coarse_cross_relationship_score_matrix = audio_cls_total @ visual_cls_total.transpose(0,1)
+            #recalls = calc_recalls_from_S_coarse(coarse_cross_relationship_score_matrix, img_id=img_id_total)     
+            return batch,coarse_cross_relationship_score_matrix
         
+        
+    def validate_khazar_old(self, hide_progress=True):
+        print ("kh: it entered validate_one_to_many function ..... ")
+        self.dual_encoder.eval()
+        self.cross_encoder.eval()
+        N_examples = self.valid_loader.dataset.__len__()
+        # khazar: N_examples = 25035
+        print('kh: below it should print n_example ....')
+        print('N_example is ' + str(N_examples))
+        with torch.no_grad():
+            # get single modal representations
+            
+            audio_feats_total = [] 
+            extended_audio_attention_mask_total = []
+            audio_cls_total = []
+            audio_img_id_total = [] # this is same order as audio_cls_total and audio_feats_total
+            img_id_to_img_feats = {}
+            img_img_id_list = []
+            img_cls_list = [] # this is distinct, order is the same as img_img_id_list
+            img_feats_list = [] # this is distinct, order is the same as img_img_id_list
+            print(' kh: below is the length of valid_loader  ')
+            print(len(self.valid_loader))
+            for i, batch in enumerate(self.valid_loader):
+                # khazar :  here it loads all validation data to batch (i = 0: N_examples/batch_size)
+                # print(' i = ' +str(i))
+                
+                ###############################################################
+                # khazar :  for high batch sizes below line gives memory related error
+                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device),images = batch['images'].to(self.device), test = True)
+                
+                audio_cls_total.append(audio_cls)
+           
+                img_cls_list.append(visual_cls)
+                print('here is len audio_cls')
+                print(audio_cls.size())
+                print('here is len img_cls')
+                print(visual_cls.size())
+               
+                        
+                ###############################################################
+                
+                if i>= 10:
+                    break
+             
+            audio_cls_total = torch.cat(audio_cls_total)            
+            img_cls_list = torch.cat(img_cls_list)
+
+            coarse_cross_relationship_score_matrix = img_cls_list @ audio_cls_total.transpose(0,1)
+
+        return batch, coarse_cross_relationship_score_matrix
+     
     def validate_libri(self):
         with torch.no_grad():
             N = 0
