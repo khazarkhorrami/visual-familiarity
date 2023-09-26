@@ -61,20 +61,13 @@ class ImageCaptionDataset(Dataset):
                 audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_' + args.subset + '.json'
         elif split == "val" or split == "dev":
             if self.args.test:
-                audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_test_unrolled_karpathy.json")
+                audio_dataset_json_file = "/worktmp2/hxkhkh/current/semtest/data.json"
+                # json file for semtest data
             else:
                 audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
-              
-        
-        train_img_dataset_h5py_file = os.path.join(args.data_root, "coco_pyp/coco_img_feat/SpokenCOCO_train_imgfeat.hdf5")
-        train_imgid2index_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_imgid2idex.json")
-        train_imgid2ordered_indices_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_train_imgid2ordered_indices.pkl")
-        val_img_dataset_h5py_file = os.path.join(args.data_root, "coco_pyp/coco_img_feat/SpokenCOCO_val_imgfeat.hdf5")
-        val_imgid2index_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_val_imgid2idex.json")
-        val_imgid2ordered_indices_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_val_imgid2ordered_indices.pkl")
         
         
-        self.audio_base_path = os.path.join(args.data_root, "coco_pyp/SpokenCOCO") #args.raw_audio_base_path
+        self.audio_base_path = os.path.join(args.data_root, "coco_pyp/SpokenCOCO") 
         
         if args.image_type == "normal":
             # for otiginal images
@@ -110,29 +103,11 @@ class ImageCaptionDataset(Dataset):
         self.data = data_json['data']
         
         ##############################################
-        #khazar: i added this to reduce the train data
-        # ss = int (1/2 * 592187)
-        # if split == "train":
-        #     self.data = data_json['data'][0:ss]
-        
-        #khazar: i added this to reduce the train data
-        # ss = int (1/2 * 592187)
-        # if split == "train":
-        #     self.data = data_json['data'][0:ss]
-        
+        if self.args.test:
+            self.audio_base_path = "/worktmp2/hxkhkh/current/semtest/COCO/"
+            self.image_base_path = "/worktmp2/hxkhkh/current/semtest/images/masked/"
         ##############################################
-        
-        self.val_img_data = h5py.File(val_img_dataset_h5py_file, 'r')
-        with open(val_imgid2index_file, 'r') as fp:
-            self.val_img_id2index = json.load(fp)    
-        with open(val_imgid2ordered_indices_file, 'rb') as f:
-            self.val_img_id2ordered_indices = pickle.load(f)
-        
-        self.train_img_data = h5py.File(train_img_dataset_h5py_file, 'r')
-        with open(train_imgid2index_file, 'r') as fp:
-            self.train_img_id2index = json.load(fp)    
-        with open(train_imgid2ordered_indices_file, 'rb') as f:
-            self.train_img_id2ordered_indices = pickle.load(f)
+
 
     def _LoadAudio(self, path):
         x, sr = sf.read(path, dtype = 'float32')
@@ -151,15 +126,6 @@ class ImageCaptionDataset(Dataset):
             x = new_x
         return x, audio_length
 
-    # def _LoadImage(self, index, ordered_indices, img_data):
-    #     img_h, img_w = img_data['img_h'][index],img_data['img_w'][index]
-    #     boxes = img_data['boxes'][index][ordered_indices[:self.args.img_feat_len]]
-    #     boxes[:, (0, 2)] /= img_w
-    #     boxes[:, (1, 3)] /= img_h
-    #     np.testing.assert_array_less(boxes, 1+1e-5)
-    #     np.testing.assert_array_less(-boxes, 0+1e-5)
-    #     return torch.from_numpy(img_data['features'][index][ordered_indices[:self.args.img_feat_len]]), torch.from_numpy(boxes)
-
     def _LoadImage(self, impath):
         img = Image.open(impath).convert('RGB')
         img = self.image_transform(img)
@@ -167,23 +133,12 @@ class ImageCaptionDataset(Dataset):
     
     def __getitem__(self, index):
         datum = self.data[index]
-        img_id = datum['image'].split("/")[-1].split(".")[0]
-        if img_id in self.train_img_id2index:
-            img_index = self.train_img_id2index[img_id]
-            ordered_indices = self.train_img_id2ordered_indices[img_id]
-            img_data = self.train_img_data
-        elif img_id in self.val_img_id2index:
-            img_index = self.val_img_id2index[img_id]
-            ordered_indices = self.val_img_id2ordered_indices[img_id]
-            img_data = self.val_img_data
-        else:
-            raise RuntimeError(f"image id {img_id} not found!")
+        #img_id = datum['image'].split("/")[-1].split(".")[0]
+        img_id = 'COCO_val2014_000000325114'
         wavpath = os.path.join(self.audio_base_path, datum['caption']['wav'])
-        audio, nframes = self._LoadAudio(wavpath)
-        #feats, boxes = self._LoadImage(img_index, ordered_indices, img_data)
+        audio, nframes = self._LoadAudio(wavpath)  
         imgpath = os.path.join(self.image_base_path, datum['image'])
         img = self._LoadImage(imgpath)
-        #return feats, boxes, audio, nframes, img_id, datum['caption']['wav']
         return img, audio, nframes, img_id, datum['caption']['wav']
 
     def __len__(self):
