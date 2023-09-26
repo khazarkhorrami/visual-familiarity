@@ -88,7 +88,7 @@ args = parser.parse_args()
 #..............................
 
 # input args
-mytwd = '/worktmp2/hxkhkh/current/FaST/experiments/vfbase3/bundle.pth'
+mytwd = '/worktmp2/hxkhkh/current/FaST/experiments/vfbase3/exp/best_bundle.pth'
 #mytwd = args.mytwd
 # fixed args
 args.encoder_layers = 12
@@ -96,6 +96,8 @@ args.trim_mask = True
 args.normalize = True
 args.layer_use = 7
 args.trm_layers = 6
+args.validate = True
+
 ############################################## defining the model based on ARGS
 dual_encoder = fast_vgs.DualEncoder(args)
 dual_encoder.to(device)
@@ -165,7 +167,7 @@ with torch.no_grad():
 end = time.time()
 time_audio = end - start
 print(end - start)        
-       
+kh       
 #%% matchmap
 
 start = time.time()
