@@ -68,7 +68,7 @@ args.libri_fn_root=libri_fn_root
 args.load_pretrained_vit=pretrained_root
     
 args.batch_size= 4
-args.val_batch_size= 4
+args.val_batch_size= 16
 args.val_cross_batch_size= 4
 args.n_epochs= 50
 args.n_print_steps= 100
