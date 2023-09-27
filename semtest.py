@@ -1,11 +1,17 @@
+
+Sname = "S1_aO_vO"
+# Sname = "S2b_aL_vO"
+# Sname = "S2b_aO_vM"
+# Sname = "S2b_aL_vM"
+# Sname = "S2b_aO_vB"
+# Sname = "S2b_aL_vB"
+#%%
 import numpy as np
 import json
-
-S_path = '../../semtest/Smatrix/'
-
-S = np.load(S_path + "S3_words_masked.npy")  
+S_path = '/worktmp/khorrami/current/semtest/Smatrix/'
+S = np.load(S_path + Sname + ".npy")  
     
-file = "/worktmp2/hxkhkh/current/semtest/semtest_files_pairings.json"
+file = "/worktmp/khorrami/current/semtest/semtest_files_pairings.json"
 with open(file, 'r', encoding='utf-8') as json_file:
     data = json.load(json_file)
 words = []
@@ -60,7 +66,7 @@ for counter in range(len(S)):
     red_window_index = [i for i in range(0,1600) if i not in green_window_index]
     red_window = [row [i] for i in red_window_index]
     
-    row_sorted =  list(np.argsort((row))[::-1])
+    row_sorted =  list(np.argsort((row))[::-1]) # as bozorg be koochik
     inspection_window = row_sorted[0:20]
     score_row = len(set(inspection_window).intersection(green_window_index))
     scores_cats.append(score_row)
@@ -99,12 +105,15 @@ def find_degree_per_row (row_index):
         z = []
         z.append(q)
         z.extend(red_window)
-        z_sorted = list(np.argsort(z)[::-1])
+        z_sorted = list(np.argsort(z)) # as koochik be bozorg
         argq = z_sorted.index(0) #978
         # shifting indexs by 1 to avoid zero in denominator
-        after = 1581 -  ( argq + 2)
-        degree = after / (argq +1 )
-        degree_row.append(degree)
+        # after = 1581 -  ( argq + 2)
+        # degree = after / (argq +1 ) 
+        # ... new method
+        # wanted = argq 
+        d = argq / 1599 
+        degree_row.append(d)
     return np.average(degree_row)
 ##############################################
 # example 
