@@ -43,6 +43,7 @@ class Trainer:
         self.args = args
         self.args.coarse_to_fine_retrieve = False
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #self.device = 'cpu'
         logger.info(f"number of devices: {torch.cuda.device_count()}")
         self.writer = SummaryWriter(self.args.exp_dir)
         self.seed_everything(seed=self.args.seed)
@@ -630,57 +631,6 @@ class Trainer:
             coarse_cross_relationship_score_matrix = audio_cls_total @ visual_cls_total.transpose(0,1)
             #recalls = calc_recalls_from_S_coarse(coarse_cross_relationship_score_matrix, img_id=img_id_total)     
             return batch,coarse_cross_relationship_score_matrix
-        
-        
-    def validate_khazar_old(self, hide_progress=True):
-        print ("kh: it entered validate_one_to_many function ..... ")
-        self.dual_encoder.eval()
-        self.cross_encoder.eval()
-        N_examples = self.valid_loader.dataset.__len__()
-        # khazar: N_examples = 25035
-        print('kh: below it should print n_example ....')
-        print('N_example is ' + str(N_examples))
-        with torch.no_grad():
-            # get single modal representations
-            
-            audio_feats_total = [] 
-            extended_audio_attention_mask_total = []
-            audio_cls_total = []
-            audio_img_id_total = [] # this is same order as audio_cls_total and audio_feats_total
-            img_id_to_img_feats = {}
-            img_img_id_list = []
-            img_cls_list = [] # this is distinct, order is the same as img_img_id_list
-            img_feats_list = [] # this is distinct, order is the same as img_img_id_list
-            print(' kh: below is the length of valid_loader  ')
-            print(len(self.valid_loader))
-            for i, batch in enumerate(self.valid_loader):
-                # khazar :  here it loads all validation data to batch (i = 0: N_examples/batch_size)
-                # print(' i = ' +str(i))
-                
-                ###############################################################
-                # khazar :  for high batch sizes below line gives memory related error
-                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device),images = batch['images'].to(self.device), test = True)
-                
-                audio_cls_total.append(audio_cls)
-           
-                img_cls_list.append(visual_cls)
-                print('here is len audio_cls')
-                print(audio_cls.size())
-                print('here is len img_cls')
-                print(visual_cls.size())
-               
-                        
-                ###############################################################
-                
-                if i>= 10:
-                    break
-             
-            audio_cls_total = torch.cat(audio_cls_total)            
-            img_cls_list = torch.cat(img_cls_list)
-
-            coarse_cross_relationship_score_matrix = img_cls_list @ audio_cls_total.transpose(0,1)
-
-        return batch, coarse_cross_relationship_score_matrix
      
     def validate_libri(self):
         with torch.no_grad():
