@@ -55,10 +55,10 @@ args = parser.parse_args()
 root = '/worktmp/khorrami/'
 
 #..............................................................................
-data_root = os.path.join(root, '/current/FaST/data')
-fb_w2v2_weights_fn = os.path.join(root,'/current/FaST/model/wav2vec_small.pt')
-libri_fn_root = os.path.join(root,'/current/FaST/datavf/libri_fn_root/')
-pretrained_root = os.path.join(root,'/current/FaST/hubertAndDINO')
+data_root = os.path.join(root, 'current/FaST/data')
+fb_w2v2_weights_fn = os.path.join(root,'current/FaST/model/wav2vec_small.pt')
+libri_fn_root = os.path.join(root,'current/FaST/datavf/libri_fn_root/')
+pretrained_root = os.path.join(root,'current/FaST/hubertAndDINO')
 
 #..............................................................................
 args.data_root=data_root
