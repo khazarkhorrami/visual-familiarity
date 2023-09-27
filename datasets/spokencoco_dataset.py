@@ -64,7 +64,7 @@ class ImageCaptionDataset(Dataset):
                 audio_dataset_json_file = '../../../../datavf/coco_pyp/subsets/SpokenCOCO_train_' + args.subset + '.json'
         elif split == "val" or split == "dev":
             if self.args.test:
-                audio_dataset_json_file = "/worktmp2/hxkhkh/current/semtest/data.json"
+                audio_dataset_json_file = os.path.join(self.args.semtest_root , 'data.json')
                 # json file for semtest data
             else:
                 audio_dataset_json_file = os.path.join(args.data_root, "coco_pyp/SpokenCOCO/SpokenCOCO_val_unrolled_karpathy.json")
