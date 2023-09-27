@@ -95,7 +95,7 @@ args.layer_use= 7
 exp_dir = args.exp_dir
 Sname = args.Sname  
 #%%
-
+kh
 os.makedirs(args.exp_dir, exist_ok=True)
 
 if args.resume or args.validate:
@@ -133,7 +133,7 @@ fn = batch['fn']
 
 s_np = s.cpu().detach().numpy()
 
-save_path = "/worktmp2/hxkhkh/current/semtest/Smatrix"
+save_path = os.path.join(args.semtest_root, "Smatrix")
 
 np.save( os.path.join(save_path, Sname) , s_np)
 

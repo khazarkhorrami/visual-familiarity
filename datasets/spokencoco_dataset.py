@@ -40,7 +40,7 @@ class ImageCaptionDataset(Dataset):
         #parser.add_argument("--raw_audio_base_path", type=str, default="../../../../data/coco_pyp/SpokenCOCO")
         parser.add_argument("--afiles", type=str, default="COCO")
         parser.add_argument("--vfiles", type=str, default="masked")
-        parser.add_argument("--semtest_root", type=str, default="masked")
+        parser.add_argument("--semtest_root", type=str, default="../../semtest/")
         parser.add_argument("--image_type", type=str, default="normal")
         parser.add_argument("--subset", type=str, default="all")
         parser.add_argument("--img_feat_len", type=int, help="num of img feats we will use", choices=list(range(1,37)), default=36)
