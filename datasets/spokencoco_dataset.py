@@ -106,13 +106,9 @@ class ImageCaptionDataset(Dataset):
         self.data = data_json['data']
         
         ##############################################
-        afiles = self.args.afiles # 'utterances'
-        vfiles = self.args.vfiles # 'original'
-        ##############################################
-        # on juova
         if self.args.test:
-            self.audio_base_path = os.path.join(self.args.semtest_root, afiles )
-            self.image_base_path = os.path.join(self.args.semtest_root, vfiles )
+            self.audio_base_path = os.path.join(self.args.semtest_root, self.args.afiles )
+            self.image_base_path = os.path.join(self.args.semtest_root, self.args.vfiles )
         ##############################################
 
 
