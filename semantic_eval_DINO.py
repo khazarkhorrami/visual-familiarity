@@ -95,7 +95,7 @@ args.layer_use= 7
 exp_dir = args.exp_dir
 Sname = args.Sname  
 #%%
-kh
+
 os.makedirs(args.exp_dir, exist_ok=True)
 
 if args.resume or args.validate:
