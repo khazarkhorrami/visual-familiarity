@@ -42,6 +42,8 @@ spokencoco_dataset.ImageCaptionDataset.add_args(parser)
 
 libri_dataset.LibriDataset.add_args(parser)
 
+# my custom args
+parser.add_argument("--Sname", help="file name of the similarity matrix")
 args = parser.parse_args()
 
 #%% args from script
