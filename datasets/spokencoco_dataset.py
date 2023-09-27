@@ -103,9 +103,15 @@ class ImageCaptionDataset(Dataset):
         self.data = data_json['data']
         
         ##############################################
+        # on musta
+        # if self.args.test:
+        #     self.audio_base_path = "/worktmp2/hxkhkh/current/semtest/utterances/"
+        #     self.image_base_path = "/worktmp2/hxkhkh/current/semtest/images/original/"
+        ##############################################
+        # on juova
         if self.args.test:
-            self.audio_base_path = "/worktmp2/hxkhkh/current/semtest/COCO/"
-            self.image_base_path = "/worktmp2/hxkhkh/current/semtest/images/masked/"
+            self.audio_base_path = "/worktmp/khorrami/current/semtest/utterances/"
+            self.image_base_path = "/worktmp/khorrami/current/semtest/images/original/"
         ##############################################
 
 
