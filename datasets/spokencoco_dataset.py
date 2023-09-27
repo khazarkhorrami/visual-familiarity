@@ -38,6 +38,9 @@ class ImageCaptionDataset(Dataset):
     def add_args(parser):
         parser.add_argument("--data_root", type=str, default="../../../../data/")
         #parser.add_argument("--raw_audio_base_path", type=str, default="../../../../data/coco_pyp/SpokenCOCO")
+        parser.add_argument("--afiles", type=str, default="COCO")
+        parser.add_argument("--vfiles", type=str, default="masked")
+        parser.add_argument("--semtest_root", type=str, default="masked")
         parser.add_argument("--image_type", type=str, default="normal")
         parser.add_argument("--subset", type=str, default="all")
         parser.add_argument("--img_feat_len", type=int, help="num of img feats we will use", choices=list(range(1,37)), default=36)
@@ -103,15 +106,13 @@ class ImageCaptionDataset(Dataset):
         self.data = data_json['data']
         
         ##############################################
-        # on musta
-        # if self.args.test:
-        #     self.audio_base_path = "/worktmp2/hxkhkh/current/semtest/utterances/"
-        #     self.image_base_path = "/worktmp2/hxkhkh/current/semtest/images/original/"
+        afiles = self.args.afiles # 'utterances'
+        vfiles = self.args.vfiles # 'original'
         ##############################################
         # on juova
         if self.args.test:
-            self.audio_base_path = "/worktmp/khorrami/current/semtest/utterances/"
-            self.image_base_path = "/worktmp/khorrami/current/semtest/images/original/"
+            self.audio_base_path = os.path.join(self.args.semtest_root, afiles )
+            self.image_base_path = os.path.join(self.args.semtest_root, vfiles )
         ##############################################
 
 
