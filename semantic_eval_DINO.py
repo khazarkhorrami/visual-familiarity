@@ -119,8 +119,7 @@ args.flickr8k = False
 args.validate = True
 args.test = True
 #%%
- 
-device = 'cpu'
+
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 my_trainer = trainer.Trainer(args)
 batch, s = my_trainer.validate_khazar()
