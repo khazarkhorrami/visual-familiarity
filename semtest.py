@@ -1,17 +1,17 @@
 
-Sname = "S1_aO_vO"
-# Sname = "S2b_aL_vO"
-# Sname = "S2b_aO_vM"
-# Sname = "S2b_aL_vM"
-# Sname = "S2b_aO_vB"
-# Sname = "S2b_aL_vB"
+Sname = "S1b_aO_vO"
+Sname = "S2b_aL_vO"
+# Sname = "S1b_aO_vm"
+# Sname = "S1b_aL_vm"
+# Sname = "S1b_aO_vB"
+# Sname = "S1b_aL_vB"
 #%%
 import numpy as np
 import json
-S_path = '/worktmp/khorrami/current/semtest/Smatrix/'
+S_path = '/worktmp2/hxkhkh/current/semtest/Smatrix/'
 S = np.load(S_path + Sname + ".npy")  
     
-file = "/worktmp/khorrami/current/semtest/semtest_files_pairings.json"
+file = "/worktmp2/hxkhkh/current/semtest/semtest_files_pairings.json"
 with open(file, 'r', encoding='utf-8') as json_file:
     data = json.load(json_file)
 words = []
@@ -40,7 +40,8 @@ for chunk in tt:
     
     
 #%% random S
-#S = np.random.randint(-1, 1, size=(1600, 1600))
+S = np.random.randn(1600, 1600)
+
 #%%
 # measurement 0: recall@10
 hits = 0
@@ -137,8 +138,7 @@ for category_index in range(80):
     
 print(round(np.average(scores_degree_all) , 3))
     
-    
-    
+print(sorted(scores_degree_cats_average.items(), key=lambda x:x[1], reverse=True)[0:5])    
     
     
     

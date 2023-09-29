@@ -136,8 +136,8 @@ class ImageCaptionDataset(Dataset):
     
     def __getitem__(self, index):
         datum = self.data[index]
-        #img_id = datum['image'].split("/")[-1].split(".")[0]
-        img_id = 'COCO_val2014_000000325114'
+        img_id = datum['image'].split("/")[-1].split(".")[0]
+        #img_id = 'COCO_val2014_000000325114'
         wavpath = os.path.join(self.audio_base_path, datum['caption']['wav'])
         audio, nframes = self._LoadAudio(wavpath)  
         imgpath = os.path.join(self.image_base_path, datum['image'])
