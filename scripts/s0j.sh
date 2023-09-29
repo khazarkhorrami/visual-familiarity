@@ -19,8 +19,8 @@ python \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 64 \
---val_batch_size 64 \
+--batch_size 4 \
+--val_batch_size 16 \
 --val_cross_batch_size 100 \
 --n_epochs 200 \
 --n_print_steps 40 \
