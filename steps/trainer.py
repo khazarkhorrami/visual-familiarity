@@ -43,7 +43,6 @@ class Trainer:
         self.args = args
         self.args.coarse_to_fine_retrieve = False
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        #self.device = 'cpu'
         logger.info(f"number of devices: {torch.cuda.device_count()}")
         self.writer = SummaryWriter(self.args.exp_dir)
         self.seed_everything(seed=self.args.seed)
@@ -507,14 +506,14 @@ class Trainer:
                         #"label": batch['label']
                         }
                 
-                #loss_val = self.forward(cur_batch)
+                loss_val = self.forward(cur_batch)
                 
                 key = 'vloss_av'
                 #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), self.avportion)
-                #self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['images'].shape[0])
+                self.meters[key].update(loss_val["coarse_matching_loss"].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 key = 'vloss_cap'
-                #self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['images'].shape[0])
+                self.meters[key].update(loss_val['caption_w2v2_loss'].mean().cpu().item(), cur_batch['images'].shape[0])
                 self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
                 
