@@ -339,15 +339,19 @@ class Trainer:
                 },save_path
             )
             logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
-        # Khazar: here it saves the model in each call    
+           
         save_progress(self)
-        if self.progress['epoch'] <= 5 :
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        else:
-            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
-        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        
+        #######################################################################
+        # Khazar: here it saves the model in each call 
+        # if self.progress['epoch'] <= 5 :
+        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
+        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        # else:
+        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        #######################################################################    
+        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
@@ -545,8 +549,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                # if i>= 300:
-                #     break
+                if i>= 500:
+                    break
             
             # print ('khazar: memory allocated before cat')
             # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
