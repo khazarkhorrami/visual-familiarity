@@ -196,6 +196,12 @@ class Trainer:
                 #print(self.progress['num_updates'])
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
+        print ('############# here is size of encoder ###############')
+        print(self.args.encoder_layers)
+        print ('############# here is size of attention heads ###############')
+        print(self.args.encoder_attention_heads)
+        print ('############# here is layer use ###############')
+        print(self.args.layer_use)
         flag = True     
         # Kh: steps pers epochs based on coco
         # step_per_epoch = int(self.train_data_length/self.args.batch_size)
@@ -653,7 +659,7 @@ class Trainer:
             best_ssl_loss = True
         else:
             logger.info(f"libri validation loss: {cur_val_loss:.3f}\n")
-        return best_ssl_loss()
+        return best_ssl_loss
     
     def _setup_meters(self):
         meters = {}
