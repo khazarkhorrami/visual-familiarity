@@ -16,6 +16,7 @@ python \
 --fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
+--trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 180 \
 --val_batch_size 180 \
