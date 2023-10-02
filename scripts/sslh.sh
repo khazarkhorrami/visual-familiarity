@@ -13,7 +13,6 @@ python \
 ../run_spokencoco.py \
 --ssl \
 --data_root ${data_root} \
---fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --trained_weights_dir ${twd} \
