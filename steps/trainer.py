@@ -288,12 +288,11 @@ class Trainer:
                 
     def validate_and_save_ssl(self, n_save_ind = 0):  
         
-        self.validate_libri()
-        #N_examples = self.valid_loader.dataset.__len__()
-        # khazar: N_examples = 25035
-        print('kh: below it should print n_example ....')
+        best_ssl_loss = self.validate_libri()
 
         save_progress(self)
+        if best_ssl_loss:
+            save_path = os.path.join(self.args.exp_dir, "best_bundle.pth")
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
         elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
@@ -322,7 +321,7 @@ class Trainer:
             r10, r5, r1 = self.validate_one_to_many()
         
         if libri:
-            self.validate_libri()
+            best_ssl_loss = self.validate_libri()
         # r1 = 0.1 # ignore validation, for debugging
         if r1 > self.progress['best_acc']:
             self.progress['best_epoch'] = self.progress['epoch']
@@ -647,13 +646,15 @@ class Trainer:
                 total_loss += losses['libri_w2v2_loss'].mean()*n
         cur_val_loss = (total_loss/N).item()
         self.writer.add_scalar("libri_val_loss", cur_val_loss, self.progress['num_updates'])
-
+        best_ssl_loss = False
         if cur_val_loss < self.progress['best_libri_val_loss']:
             self.progress['best_libri_val_loss'] = cur_val_loss
             logger.info(f"libri validation loss: {cur_val_loss:.3f}*\n")
+            best_ssl_loss = True
         else:
             logger.info(f"libri validation loss: {cur_val_loss:.3f}\n")
-
+        return best_ssl_loss()
+    
     def _setup_meters(self):
         meters = {}
         meter_names = ['vloss_av', 'vloss_cap','weighted_loss', "fine_matching_loss", "coarse_matching_loss", 'caption_w2v2_loss', "libri_w2v2_loss", "caption_m_acc", "libri_m_acc",'data_time', 'train_time']
