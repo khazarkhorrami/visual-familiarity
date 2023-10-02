@@ -298,7 +298,18 @@ class Trainer:
 
         save_progress(self)
         if best_ssl_loss:
+            self.progress['best_epoch'] = self.progress['epoch']
             save_path = os.path.join(self.args.exp_dir, "best_bundle.pth")
+            torch.save(
+                {
+                    "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
+                    # khazar: I commented this to reduce bundle file size
+                    #"cross_encoder": self.cross_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.cross_encoder.state_dict(),
+                    "optimizer":  self.optimizer.state_dict(),
+                    "indices": self.train_sampler.state_dict(),
+                    "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
+                },save_path )
+            logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
         elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
