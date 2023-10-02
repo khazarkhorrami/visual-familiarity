@@ -303,10 +303,7 @@ class Trainer:
             torch.save(
                 {
                     "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
-                    # khazar: I commented this to reduce bundle file size
-                    #"cross_encoder": self.cross_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.cross_encoder.state_dict(),
                     "optimizer":  self.optimizer.state_dict(),
-                    "indices": self.train_sampler.state_dict(),
                     "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
                 },save_path )
             logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
