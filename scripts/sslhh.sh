@@ -17,10 +17,10 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 256 \
---val_batch_size 256 \
+--batch_size 160 \
+--val_batch_size 160 \
 --val_cross_batch_size 100 \
---n_epochs 50 \
+--n_epochs 70 \
 --n_print_steps 100 \
 --n_val_steps 2133 \
 --lr 0.0001 \
