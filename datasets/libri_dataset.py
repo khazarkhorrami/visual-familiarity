@@ -134,16 +134,16 @@ class LibriDataset(Dataset):
             
             # here selects a random initial time
             # ..............................................
-            # if "train" in self.split:
-            #     start_max = length_orig - audio_length
-            #     start = random.choice(range(start_max))
-            #     x_temp = x[start:(start+audio_length)]
-            #     if np.linalg.norm(x_temp) != 0:
-            #         x = x_temp
-            #     else:
-            #         x = x[:audio_length]
-            # else:
-            #     x = x[:audio_length]
+            if "train" in self.split:
+                start_max = length_orig - audio_length
+                start = random.choice(range(start_max))
+                x_temp = x[start:(start+audio_length)]
+                if np.linalg.norm(x_temp) != 0:
+                    x = x_temp
+                else:
+                    x = x[:audio_length]
+            else:
+                x = x[:audio_length]
             # Kh .......................................... 
             # here starts always from time zero
             x = x[:audio_length]
