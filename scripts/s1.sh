@@ -22,9 +22,9 @@ python \
 --batch_size 64 \
 --val_batch_size 64 \
 --val_cross_batch_size 100 \
---n_epochs 200 \
+--n_epochs 100 \
 --n_print_steps 20 \
---n_val_steps 1000 \
+--n_val_steps 100 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
