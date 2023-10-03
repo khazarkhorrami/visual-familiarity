@@ -109,11 +109,11 @@ class Trainer:
                 self.writer.close()
                 break           
             
-            if (self.progress['epoch']) % 2 == 0: 
-                self.train_ssl_simultaneous()
+            self.train_vgs()
+            self.train_ssl_simultaneous()
                      
-            else:
-                self.train_vgs() 
+            
+                 
                  
     def train_vgs(self):
         # one epoch over vgs
@@ -189,10 +189,11 @@ class Trainer:
             #     r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
             ########    
             self.progress['num_updates'] += 1
-            self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
+            #self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
             data_start_time = time.time()
             #print(self.progress['num_updates'])
         # validation and save after one epoch
+        self.progress['epoch'] += 1
         r10, r5, r1 = self.validate_and_save_vgs()
     
     def train_ssl_simultaneous(self):
@@ -262,7 +263,7 @@ class Trainer:
             # self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
             data_start_time = time.time()
             #print(self.progress['num_updates'])
-            
+                
         # validate at the end of epoch
         self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
         
@@ -686,8 +687,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                # if i>= 500:
-                #     break
+                if i>= 200:
+                    break
             
             # print ('khazar: memory allocated before cat')
             # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
