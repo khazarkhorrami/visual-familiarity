@@ -68,7 +68,7 @@ class Trainer:
         self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         
         self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        
+        self.step_per_epoch_libri = int(self.libri_train_data_length/ (2 * self.args.batch_size))
         ########################################################
         self.optimizer = self._setup_optimizer()
         if torch.cuda.device_count() > 1:
@@ -173,28 +173,9 @@ class Trainer:
             
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
-        print ('############# here is size of encoder ###############')
-        print(self.args.encoder_layers)
-        print ('############# here is size of attention heads ###############')
-        print(self.args.encoder_attention_heads)
-        print ('############# here is layer use ###############')
-        print(self.args.layer_use)
-         
-        # Kh: steps pers epochs based on coco
-        # step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        # Kh: steps pers epochs based on libri
-        step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
-        #step_per_epoch_coco = int(self.train_data_length/self.args.batch_size)
-        step_per_epoch = step_per_epoch_libri
-        
-        
-        #khazar
-        print ('start of training method')
-        print ('...step_per_epoch for libri is....')
-        print(step_per_epoch_libri)
+       
         ###
-        data_start_time = time.time()
-        
+        data_start_time = time.time()      
         
         logger.info('epoch starts here ')
         
@@ -205,7 +186,7 @@ class Trainer:
         for i, libri_batch in enumerate(self.libri_train_loader): 
             
             # cur_step shows step within one epoch (0,step_per_epoch)
-            cur_step = self.progress['num_updates'] % step_per_epoch_libri
+            cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
             data_end_time = time.time()
             self.dual_encoder.train()            
@@ -241,7 +222,7 @@ class Trainer:
             if self.progress['num_updates'] % self.args.n_print_steps == 0:
                 log_out = {}
                 log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
+                log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{self.step_per_epoch_libri}"
                 log_out['num_updates'] = self.progress['num_updates']
                 log_out['lr'] = f"{cur_lr:.7f}"
                 for key in self.meters:
@@ -251,17 +232,11 @@ class Trainer:
                 if np.isnan(self.meters['weighted_loss'].avg):
                     logger.info("training diverged...")
                     return
-                
-           
-            # validation and save models
-            if self.progress['num_updates'] % self.args.n_val_steps == 0:
-                self.validate_and_save_ssl()
-                
+                       
             ########    
-            self.progress['num_updates'] += 1
-            self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+            self.progress['num_updates_ssl'] += 1
             data_start_time = time.time()
-            #print(self.progress['num_updates'])
+
                 
     def validate_and_save_ssl(self):  
         
@@ -319,7 +294,7 @@ class Trainer:
                     #"cross_encoder": self.cross_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.cross_encoder.state_dict(),
                     "optimizer":  self.optimizer.state_dict(),
                     "indices": self.train_sampler.state_dict(),
-                    "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
+                    #"libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
                 },save_path
             )
             logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
