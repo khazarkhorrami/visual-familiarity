@@ -258,7 +258,7 @@ class Trainer:
            
             # validation and save models
             # if self.progress['num_updates'] % self.args.n_val_steps == 0:
-            #     self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
+            #     self.validate_and_save_ssl()
                 
             ########    
             self.progress['num_updates_ssl'] += 1
@@ -267,7 +267,7 @@ class Trainer:
             #print(self.progress['num_updates'])
                 
         # validate at the end of epoch
-        self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
+        self.validate_and_save_ssl()
         
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
@@ -924,7 +924,7 @@ class Trainer:
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        libri_train_bzs = self.args.batch_size 
+        libri_train_bzs = 2 * self.args.batch_size 
         
         print ("############# here is inside LS dataloader ##################")
         print('------------- here is the n_per_epoch libri ------------')
