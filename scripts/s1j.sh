@@ -22,7 +22,7 @@ python \
 --val_batch_size 4 \
 --val_cross_batch_size 100 \
 --n_epochs 10 \
---n_print_steps 20 \
+--n_print_steps 2 \
 --n_val_steps 100 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
