@@ -66,9 +66,9 @@ class Trainer:
         self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs     
         self.total_num_updates_vgs = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         # for sim training (version adam)
-        self.total_num_updates =  self.total_num_updates_vgs
+        #self.total_num_updates =  self.total_num_updates_vgs
         # for sim training (version adambert)
-        #self.total_num_updates = self.total_num_updates_ssl + self.total_num_updates_vgs
+        self.total_num_updates = self.total_num_updates_ssl + self.total_num_updates_vgs
         
         self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
         self.step_per_epoch_libri = int(self.libri_train_data_length/ (2 * self.args.batch_size))
@@ -187,8 +187,6 @@ class Trainer:
         
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader): 
-            if i > 1000:
-                break
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
@@ -623,9 +621,9 @@ class Trainer:
         return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
-        #optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
-        dual_encoder = fast_vgs.DualEncoder(self.args)
-        optimizer = torch.optim.Adam(dual_encoder.parameters(), lr=0.00001)
+        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
+        # dual_encoder = fast_vgs.DualEncoder(self.args)
+        # optimizer = torch.optim.Adam(dual_encoder.parameters(), lr=0.00001)
         # KH: I added this
         print('...................... we are inside setup optimizer function .......................')
         print (optimizer)
