@@ -62,10 +62,13 @@ class Trainer:
             self.train_loader, self.valid_loader, self.train_sampler, self.train_data_length = self._setup_dataloader_vgs()
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         
-        # for ssl pretraining
+
         self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs     
-        # for normal training:
-        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        self.total_num_updates_vgs = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
+        # for sim training (version adam)
+        self.total_num_updates =  self.total_num_updates_vgs
+        # for sim training (version adambert)
+        #self.total_num_updates = self.total_num_updates_ssl + self.total_num_updates_vgs
         
         self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
         self.step_per_epoch_libri = int(self.libri_train_data_length/ (2 * self.args.batch_size))
@@ -622,7 +625,7 @@ class Trainer:
     def _setup_optimizer(self):
         #optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
         dual_encoder = fast_vgs.DualEncoder(self.args)
-        optimizer = torch.optim.Adam(dual_encoder.parameters(), lr=self.args.lr)
+        optimizer = torch.optim.Adam(dual_encoder.parameters(), lr=0.00001)
         # KH: I added this
         print('...................... we are inside setup optimizer function .......................')
         print (optimizer)
