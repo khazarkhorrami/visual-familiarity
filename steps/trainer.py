@@ -102,21 +102,21 @@ class Trainer:
         self.step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         
         flag = True   
-        while flag:
-            logger.info('epoch starts here ')
+        while flag:     
             if self.progress['num_updates'] > self.total_num_updates:
                 flag = False
                 r10, r5, r1 = self.validate_and_save_vgs()
                 self.writer.close()
                 break           
+            
             if (self.progress['epoch']) % 2 == 0:           
-                self.train_vgs()  
-                
+                self.train_vgs()     
             else:
                 self.train_ssl_simultaneous() 
                  
     def train_vgs(self):
         # one epoch over vgs
+        logger.info('epoch vgs starts here ')
         data_start_time = time.time()
         for i, batch in enumerate(self.train_loader):
             
@@ -920,7 +920,7 @@ class Trainer:
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        libri_train_bzs = 160 
+        libri_train_bzs = self.args.batch_size 
         
         print ("############# here is inside LS dataloader ##################")
         print('------------- here is the n_per_epoch libri ------------')
