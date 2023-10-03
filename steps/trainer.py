@@ -92,7 +92,7 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            self.validate_and_save()
+            #self.validate_and_save()
             self.train_ssl()
             self.validate_and_save_ssl()
         r10, r5, r1 = self.validate_and_save()
@@ -106,7 +106,8 @@ class Trainer:
         logger.info('epoch starts here ')
 
         for i, batch in enumerate(self.train_loader):
-                  
+            if i > 5:
+                break
             data_end_time = time.time()
             self.dual_encoder.train()
             self.cross_encoder.train()
@@ -184,7 +185,8 @@ class Trainer:
         
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader): 
-            
+            if i > 50:
+                break
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
