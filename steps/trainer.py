@@ -620,7 +620,9 @@ class Trainer:
         return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
-        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
+        #optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
+        dual_encoder = fast_vgs.DualEncoder(self.args)
+        optimizer = torch.optim.Adam(dual_encoder.parameters(), lr=self.args.lr)
         # KH: I added this
         print('...................... we are inside setup optimizer function .......................')
         print (optimizer)
