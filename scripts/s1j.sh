@@ -19,8 +19,8 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 4 \
---val_batch_size 4 \
---libri_val_bzs 16 \
+--val_batch_size 16 \
+--libri_val_bzs 32 \
 --n_epochs 10 \
 --n_print_steps 10 \
 --n_val_steps 100 \
