@@ -41,6 +41,7 @@ class Trainer:
     def __init__(self, args):
         self.start_time = time.time()
         self.args = args
+        self.libri_train_bzs = 5 * self.args.batch_size 
         self.args.coarse_to_fine_retrieve = False
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"number of devices: {torch.cuda.device_count()}")
@@ -62,7 +63,6 @@ class Trainer:
             self.train_loader, self.valid_loader, self.train_sampler, self.train_data_length = self._setup_dataloader_vgs()
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         
-        self.libri_train_bzs = 5 * self.args.batch_size 
         self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.libri_train_bzs))*self.args.n_epochs     
         self.total_num_updates_vgs = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         # for sim training (version adam)
