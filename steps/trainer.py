@@ -63,7 +63,7 @@ class Trainer:
             #self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
             
         
-        
+        self.libri_train_data_length = len(self.libri_train_loader)
         # for ssl pretraining
         self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs     
         # for normal training:
