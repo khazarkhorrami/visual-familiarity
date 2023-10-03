@@ -92,33 +92,21 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
+        r10, r5, r1 = self.validate_and_save()
+        self.writer.close()
     def train_vgs(self):
         print ('############# here is inside train function ###############')
-        flag = True
+
         
         #step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         data_start_time = time.time()
         logger.info('epoch starts here ')
-        if self.use_libri_loss:
-            libri_loader_iterator = iter(self.libri_train_loader)
-            
-        
+
         for i, batch in enumerate(self.train_loader):
-            if self.use_libri_loss:
-                libri_batch = next(libri_loader_iterator)
-                # Kh: you can also do this for big LS batch sizes
-                # try:
-                #     libri_batch = next(libri_loader_iterator)
-                # except StopIteration:
-                #     pass
                   
             data_end_time = time.time()
             self.dual_encoder.train()
             self.cross_encoder.train()
-            if self.progress['num_updates'] > self.total_num_updates:
-                r10, r5, r1 = self.validate_and_save()
-                self.writer.close()
-                break
             
             cur_lr = np.mean(self.optimizer.get_lr())
 
@@ -134,9 +122,6 @@ class Trainer:
                     }
             
             losses = self.forward(cur_batch)
-            
-            if self.use_libri_loss:
-                losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
 
             for key in losses:
                 if key in self.meters:
