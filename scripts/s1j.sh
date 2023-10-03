@@ -20,7 +20,7 @@ python \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 4 \
 --val_batch_size 4 \
---val_cross_batch_size 100 \
+--libri_val_bzs 16 \
 --n_epochs 10 \
 --n_print_steps 2 \
 --n_val_steps 100 \
@@ -38,7 +38,7 @@ python \
 --caption_w2v2_weight 1.0 \
 --feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 6 \
---encoder_attention_heads 8 \
+--encoder_layers 5 \
+--encoder_attention_heads 4 \
 --layer_use 4 \
 
