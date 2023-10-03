@@ -22,7 +22,7 @@ python \
 --val_batch_size 4 \
 --libri_val_bzs 16 \
 --n_epochs 10 \
---n_print_steps 2 \
+--n_print_steps 10 \
 --n_val_steps 100 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
