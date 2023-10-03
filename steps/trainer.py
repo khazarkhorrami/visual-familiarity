@@ -41,7 +41,7 @@ class Trainer:
     def __init__(self, args):
         self.start_time = time.time()
         self.args = args
-        self.libri_train_bzs = 5 * self.args.batch_size 
+        self.libri_train_bzs = 4 * self.args.batch_size 
         self.args.coarse_to_fine_retrieve = False
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"number of devices: {torch.cuda.device_count()}")
