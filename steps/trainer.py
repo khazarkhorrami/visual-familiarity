@@ -56,8 +56,11 @@ class Trainer:
             # for ssl pretraining
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         else:
-            # for normal training:
-            self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
+            # for only vgs training:
+            # self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
+            # for ssl-vgs simultaneous training:
+            self.train_loader, self.valid_loader, self.train_sampler, self.train_data_length = self._setup_dataloader_vgs()
+            self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         
         if args.ssl:
             # for ssl pretraining
@@ -743,7 +746,7 @@ class Trainer:
         
     
     
-    def _setup_dataloader(self):
+    def _setup_dataloader_vgs(self):
         # SpokenCOCO
         train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
         val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
@@ -752,36 +755,8 @@ class Trainer:
         if self.progress['num_updates'] > 1 and self.indices is not None:
             train_sampler.load_state_dict(self.indices)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
-        valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)
-
-        if self.use_libri_loss:
-            # librispeech dataloaders
-            # train
-            libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
-            
-            # below calculates batch size of libri based on steps per epoch obtained from COCO
-            ####
-            step_per_epoch = int(np.floor(len(train_dataset)/self.args.batch_size))
-            libri_train_bzs = libri_train_dataset.calculate_batch_size(step_per_epoch) 
-            libri_train_bzs = self.args.batch_size #min(libri_train_bzs, 64)
-            
-            logger.info(f"librispeech train batch size: {libri_train_bzs}")
-            libri_train_sampler = StatefulSampler(len(libri_train_dataset))
-            if self.progress['num_updates'] > 1 and self.libri_indices is not None:
-                libri_train_sampler.load_state_dict(self.libri_indices)
-            libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
-            
-            # val
-            # libri_val_dataset = libri_dataset_mm.LibriDataset(self.args, split="val")
-            libri_val_dataset = libri_dataset.LibriDataset(self.args, split="val")
-            logger.info(f"librispeech val batch size: {self.args.libri_val_bzs}")
-            libri_valid_loader = torch.utils.data.DataLoader(libri_val_dataset, batch_size=self.args.libri_val_bzs, num_workers=self.args.num_workers, pin_memory=True, collate_fn = libri_val_dataset.collate, drop_last=True)
-        else:
-            libri_train_loader = None
-            libri_valid_loader = None
-            libri_train_sampler = None
-           
-        return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
+        valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)           
+        return train_loader, valid_loader, train_sampler, len(train_dataset)
 
     def _setup_dataloader_ssl(self):
     
