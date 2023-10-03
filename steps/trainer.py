@@ -193,7 +193,7 @@ class Trainer:
             data_start_time = time.time()
             #print(self.progress['num_updates'])
         # validation and save after one epoch
-        r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
+        r10, r5, r1 = self.validate_and_save_vgs()
     
     def train_ssl_simultaneous(self):
   
