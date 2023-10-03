@@ -204,15 +204,13 @@ class Trainer:
 
             self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
             self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates_ssl'])
-            print('########## test: here is before backward')
+            
             #########
             weighted_loss.backward()
-            print('########## test: here is after backward')
             torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
             self.optimizer.step()
             self.optimizer.zero_grad()
             #########
-            print('########## test: here is after optim')
             self.meters['data_time'].update(data_end_time - data_start_time)
             self.meters['train_time'].update(time.time() - data_end_time)
    
@@ -220,7 +218,7 @@ class Trainer:
             self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
 
             # logging
-            if self.progress['num_updates'] % self.args.n_print_steps == 0:
+            if self.progress['num_updates_ssl'] % (2*self.args.n_print_steps) == 0:
                 log_out = {}
                 log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
                 log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{self.step_per_epoch_libri}"
