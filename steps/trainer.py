@@ -92,7 +92,7 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            #self.validate_and_save()
+            self.validate_and_save()
             self.train_ssl()
             self.validate_and_save_ssl()
         r10, r5, r1 = self.validate_and_save()
@@ -184,7 +184,8 @@ class Trainer:
         
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader): 
-            print(i)
+            if i > 1000:
+                break
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
@@ -218,7 +219,7 @@ class Trainer:
             self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
 
             # logging
-            if self.progress['num_updates_ssl'] % (2*self.args.n_print_steps) == 0:
+            if self.progress['num_updates_ssl'] % (5*self.args.n_print_steps) == 0:
                 log_out = {}
                 log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
                 log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{self.step_per_epoch_libri}"
