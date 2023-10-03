@@ -190,7 +190,7 @@ class Trainer:
                  
             data_end_time = time.time()
             self.dual_encoder.train()            
-            cur_lr = np.mean(self.optimizer.get_lr())
+            cur_lr = self.args.lr#np.mean(self.optimizer.get_lr())
 
             self.writer.add_scalar("lr", cur_lr, self.progress['num_updates_ssl'])                 
             losses = self.forward_ssl (libri_batch)
