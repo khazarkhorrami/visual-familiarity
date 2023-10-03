@@ -92,7 +92,7 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            self.validate_and_save()
+            #self.validate_and_save()
             self.train_ssl()
             self.validate_and_save_ssl()
         r10, r5, r1 = self.validate_and_save()
@@ -184,7 +184,7 @@ class Trainer:
         
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader): 
-            
+            print(i)
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
@@ -204,14 +204,15 @@ class Trainer:
 
             self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
             self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates_ssl'])
-            
+            print('########## test: here is before backward')
             #########
             weighted_loss.backward()
+            print('########## test: here is after backward')
             torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
             self.optimizer.step()
             self.optimizer.zero_grad()
             #########
-            
+            print('########## test: here is after optim')
             self.meters['data_time'].update(data_end_time - data_start_time)
             self.meters['train_time'].update(time.time() - data_end_time)
    
