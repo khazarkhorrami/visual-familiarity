@@ -109,10 +109,11 @@ class Trainer:
                 self.writer.close()
                 break           
             
-            if (self.progress['epoch']) % 2 == 0:           
-                self.train_vgs()     
+            if (self.progress['epoch']) % 2 == 0: 
+                self.train_ssl_simultaneous()
+                     
             else:
-                self.train_ssl_simultaneous() 
+                self.train_vgs() 
                  
     def train_vgs(self):
         # one epoch over vgs
