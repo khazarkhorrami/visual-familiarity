@@ -121,8 +121,7 @@ class Trainer:
         # one epoch over vgs
         logger.info('epoch vgs starts here ')
         data_start_time = time.time()
-        for i, batch in enumerate(self.train_loader):
-            print(self.train_loader)
+        for i, batch in enumerate(self.train_loader):   
             data_end_time = time.time()
             self.dual_encoder.train()
             self.cross_encoder.train()         
@@ -194,8 +193,11 @@ class Trainer:
             #self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
             data_start_time = time.time()
             #print(self.progress['num_updates'])
-        # validation and save after one epoch
-        
+            print(i)
+            if i> 5:
+                break
+            
+        # validation and save after one epoch    
         r10, r5, r1 = self.validate_and_save_vgs()
     
     def train_ssl_simultaneous(self):
@@ -205,7 +207,9 @@ class Trainer:
         logger.info('epoch ssl starts here ')
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader [0:10]): 
-            
+            print(i)
+            if i> 5:
+                break
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step_ssl = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
