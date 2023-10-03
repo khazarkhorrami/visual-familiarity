@@ -62,8 +62,8 @@ class Trainer:
             self.train_loader, self.valid_loader, self.train_sampler, self.train_data_length = self._setup_dataloader_vgs()
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         
-
-        self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs     
+        self.libri_train_bzs = 5 * self.args.batch_size 
+        self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.libri_train_bzs))*self.args.n_epochs     
         self.total_num_updates_vgs = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         # for sim training (version adam)
         #self.total_num_updates =  self.total_num_updates_vgs
@@ -71,7 +71,7 @@ class Trainer:
         self.total_num_updates = self.total_num_updates_ssl + self.total_num_updates_vgs
         
         self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        self.step_per_epoch_libri = int(self.libri_train_data_length/ (2 * self.args.batch_size))
+        self.step_per_epoch_libri = int(self.libri_train_data_length/ (self.libri_train_bzs))
         ########################################################
         self.optimizer = self._setup_optimizer()
         if torch.cuda.device_count() > 1:
@@ -599,18 +599,18 @@ class Trainer:
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        libri_train_bzs = self.args.batch_size 
+        
         
         print ("############# here is inside LS dataloader ##################")
         print('------------- here is the n_per_epoch libri ------------')
-        print(int(np.floor(len(libri_train_dataset)/libri_train_bzs)))
+        print(int(np.floor(len(libri_train_dataset)/self.libri_train_bzs)))
         ###
         
-        logger.info(f"librispeech train batch size: {libri_train_bzs}")
+        logger.info(f"librispeech train batch size: {self.libri_train_bzs}")
         libri_train_sampler = StatefulSampler(len(libri_train_dataset))
         if self.progress['num_updates'] > 1 and self.libri_indices is not None:
             libri_train_sampler.load_state_dict(self.libri_indices)
-        libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
+        libri_train_loader = torch.utils.data.DataLoader(libri_train_dataset, batch_size=self.libri_train_bzs, num_workers=self.args.num_workers, pin_memory=True, sampler = libri_train_sampler, collate_fn = libri_train_dataset.collate, drop_last=True)
         
         # val
         # libri_val_dataset = libri_dataset_mm.LibriDataset(self.args, split="val")
