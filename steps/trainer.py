@@ -111,7 +111,7 @@ class Trainer:
             self.dual_encoder.train()
             self.cross_encoder.train()
             
-            cur_lr = np.mean(self.optimizer.get_lr())
+            cur_lr = self.args.lr#np.mean(self.optimizer.get_lr())
 
             self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
             cur_step = self.progress['num_updates'] % self.step_per_epoch
