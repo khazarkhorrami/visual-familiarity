@@ -45,6 +45,7 @@ def setup_progress(self):
     progress['best_acc'] = - np.inf
     progress['best_libri_val_loss'] = np.inf
     progress['num_updates'] = 1
+    progress['num_updates_ssl'] = 1
     progress['epoch'] = 1
     total_progress = []
     # if self.args.resume or self.args.validate:
