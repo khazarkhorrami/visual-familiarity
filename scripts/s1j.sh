@@ -21,7 +21,7 @@ python \
 --batch_size 4 \
 --val_batch_size 16 \
 --libri_val_bzs 32 \
---n_epochs 10 \
+--n_epochs 5 \
 --n_print_steps 10 \
 --n_val_steps 100 \
 --lr 0.0001 \
