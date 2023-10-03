@@ -41,7 +41,7 @@ class Trainer:
     def __init__(self, args):
         self.start_time = time.time()
         self.args = args
-        self.libri_train_bzs = 4 * self.args.batch_size 
+        self.libri_train_bzs = 2 * self.args.batch_size 
         self.args.coarse_to_fine_retrieve = False
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"number of devices: {torch.cuda.device_count()}")
@@ -95,9 +95,10 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            self.validate_and_save()
+            #self.validate_and_save()
             self.train_ssl()
             self.validate_and_save_ssl()
+            self.progress['epoch'] += 1
         r10, r5, r1 = self.validate_and_save()
         self.writer.close()
     def train_vgs(self):
@@ -171,7 +172,7 @@ class Trainer:
                     return
             ########    
             self.progress['num_updates'] += 1
-            self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
+            
             data_start_time = time.time()
             
     def train_ssl(self):
