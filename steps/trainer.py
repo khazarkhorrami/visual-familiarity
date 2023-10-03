@@ -101,24 +101,28 @@ class Trainer:
         self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
         self.step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         
-        flag = True   
-        while flag:     
-            if self.progress['epoch'] > self.args.n_epochs:
-                flag = False
-                r10, r5, r1 = self.validate_and_save_vgs()
-                self.writer.close()                     
+        # flag = True   
+        # while flag:     
+        #     if self.progress['epoch'] > self.args.n_epochs:
+        #         flag = False
+        #         r10, r5, r1 = self.validate_and_save_vgs()
+        #         self.writer.close()                     
+        #     self.train_vgs()
+        #     self.train_ssl_simultaneous()
+        #     self.progress['epoch'] += 1         
+        for epk in range(self.args.n_epochs):
             self.train_vgs()
-            self.train_ssl_simultaneous()
-            self.progress['epoch'] += 1         
-            
-                 
-                 
+            self.train_ssl_simultaneous()    
+            self.progress['epoch'] += 1  
+        self.writer.close() 
+        r10, r5, r1 = self.validate_and_save_vgs()
+        
     def train_vgs(self):
         # one epoch over vgs
         logger.info('epoch vgs starts here ')
         data_start_time = time.time()
         for i, batch in enumerate(self.train_loader):
-            
+            print(self.train_loader)
             data_end_time = time.time()
             self.dual_encoder.train()
             self.cross_encoder.train()         
