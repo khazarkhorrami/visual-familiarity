@@ -92,6 +92,9 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
+            self.validate_and_save()
+            self.train_ssl()
+            self.validate_and_save_ssl()
         r10, r5, r1 = self.validate_and_save()
         self.writer.close()
     def train_vgs(self):
@@ -163,17 +166,11 @@ class Trainer:
                 if np.isnan(self.meters['weighted_loss'].avg):
                     logger.info("training diverged...")
                     return
-                
-           
-            # validation and save models
-            if self.progress['num_updates'] % self.args.n_val_steps == 0:
-                
-                r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
             ########    
             self.progress['num_updates'] += 1
             self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
             data_start_time = time.time()
-                #print(self.progress['num_updates'])
+            
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
         print ('############# here is size of encoder ###############')
@@ -182,7 +179,7 @@ class Trainer:
         print(self.args.encoder_attention_heads)
         print ('############# here is layer use ###############')
         print(self.args.layer_use)
-        flag = True     
+         
         # Kh: steps pers epochs based on coco
         # step_per_epoch = int(self.train_data_length/self.args.batch_size)
         # Kh: steps pers epochs based on libri
@@ -198,84 +195,78 @@ class Trainer:
         ###
         data_start_time = time.time()
         
-        while flag:
-            logger.info('epoch starts here ')
+        
+        logger.info('epoch starts here ')
+        
+        # coco_loader_iterator = iter(self.train_loader)
+        # libri_loader_iterator = iter(self.libri_train_loader)
+        
+        # kh: iterate based on libri
+        for i, libri_batch in enumerate(self.libri_train_loader): 
             
-            # coco_loader_iterator = iter(self.train_loader)
-            # libri_loader_iterator = iter(self.libri_train_loader)
+            # cur_step shows step within one epoch (0,step_per_epoch)
+            cur_step = self.progress['num_updates'] % step_per_epoch_libri
+                 
+            data_end_time = time.time()
+            self.dual_encoder.train()            
+            cur_lr = np.mean(self.optimizer.get_lr())
+
+            self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])                 
+            losses = self.forward_ssl (libri_batch)
+
+            for key in losses:
+                if key in self.meters:
+                    self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
+                    self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
             
-            # kh: iterate based on libri
-            for i, libri_batch in enumerate(self.libri_train_loader): 
-                
-                # cur_step shows step within one epoch (0,step_per_epoch)
-                cur_step = self.progress['num_updates'] % step_per_epoch
-                     
-                data_end_time = time.time()
-                self.dual_encoder.train()
-                if self.progress['num_updates'] > self.total_num_updates:
-                    flag = False
-                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
-                    self.writer.close()
-                    break
-                
-                cur_lr = np.mean(self.optimizer.get_lr())
+            weighted_loss = losses['libri_w2v2_loss'].mean() #* self.args.libri_w2v2_weight
 
-                self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])                 
-                losses = self.forward_ssl (libri_batch)
-
-                for key in losses:
-                    if key in self.meters:
-                        self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
-                        self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
-                
-                weighted_loss = losses['libri_w2v2_loss'].mean() #* self.args.libri_w2v2_weight
-
-                self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
-                self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
-                
-                #########
-                weighted_loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
-                self.optimizer.step()
-                self.optimizer.zero_grad()
-                #########
-                
-                self.meters['data_time'].update(data_end_time - data_start_time)
-                self.meters['train_time'].update(time.time() - data_end_time)
+            self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
+            self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+            
+            #########
+            weighted_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+            #########
+            
+            self.meters['data_time'].update(data_end_time - data_start_time)
+            self.meters['train_time'].update(time.time() - data_end_time)
    
-                self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
-                self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
+            self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
+            self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
 
-                # logging
-                if self.progress['num_updates'] % self.args.n_print_steps == 0:
-                    log_out = {}
-                    log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                    log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
-                    log_out['num_updates'] = self.progress['num_updates']
-                    log_out['lr'] = f"{cur_lr:.7f}"
-                    for key in self.meters:
-                        if self.meters[key].val != 0 or self.meters[key].avg != 0:
-                            log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                    logger.info(log_out)
-                    if np.isnan(self.meters['weighted_loss'].avg):
-                        logger.info("training diverged...")
-                        return
-                    
-               
-                # validation and save models
-                if self.progress['num_updates'] % self.args.n_val_steps == 0:
-                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
-                    
-                ########    
-                self.progress['num_updates'] += 1
-                self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
-                data_start_time = time.time()
-                #print(self.progress['num_updates'])
+            # logging
+            if self.progress['num_updates'] % self.args.n_print_steps == 0:
+                log_out = {}
+                log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
+                log_out['num_updates'] = self.progress['num_updates']
+                log_out['lr'] = f"{cur_lr:.7f}"
+                for key in self.meters:
+                    if self.meters[key].val != 0 or self.meters[key].avg != 0:
+                        log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                logger.info(log_out)
+                if np.isnan(self.meters['weighted_loss'].avg):
+                    logger.info("training diverged...")
+                    return
                 
-    def validate_and_save_ssl(self, n_save_ind = 0):  
+           
+            # validation and save models
+            if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                self.validate_and_save_ssl()
+                
+            ########    
+            self.progress['num_updates'] += 1
+            self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+            data_start_time = time.time()
+            #print(self.progress['num_updates'])
+                
+    def validate_and_save_ssl(self):  
         
         best_ssl_loss = self.validate_libri()
-
+        n_save_ind = self.progress['epoch']
         save_progress(self)
         if best_ssl_loss:
             self.progress['best_epoch'] = self.progress['epoch']
@@ -359,111 +350,6 @@ class Trainer:
         #khazar: I added this return below:
         return r10, r5, r1
 
-    def validate(self, valid_loader, unseen = False):
-        start_val_time = time.time()
-        N_examples = self.valid_loader.dataset.__len__()
-
-        # frame_counts = []
-        with torch.no_grad():
-            # get single modal representations
-            audio_feats_total = [] 
-            extended_audio_attention_mask_total = []
-            visual_feats_total = [] 
-            img_id_total = []
-            audio_cls_total = []
-            visual_cls_total = []
-            for i, batch in enumerate(valid_loader):
-                self.dual_encoder.eval()
-                self.cross_encoder.eval()
-                audio_feats, audio_cls, extended_audio_attention_mask, visual_feats, visual_cls = self.dual_encoder(audio_feats = batch['audio'].to(self.device), attention_mask = batch['audio_attention_mask'].to(self.device), images = batch['images'].to(self.device), test = True)
-                audio_cls_total.append(audio_cls)
-                visual_cls_total.append(visual_cls)
-                audio_feats_total.append(audio_feats.detach()) # still on cude after .detach(), just removed from graph, so no gradient
-                extended_audio_attention_mask_total.append(extended_audio_attention_mask.detach())
-                visual_feats_total.append(visual_feats.detach())
-                img_id_total.append(batch['img_id'])
-
-            audio_feats_total = torch.cat(audio_feats_total)
-            extended_audio_attention_mask_total = torch.cat(extended_audio_attention_mask_total)
-            visual_feats_total = torch.cat(visual_feats_total)
-            img_id_total = np.concatenate(img_id_total)
-
-            visual_cls_total = torch.cat(visual_cls_total)
-            audio_cls_total = torch.cat(audio_cls_total)
-            coarse_cross_relationship_score_matrix = audio_cls_total @ visual_cls_total.transpose(0,1)
-            recalls = calc_recalls_from_S_coarse(coarse_cross_relationship_score_matrix, img_id=img_id_total)
-            avg_acc_coarse = (recalls['A_r10'] + recalls['I_r10']) / 2
-            avg_acc_r1_coarse = (recalls['A_r1'] + recalls['I_r1']) / 2
-            self.writer.add_scalar("acc_coarse", avg_acc_coarse, self.progress['num_updates'])
-            self.writer.add_scalar("acc_r1_coarse", avg_acc_r1_coarse, self.progress['num_updates'])
-            
-            logger.info("Coarse Retrieval Accuracy:" if not unseen else "Coarse Retrieval Accuracy (Unseen):")
-            logger.info('Audio R@100 {A_r100:.3f} Image R@100 {I_r100:.3f} Average R@100 {r100_ave:.3f} over {N:d} validation pairs'.format(A_r100=recalls['A_r100'], I_r100=recalls['I_r100'], r100_ave=(recalls['A_r100']+recalls['I_r100'])/2, N=N_examples))
-            logger.info('Audio R@10 {A_r10:.3f} Image R@10 {I_r10:.3f} Average R@10 {r10_ave:.3f} over {N:d} validation pairs'.format(A_r10=recalls['A_r10'], I_r10=recalls['I_r10'], r10_ave=(recalls['A_r10']+recalls['I_r10'])/2, N=N_examples))
-            logger.info('Audio R@5 {A_r5:.3f} Image R@5 {I_r5:.3f} Average R@5 {r5_ave:.3f} over {N:d} validation pairs'.format(A_r5=recalls['A_r5'], I_r5=recalls['I_r5'], r5_ave=(recalls['A_r5']+recalls['I_r5'])/2, N=N_examples))
-            logger.info('Audio R@1 {A_r1:.3f} Image R@1 {I_r1:.3f} Average R@1 {ave_r1:.3f} over {N:d} validation pairs'.format(A_r1=recalls['A_r1'], I_r1=recalls['I_r1'], ave_r1=(recalls['A_r1']+recalls['I_r1'])/2,  N=N_examples))
-            logger.info(f"validation time: {time.time() - start_val_time:.3f}")
-           
-            if self.args.fine_matching_weight > 0:
-                if self.args.coarse_to_fine_retrieve:
-                    # visual indices should be 1000*100 + 100*1000
-                    # audio indices should be 100*1000 + 1000*100
-                    visual_indices, audio_indices = coarse_retrieve(coarse_cross_relationship_score_matrix, topk=self.args.topk)
-                    B = len(visual_indices)
-                    val_cross_batch_size = self.args.val_cross_batch_size
-                    num_steps = math.ceil(B / val_cross_batch_size)
-                else:
-                    # logger.info(f"total num of pairs {B**2}, val cross batch size: {val_cross_batch_size}, num of steps: {num_steps}")
-                    # get O(B^2) pairs
-                    # # original audio image pair: (1,a) (2,b) (3,c)
-                    # # image: [a,b,c,d] -> [a,b,c,a,b,c,a,b,c]
-                    # # audio: [1,2,3,4] -> [1,1,1,2,2,2,3,3,3]
-                    # # to avoid unnecessary duplication, we just repeat indices
-                    B = visual_feats_total.shape[0]
-                    val_cross_batch_size = self.args.val_cross_batch_size
-                    num_steps = math.ceil(B**2 / val_cross_batch_size)
-                    visual_indices = torch.LongTensor(list(range(B))).repeat(B)
-                    audio_indices = torch.LongTensor(list(range(B))).repeat_interleave(B,dim=0)
-
-                # get cross modal representations
-                cross_relationship_score_square = []
-                for i in range(num_steps):
-                    visual_feats_square = visual_feats_total[visual_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-                    audio_feats_square = audio_feats_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-                    extended_audio_attention_mask_square = extended_audio_attention_mask_total[audio_indices[i*val_cross_batch_size:(i+1)*val_cross_batch_size]].to(self.device)
-                    cross_relationship_score = self.cross_encoder(audio_feats_square, extended_audio_attention_mask_square, visual_feats_square)
-                    # logger.info(f"shape of cross_relationship_score {cross_relationship_score.shape}")
-                    cross_relationship_score_square.append(cross_relationship_score.detach())
-
-                # do not test visual encoder ability here, might consider doing it in the future
-                # visual_feats = visual_feats_square[::(B+1)][:,1:]
-                cross_relationship_score_square = torch.cat(cross_relationship_score_square)
-                # logger.info(f"validation cross relationship score data type: {cross_relationship_score_square.dtype}")
-                if self.args.coarse_to_fine_retrieve:
-                    recalls = fine_retrieve(cross_relationship_score_square, anchor_img_id=img_id_total, visual_indices = visual_indices, audio_indices = audio_indices, topk=self.args.topk, B = B)
-                else:
-                    cross_relationship_score_matrix = cross_relationship_score_square.view(B,B)
-                    recalls = calc_recalls_from_S(cross_relationship_score_matrix, img_id=img_id_total)
-
-                logger.info("Fine Retrieval Accuracy:" if not unseen else "Fine Retrieval Accuracy (Unseen):")
-                logger.info('Audio R@10 {A_r10:.3f} Image R@10 {I_r10:.3f} Average R@10 {r10_ave:.3f} over {N:d} validation pairs'.format(A_r10=recalls['A_r10'], I_r10=recalls['I_r10'], r10_ave=(recalls['A_r10']+recalls['I_r10'])/2, N=N_examples))
-                logger.info('Audio R@5 {A_r5:.3f} Image R@5 {I_r5:.3f} Average R@5 {r5_ave:.3f} over {N:d} validation pairs'.format(A_r5=recalls['A_r5'], I_r5=recalls['I_r5'], r5_ave=(recalls['A_r5']+recalls['I_r5'])/2, N=N_examples))
-                logger.info('Audio R@1 {A_r1:.3f} Image R@1 {I_r1:.3f} Average R@1 {ave_r1:.3f} over {N:d} validation pairs'.format(A_r1=recalls['A_r1'], I_r1=recalls['I_r1'], ave_r1=(recalls['A_r1']+recalls['I_r1'])/2,  N=N_examples))  
-
-                logger.info(f"validation time: {time.time() - start_val_time:.3f}")  
-
-        avg_acc_r10 = (recalls['A_r10'] + recalls['I_r10']) / 2
-        avg_acc_r5 = (recalls['A_r5'] + recalls['I_r5']) / 2
-        avg_acc_r1 = (recalls['A_r1'] + recalls['I_r1']) / 2
-        if unseen:
-            self.writer.add_scalar("acc_r10_unseen", avg_acc_r10, self.progress['num_updates'])
-            self.writer.add_scalar("acc_r5_unseen", avg_acc_r5, self.progress['num_updates'])
-            self.writer.add_scalar("acc_r1_unseen", avg_acc_r1, self.progress['num_updates'])
-        else:
-            self.writer.add_scalar("acc_r10", avg_acc_r10, self.progress['num_updates'])
-            self.writer.add_scalar("acc_r5", avg_acc_r5, self.progress['num_updates'])
-            self.writer.add_scalar("acc_r1", avg_acc_r1, self.progress['num_updates'])
-        return avg_acc_r10, avg_acc_r5, avg_acc_r1
 
     def validate_one_to_many(self, hide_progress=True):
         print ("kh: it entered validate_one_to_many function ..... ")
