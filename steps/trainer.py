@@ -56,20 +56,17 @@ class Trainer:
             # for ssl pretraining
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         else:
-            # for only vgs training:
-            # self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
-            # for ssl-vgs simultaneous training:
-            self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
-            self.train_loader, self.valid_loader, self.train_sampler, self.train_data_length = self._setup_dataloader_vgs()
+            # for normal training:
+            self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
         
+        if args.ssl:
+            # for ssl pretraining
+            self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
+        else:
+            # for normal training:
+            self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
         
-        # for ssl pretraining
-        self.total_num_updates_ssl = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs     
-        # for normal training:
-        self.total_num_updates = int(math.floor(self.train_data_length / self.args.batch_size))*self.args.n_epochs
-        
-        print (' ...here is total number of updates (ssl and vgs) calculated at init ... ')
-        print (self.total_num_updates_ssl)
+        print (' ...here is total number of updates calculated at init ... ')
         print (self.total_num_updates)
         ###
         self.optimizer = self._setup_optimizer()
@@ -98,177 +95,105 @@ class Trainer:
         return losses
 
     def train(self):
-        self.step_per_epoch = int(self.train_data_length/self.args.batch_size)
-        self.step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
-        
-        # flag = True   
-        # while flag:     
-        #     if self.progress['epoch'] > self.args.n_epochs:
-        #         flag = False
-        #         r10, r5, r1 = self.validate_and_save_vgs()
-        #         self.writer.close()                     
-        #     self.train_vgs()
-        #     self.train_ssl_simultaneous()
-        #     self.progress['epoch'] += 1         
-        for epk in range(self.args.n_epochs):
-            self.train_vgs()
-            self.train_ssl_simultaneous()    
-            self.progress['epoch'] += 1  
-        self.writer.close() 
-        r10, r5, r1 = self.validate_and_save_vgs()
-        
-    def train_vgs(self):
-        # one epoch over vgs
-        logger.info('epoch vgs starts here ')
+        print ('############# here is inside train function ###############')
+        flag = True
+        step_per_epoch = int(self.train_data_length/self.args.batch_size)
+        #step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         data_start_time = time.time()
-        for i, batch in enumerate(self.train_loader):   
-            data_end_time = time.time()
-            self.dual_encoder.train()
-            self.cross_encoder.train()         
-            cur_lr = np.mean(self.optimizer.get_lr())
-            self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
-            cur_step = self.progress['num_updates'] % self.step_per_epoch
 
-            
-            cur_batch = {
-                    "images": batch['images'].to(self.device),
-                    "audio": batch['audio'].to(self.device),
-                    "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                    "img_id": batch['img_id']
-                    }
-            
-            losses = self.forward(cur_batch)
-            
-            # if self.use_libri_loss:
-            #     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
-
-            for key in losses:
-                if key in self.meters:
-                    self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
-                    self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
-            
-            alpha = 0.5
-            beta = 0.5
-            weighted_loss = self.weight_loss(losses, alpha, beta) #self.weight_loss(losses)
-
-            self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
-            self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
-            
-            #########
-            weighted_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            #########
-            
-            self.meters['data_time'].update(data_end_time - data_start_time)
-            self.meters['train_time'].update(time.time() - data_end_time)
-
-            self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
-            self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
-
-            # logging
-            if self.progress['num_updates'] % self.args.n_print_steps == 0:
+        while flag:
+            logger.info('epoch starts here ')
+            if self.use_libri_loss:
+                libri_loader_iterator = iter(self.libri_train_loader)
                 
-                log_out = {}
-                log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{self.step_per_epoch}"
-                log_out['num_updates'] = self.progress['num_updates']
-                log_out['lr'] = f"{cur_lr:.7f}"
-                for key in self.meters:
-                    if self.meters[key].val != 0 or self.meters[key].avg != 0:
-                        log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                logger.info(log_out)
-                if np.isnan(self.meters['weighted_loss'].avg):
-                    logger.info("training diverged...")
-                    return
-                
-           
-            # validation and save models
-            # if self.progress['num_updates'] % self.args.n_val_steps == 0:
-               
-            #     r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
-            ########    
-            self.progress['num_updates'] += 1
-            #self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
-            data_start_time = time.time()
-            #print(self.progress['num_updates'])
             
-        # validation and save after one epoch    
-        r10, r5, r1 = self.validate_and_save_vgs()
+            for i, batch in enumerate(self.train_loader):
+                if self.use_libri_loss:
+                    libri_batch = next(libri_loader_iterator)
+                    # Kh: you can also do this for big LS batch sizes
+                    # try:
+                    #     libri_batch = next(libri_loader_iterator)
+                    # except StopIteration:
+                    #     pass
+                      
+                data_end_time = time.time()
+                self.dual_encoder.train()
+                self.cross_encoder.train()
+                if self.progress['num_updates'] > self.total_num_updates:
+                    flag = False
+                    r10, r5, r1 = self.validate_and_save()
+                    self.writer.close()
+                    break
+                
+                cur_lr = np.mean(self.optimizer.get_lr())
     
-    def train_ssl_simultaneous(self):
-  
-        data_start_time = time.time()
-            
-        logger.info('epoch ssl starts here ')
-        # kh: iterate based on libri
-        for i, libri_batch in enumerate(self.libri_train_loader): 
-            print(i)
-            if i> 50:
-                break
-            # cur_step shows step within one epoch (0,step_per_epoch)
-            cur_step_ssl = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
-                 
-            data_end_time = time.time()
-            self.dual_encoder.train()
-            
-            #cur_lr = np.mean(self.optimizer.get_lr())
-
-            #self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])                 
-            losses = self.forward_ssl (libri_batch)
-
-            for key in losses:
-                if key in self.meters:
-                    self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
-                    self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
-            
-            weighted_loss = losses['libri_w2v2_loss'].mean() #* self.args.libri_w2v2_weight
-
-            self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
-            self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
-            
-            #########
-            weighted_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            #########
-            
-            self.meters['data_time'].update(data_end_time - data_start_time)
-            self.meters['train_time'].update(time.time() - data_end_time)
-   
-            self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
-            self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
-
-            logging
-            if self.progress['num_updates_ssl'] % self.args.n_print_steps == 0:
-                log_out = {}
-                log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                log_out['cur_step_ssl/steps_per_epoch'] = f"{cur_step_ssl}/{self.step_per_epoch_libri}"
-                log_out['num_updates'] = self.progress['num_updates']
-                for key in self.meters:
-                    if self.meters[key].val != 0 or self.meters[key].avg != 0:
-                        log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                logger.info(log_out)
-                if np.isnan(self.meters['weighted_loss'].avg):
-                    logger.info("training diverged...")
-                    return
+                self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
+                cur_step = self.progress['num_updates'] % step_per_epoch
+    
                 
-           
-            # validation and save models
-            # if self.progress['num_updates'] % self.args.n_val_steps == 0:
-            #     self.validate_and_save_ssl()
+                cur_batch = {
+                        "images": batch['images'].to(self.device),
+                        "audio": batch['audio'].to(self.device),
+                        "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                        "img_id": batch['img_id']
+                        }
                 
-            ########    
-            self.progress['num_updates_ssl'] += 1
-            # self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
-            data_start_time = time.time()
-            #print(self.progress['num_updates'])
+                losses = self.forward(cur_batch)
                 
-        # validate at the end of epoch
-        self.validate_and_save_ssl()
-        
+                if self.use_libri_loss:
+                    losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
+    
+                for key in losses:
+                    if key in self.meters:
+                        self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
+                        self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                
+                alpha = 0.5
+                beta = 0.5
+                weighted_loss = self.weight_loss(losses, alpha, beta) #self.weight_loss(losses)
+    
+                self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
+                self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                
+                #########
+                weighted_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                #########
+                
+                self.meters['data_time'].update(data_end_time - data_start_time)
+                self.meters['train_time'].update(time.time() - data_end_time)
+    
+                self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
+                self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
+    
+                # logging
+                if self.progress['num_updates'] % self.args.n_print_steps == 0:
+                    
+                    log_out = {}
+                    log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                    log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
+                    log_out['num_updates'] = self.progress['num_updates']
+                    log_out['lr'] = f"{cur_lr:.7f}"
+                    for key in self.meters:
+                        if self.meters[key].val != 0 or self.meters[key].avg != 0:
+                            log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                    logger.info(log_out)
+                    if np.isnan(self.meters['weighted_loss'].avg):
+                        logger.info("training diverged...")
+                        return
+                    
+               
+                # validation and save models
+                if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                    
+                    r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
+                ########    
+                self.progress['num_updates'] += 1
+                self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+                data_start_time = time.time()
+                #print(self.progress['num_updates'])
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
         print ('############# here is size of encoder ###############')
@@ -307,9 +232,9 @@ class Trainer:
                      
                 data_end_time = time.time()
                 self.dual_encoder.train()
-                if self.progress['num_updates'] > self.total_num_updates_ssl:
+                if self.progress['num_updates'] > self.total_num_updates:
                     flag = False
-                    self.validate_and_save_ssl()
+                    self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                     self.writer.close()
                     break
                 
@@ -367,15 +292,14 @@ class Trainer:
                 data_start_time = time.time()
                 #print(self.progress['num_updates'])
                 
-    def validate_and_save_ssl(self):  
+    def validate_and_save_ssl(self, n_save_ind = 0):  
         
         best_ssl_loss = self.validate_libri()
-        
-        n_save_ind = self.progress['epoch']
+
         save_progress(self)
         if best_ssl_loss:
             self.progress['best_epoch'] = self.progress['epoch']
-            save_path = os.path.join(self.args.exp_dir, "best_bundle_ssl.pth")
+            save_path = os.path.join(self.args.exp_dir, "best_bundle.pth")
             torch.save(
                 {
                     "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
@@ -384,11 +308,11 @@ class Trainer:
                 },save_path )
             logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
         if self.progress['epoch'] <= 5 :
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle_ssl.pth")
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
         elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle_ssl.pth")          
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
         else:
-            save_path = os.path.join(self.args.exp_dir, "bundle_ssl.pth")
+            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
@@ -398,58 +322,8 @@ class Trainer:
             },save_path
         )
         logger.info(f"save models, indices, acc and other statistics at {save_path} and {self.args.exp_dir}/progress.pkl at global step {self.progress['num_updates']}")
-    
-    def validate_and_save_vgs(self,  places=False):
         
-        
-        self.dual_encoder.eval()
-        self.cross_encoder.eval()
-        if places:
-            r10, r5, r1 = self.validate(self.valid_loader)
-            r10_unseen, r5_unseen, r1_unseen = self.validate(self.valid_loader2, unseen=True)
-            r10, r5, r1 = (r10+r10_unseen)/2, (r5+r5_unseen)/2, (r1+r1_unseen)/2
-        else:
-            r10, r5, r1 = self.validate_one_to_many()
-        
-        if r1 > self.progress['best_acc']:
-            self.progress['best_epoch'] = self.progress['epoch']
-            self.progress['best_acc'] = r1
-            save_path = os.path.join(self.args.exp_dir,"best_bundle.pth")
-            torch.save(
-                {
-                    "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
-                    "optimizer":  self.optimizer.state_dict(),
-                    "indices": self.train_sampler.state_dict(),
-                },save_path
-            )
-            logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
-           
-        save_progress(self)
-        
-        #######################################################################
-        # Khazar: here it saves the model in each call 
-        # n_save_ind = self.progress['epoch']
-        # if self.progress['epoch'] <= 5 :
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        # else:
-        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
-        #######################################################################    
-        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
-        torch.save(
-            {
-                "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
-                "optimizer":  self.optimizer.state_dict(),
-                "indices": self.train_sampler.state_dict(),
-
-            },save_path
-        )
-        logger.info(f"save models, indices, acc and other statistics at {save_path} and {self.args.exp_dir}/progress.pkl at global step {self.progress['num_updates']}")
-        #khazar: I added this return below:
-        return r10, r5, r1        
-    
-    def validate_and_save(self, libri=False, places=False):
+    def validate_and_save(self, libri=False, places=False , n_save_ind = 0):
         # khazar: I added "n_save_ind" argument to save intermediate models 
         self.dual_encoder.eval()
         self.cross_encoder.eval()
@@ -483,7 +357,6 @@ class Trainer:
         
         #######################################################################
         # Khazar: here it saves the model in each call 
-        # n_save_ind = self.progress['epoch']
         # if self.progress['epoch'] <= 5 :
         #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
         # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
@@ -689,7 +562,7 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                if i>= 200:
+                if i>= 110:
                     break
             
             # print ('khazar: memory allocated before cat')
@@ -907,24 +780,12 @@ class Trainer:
             libri_train_sampler = None
            
         return train_loader, valid_loader, train_sampler, libri_train_loader, libri_valid_loader, libri_train_sampler, len(train_dataset)
-   
-    def _setup_dataloader_vgs(self):
-        # SpokenCOCO
-        train_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='train')
-        val_dataset = spokencoco_dataset.ImageCaptionDataset(self.args, split='val')
-        # Kh: I change use_random to False to avoide shuffling
-        train_sampler = StatefulSampler(len(train_dataset), use_random=True)
-        if self.progress['num_updates'] > 1 and self.indices is not None:
-            train_sampler.load_state_dict(self.indices)
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=self.args.batch_size, num_workers=self.args.num_workers, pin_memory=True, sampler = train_sampler, collate_fn = train_dataset.collate, drop_last=True)
-        valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=self.args.val_batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True, collate_fn = val_dataset.collate)           
-        return train_loader, valid_loader, train_sampler, len(train_dataset)
-    
+
     def _setup_dataloader_ssl(self):
     
         libri_train_dataset = libri_dataset.LibriDataset(self.args, split="train")
         
-        libri_train_bzs = 2 * self.args.batch_size 
+        libri_train_bzs = self.args.batch_size 
         
         print ("############# here is inside LS dataloader ##################")
         print('------------- here is the n_per_epoch libri ------------')
@@ -946,7 +807,7 @@ class Trainer:
         return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
-        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction)#, t_total=self.total_num_updates)
+        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
         # KH: I added this
         print('...................... we are inside setup optimizer function .......................')
         print (optimizer)
