@@ -318,7 +318,7 @@ class Trainer:
                 #"cross_encoder": self.cross_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.cross_encoder.state_dict(),
                 "optimizer":  self.optimizer.state_dict(),
                 "indices": self.train_sampler.state_dict(),
-                "libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
+                #"libri_indices": self.libri_train_sampler.state_dict() if self.libri_train_sampler is not None else None
             },save_path
         )
         logger.info(f"save models, indices, acc and other statistics at {save_path} and {self.args.exp_dir}/progress.pkl at global step {self.progress['num_updates']}")
