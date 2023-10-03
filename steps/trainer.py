@@ -103,15 +103,13 @@ class Trainer:
         
         flag = True   
         while flag:     
-            if self.progress['num_updates'] > self.total_num_updates:
+            if self.progress['epoch'] > self.args.n_epochs:
                 flag = False
                 r10, r5, r1 = self.validate_and_save_vgs()
-                self.writer.close()
-                break           
-            
+                self.writer.close()                     
             self.train_vgs()
             self.train_ssl_simultaneous()
-                     
+            self.progress['epoch'] += 1         
             
                  
                  
@@ -193,7 +191,7 @@ class Trainer:
             data_start_time = time.time()
             #print(self.progress['num_updates'])
         # validation and save after one epoch
-        self.progress['epoch'] += 1
+        
         r10, r5, r1 = self.validate_and_save_vgs()
     
     def train_ssl_simultaneous(self):
@@ -202,7 +200,7 @@ class Trainer:
             
         logger.info('epoch ssl starts here ')
         # kh: iterate based on libri
-        for i, libri_batch in enumerate(self.libri_train_loader): 
+        for i, libri_batch in enumerate(self.libri_train_loader [0:10]): 
             
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step_ssl = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
