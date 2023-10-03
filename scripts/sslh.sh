@@ -11,6 +11,7 @@ pretrained_root="../../../../hubertAndDINO"
 
 python \
 ../run_spokencoco.py \
+--resume \
 --ssl \
 --data_root ${data_root} \
 --exp_dir ${exp_dir} \
@@ -22,7 +23,7 @@ python \
 --val_cross_batch_size 100 \
 --n_epochs 70 \
 --n_print_steps 100 \
---n_val_steps 3033 \
+--n_val_steps 4265 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
