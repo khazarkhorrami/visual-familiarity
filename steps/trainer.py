@@ -205,7 +205,7 @@ class Trainer:
         for i, libri_batch in enumerate(self.libri_train_loader): 
             
             # cur_step shows step within one epoch (0,step_per_epoch)
-            #cur_step = self.progress['num_updates'] % step_per_epoch_libri
+            cur_step_ssl = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
             data_end_time = time.time()
             self.dual_encoder.train()
@@ -238,20 +238,19 @@ class Trainer:
             self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
             self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
 
-            # logging
-            # if self.progress['num_updates'] % self.args.n_print_steps == 0:
-            #     log_out = {}
-            #     log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-            #     log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
-            #     log_out['num_updates'] = self.progress['num_updates']
-            #     log_out['lr'] = f"{cur_lr:.7f}"
-            #     for key in self.meters:
-            #         if self.meters[key].val != 0 or self.meters[key].avg != 0:
-            #             log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-            #     logger.info(log_out)
-            #     if np.isnan(self.meters['weighted_loss'].avg):
-            #         logger.info("training diverged...")
-            #         return
+            logging
+            if self.progress['num_updates_ssl'] % self.args.n_print_steps == 0:
+                log_out = {}
+                log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                log_out['cur_step_ssl/steps_per_epoch'] = f"{cur_step_ssl}/{self.step_per_epoch_libri}"
+                log_out['num_updates'] = self.progress['num_updates']
+                for key in self.meters:
+                    if self.meters[key].val != 0 or self.meters[key].avg != 0:
+                        log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                logger.info(log_out)
+                if np.isnan(self.meters['weighted_loss'].avg):
+                    logger.info("training diverged...")
+                    return
                 
            
             # validation and save models
@@ -259,7 +258,7 @@ class Trainer:
             #     self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                 
             ########    
-            # self.progress['num_updates'] += 1
+            self.progress['num_updates_ssl'] += 1
             # self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
             data_start_time = time.time()
             #print(self.progress['num_updates'])
@@ -944,7 +943,7 @@ class Trainer:
         return libri_train_loader, libri_valid_loader, libri_train_sampler, len(libri_train_dataset) # kh: I added the last return item
     
     def _setup_optimizer(self):
-        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction, t_total=self.total_num_updates)
+        optimizer = BertAdam(self.trainables, lr=self.args.lr, warmup=self.args.warmup_fraction)#, t_total=self.total_num_updates)
         # KH: I added this
         print('...................... we are inside setup optimizer function .......................')
         print (optimizer)
