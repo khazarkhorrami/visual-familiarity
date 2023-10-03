@@ -92,7 +92,7 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            #self.validate_and_save()
+            self.validate_and_save()
             self.train_ssl()
             self.validate_and_save_ssl()
         r10, r5, r1 = self.validate_and_save()
@@ -103,11 +103,10 @@ class Trainer:
         
         #step_per_epoch_libri = int(self.libri_train_data_length/self.args.batch_size)
         data_start_time = time.time()
-        logger.info('epoch starts here ')
+        logger.info('epoch vgs starts here ')
 
         for i, batch in enumerate(self.train_loader):
-            if i > 5:
-                break
+
             data_end_time = time.time()
             self.dual_encoder.train()
             self.cross_encoder.train()
@@ -178,15 +177,14 @@ class Trainer:
         ###
         data_start_time = time.time()      
         
-        logger.info('epoch starts here ')
+        logger.info('epoch ssl starts here ')
         
         # coco_loader_iterator = iter(self.train_loader)
         # libri_loader_iterator = iter(self.libri_train_loader)
         
         # kh: iterate based on libri
         for i, libri_batch in enumerate(self.libri_train_loader): 
-            if i > 50:
-                break
+            
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
                  
@@ -194,18 +192,18 @@ class Trainer:
             self.dual_encoder.train()            
             cur_lr = np.mean(self.optimizer.get_lr())
 
-            self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])                 
+            self.writer.add_scalar("lr", cur_lr, self.progress['num_updates_ssl'])                 
             losses = self.forward_ssl (libri_batch)
 
             for key in losses:
                 if key in self.meters:
                     self.meters[key].update(losses[key].mean().cpu().item(), libri_batch['audio'].shape[0])
-                    self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                    self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates_ssl'])
             
             weighted_loss = losses['libri_w2v2_loss'].mean() #* self.args.libri_w2v2_weight
 
             self.meters['weighted_loss'].update(weighted_loss.item(), libri_batch['audio'].shape[0])
-            self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+            self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates_ssl'])
             
             #########
             weighted_loss.backward()
@@ -225,7 +223,7 @@ class Trainer:
                 log_out = {}
                 log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
                 log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{self.step_per_epoch_libri}"
-                log_out['num_updates'] = self.progress['num_updates']
+                log_out['num_updates_ssl'] = self.progress['num_updates_ssl']
                 log_out['lr'] = f"{cur_lr:.7f}"
                 for key in self.meters:
                     if self.meters[key].val != 0 or self.meters[key].avg != 0:
