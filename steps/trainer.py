@@ -193,9 +193,6 @@ class Trainer:
             #self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / self.step_per_epoch))
             data_start_time = time.time()
             #print(self.progress['num_updates'])
-            print(i)
-            if i> 5:
-                break
             
         # validation and save after one epoch    
         r10, r5, r1 = self.validate_and_save_vgs()
@@ -206,9 +203,9 @@ class Trainer:
             
         logger.info('epoch ssl starts here ')
         # kh: iterate based on libri
-        for i, libri_batch in enumerate(self.libri_train_loader [0:10]): 
+        for i, libri_batch in enumerate(self.libri_train_loader): 
             print(i)
-            if i> 5:
+            if i> 50:
                 break
             # cur_step shows step within one epoch (0,step_per_epoch)
             cur_step_ssl = self.progress['num_updates_ssl'] % self.step_per_epoch_libri
