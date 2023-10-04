@@ -90,22 +90,22 @@ args.flickr8k = False
 args.validate = True
 #args.test = True
 
-if args.resume or args.validate:
-    resume = args.resume
-    assert(bool(args.exp_dir))
-    with open("%s/args.pkl" % args.exp_dir, "rb") as f:
-        old_args = pickle.load(f)
-    new_args = vars(args)
-    old_args = vars(old_args)
-    for key in new_args:
-        if key not in old_args or old_args[key] != new_args[key]:
-            old_args[key] = new_args[key]
-    args = argparse.Namespace(**old_args)
-    args.resume = resume
-else:
-    print("\nexp_dir: %s" % args.exp_dir)
-    with open("%s/args.pkl" % args.exp_dir, "wb") as f:
-        pickle.dump(args, f)
+# if args.resume or args.validate:
+#     resume = args.resume
+#     assert(bool(args.exp_dir))
+#     with open("%s/args.pkl" % args.exp_dir, "rb") as f:
+#         old_args = pickle.load(f)
+#     new_args = vars(args)
+#     old_args = vars(old_args)
+#     for key in new_args:
+#         if key not in old_args or old_args[key] != new_args[key]:
+#             old_args[key] = new_args[key]
+#     args = argparse.Namespace(**old_args)
+#     args.resume = resume
+# else:
+#     print("\nexp_dir: %s" % args.exp_dir)
+#     with open("%s/args.pkl" % args.exp_dir, "wb") as f:
+#         pickle.dump(args, f)
 
 #############################################################################
 # # for data
