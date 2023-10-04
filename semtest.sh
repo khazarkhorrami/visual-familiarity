@@ -3,7 +3,7 @@
 source activate fastvgs
 
 ROOT="/worktmp/khorrami/current"
-MROOT="/worktmp/khorrami/current/FaST/experiments/vfsubsets"
+MROOT="/worktmp/khorrami/current/FaST/experiments/vfsubsets/prefb"
 
 
 MNAME="expS1"
