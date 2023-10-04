@@ -126,7 +126,7 @@ with torch.no_grad():
         trm13_out = conv1_trm1_trm3(input_signal,  mask=False, features_only=True, tgt_layer=args.layer_use)
         trm13_out_features = trm13_out['layer_feats']
         output_tensor = trm13_out_features[0] # (time, 768)
-        output_np_arr = output_tensor.cpu().detach().np()
+        output_np_arr = output_tensor.cpu().detach().numpy()
         #print(len(output_np_arr))
         output_np_arr_cls = np.mean(output_np_arr, axis = 0)
         # below line is for saving the results as the first row in text file
