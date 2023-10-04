@@ -43,7 +43,6 @@ args.libri_w2v2_weight= 0.0
 args.caption_w2v2_weight= 1.0
 args.feature_grad_mult= 1.0
 args.trim_mask= True
-args.layer_use= 7
 
 args.places = False
 args.flickr8k = False
@@ -51,7 +50,7 @@ args.validate = True
 
 # my args
 mytwd = args.mytwd
-#args.layer_use = int(args.mytarget_layer)
+args.layer_use = int(args.mytarget_layer)
 
 # #############################################################################
 # ########################################### defining the model based on ARGS
@@ -96,7 +95,7 @@ with torch.no_grad():
         
         audio_signal = torch.tensor(signal_peng ,dtype=torch.float).to(device)
         input_signal = audio_signal.view(1, -1)
-        trm13_out = conv1_trm1_trm3(input_signal,  mask=False, features_only=True, tgt_layer=args.mytarget_layer)
+        trm13_out = conv1_trm1_trm3(input_signal,  mask=False, features_only=True, tgt_layer=args.layer_use)
         trm13_out_features = trm13_out['layer_feats']
         output_tensor = trm13_out_features[0] # (time, 768)
         output_np_arr = output_tensor.cpu().detach().numpy()
