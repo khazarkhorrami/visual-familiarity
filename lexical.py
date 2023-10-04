@@ -20,44 +20,17 @@ parser.add_argument("--test", action="store_true", default=False, help="test the
 parser.add_argument("--ssl", action="store_true", dest="ssl", help="only ssl training")
 
 trainer.Trainer.add_args(parser)
-
 w2v2_model.Wav2Vec2Model_cls.add_args(parser)
-
 fast_vgs.DualEncoder.add_args(parser)
-
 spokencoco_dataset.ImageCaptionDataset.add_args(parser)
-
 libri_dataset.LibriDataset.add_args(parser)
 
 # my custom args
 parser.add_argument("--mytwd", help="my model dir")
 parser.add_argument("--mytarget_layer", help="my target layer")
-
 args = parser.parse_args()
 
 #%% args from script
-
-# root = "/worktmp2/hxkhkh/current/"
-
-# #..............................................................................
-# data_root = os.path.join(root, 'FaST/data')
-# fb_w2v2_weights_fn = os.path.join(root,'FaST/model/wav2vec_small.pt')
-# libri_fn_root = os.path.join(root,'FaST/datavf/libri_fn_root/')
-# pretrained_root = os.path.join(root,'FaST/hubertAndDINO')
-# #..............................................................................
-# args.data_root=data_root
-# args.fb_w2v2_weights_fn=fb_w2v2_weights_fn
-# args.libri_fn_root=libri_fn_root
-# args.load_pretrained_vit=pretrained_root
-    
-# args.batch_size= 4
-# args.val_batch_size= 16
-# args.val_cross_batch_size= 4
-# args.n_epochs= 50
-# args.n_print_steps= 100
-# args.n_val_steps= 1000
-# args.lr= 0.0001
-# args.warmup_fraction= 0.1
 args.vit_arch= 'vitsmall'
 args.vit_patch_size= 8
 args.vit_checkpoint_key= 'teacher'
@@ -70,15 +43,15 @@ args.libri_w2v2_weight= 0.0
 args.caption_w2v2_weight= 1.0
 args.feature_grad_mult= 1.0
 args.trim_mask= True
+args.layer_use= 7
 
-#os.makedirs(args.exp_dir, exist_ok=True)
 args.places = False
 args.flickr8k = False
 args.validate = True
 
 # my args
 mytwd = args.mytwd
-args.layer_use = int(args.mytarget_layer)
+#args.layer_use = int(args.mytarget_layer)
 
 # #############################################################################
 # ########################################### defining the model based on ARGS
@@ -123,7 +96,7 @@ with torch.no_grad():
         
         audio_signal = torch.tensor(signal_peng ,dtype=torch.float).to(device)
         input_signal = audio_signal.view(1, -1)
-        trm13_out = conv1_trm1_trm3(input_signal,  mask=False, features_only=True, tgt_layer=args.layer_use)
+        trm13_out = conv1_trm1_trm3(input_signal,  mask=False, features_only=True, tgt_layer=args.mytarget_layer)
         trm13_out_features = trm13_out['layer_feats']
         output_tensor = trm13_out_features[0] # (time, 768)
         output_np_arr = output_tensor.cpu().detach().numpy()
