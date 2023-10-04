@@ -87,7 +87,10 @@ args.trim_mask= True
 args.layer_use= 7
  
 #%%
-
+args.places = False
+args.flickr8k = False
+args.validate = True
+args.test = True
 #os.makedirs(args.exp_dir, exist_ok=True)
 
 if args.resume or args.validate:
@@ -106,10 +109,7 @@ else:
     print("\nexp_dir: %s" % args.exp_dir)
     with open("%s/args.pkl" % args.exp_dir, "wb") as f:
         pickle.dump(args, f)
-args.places = False
-args.flickr8k = False
-args.validate = True
-args.test = True
+
 #%%
 
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
