@@ -44,21 +44,18 @@ libri_dataset.LibriDataset.add_args(parser)
 
 # my custom args
 parser.add_argument("--Sname", help="file name of the similarity matrix")
+parser.add_argument("--root", help="machine root")
 args = parser.parse_args()
 
 #%% args from script
 
-# for musta
-# root = '/worktmp2/hxkhkh/'
-
-# for juova
-root = '/worktmp/khorrami/'
+root = args.root
 
 #..............................................................................
-data_root = os.path.join(root, 'current/FaST/data')
-fb_w2v2_weights_fn = os.path.join(root,'current/FaST/model/wav2vec_small.pt')
-libri_fn_root = os.path.join(root,'current/FaST/datavf/libri_fn_root/')
-pretrained_root = os.path.join(root,'current/FaST/hubertAndDINO')
+data_root = os.path.join(root, 'FaST/data')
+fb_w2v2_weights_fn = os.path.join(root,'FaST/model/wav2vec_small.pt')
+libri_fn_root = os.path.join(root,'FaST/datavf/libri_fn_root/')
+pretrained_root = os.path.join(root,'FaST/hubertAndDINO')
 
 #..............................................................................
 args.data_root=data_root
@@ -88,15 +85,10 @@ args.caption_w2v2_weight= 1.0
 args.feature_grad_mult= 1.0
 args.trim_mask= True
 args.layer_use= 7
-
-
-#Sname = "S2plus_aO_vO"
-#exp_dir = '/worktmp2/hxkhkh/current/FaST/experiments/vfplus/expS2/'
-exp_dir = args.exp_dir
-Sname = args.Sname  
+ 
 #%%
 
-os.makedirs(args.exp_dir, exist_ok=True)
+#os.makedirs(args.exp_dir, exist_ok=True)
 
 if args.resume or args.validate:
     resume = args.resume
@@ -124,18 +116,18 @@ args.test = True
 my_trainer = trainer.Trainer(args)
 batch, s = my_trainer.validate_khazar()
 
-audio = batch['audio'].cpu().detach().numpy()
-atm = batch['audio_attention_mask'].cpu().detach().numpy()
-al = batch['audio_length'].cpu().detach().numpy()
-images = batch ['images'].cpu().detach().numpy()
-img_id = batch ['img_id']
-fn = batch['fn']
+# audio = batch['audio'].cpu().detach().numpy()
+# atm = batch['audio_attention_mask'].cpu().detach().numpy()
+# al = batch['audio_length'].cpu().detach().numpy()
+# images = batch ['images'].cpu().detach().numpy()
+# img_id = batch ['img_id']
+# fn = batch['fn']
 
 s_np = s.cpu().detach().numpy()
 
-save_path = os.path.join(args.semtest_root, "Smatrix")
+save_path = os.path.join(args.root,"semtest", "Smatrix")
 
-np.save( os.path.join(save_path, Sname) , s_np)
+np.save( os.path.join(save_path, args.Sname) , s_np)
 
 #%%
 
