@@ -1,33 +1,170 @@
-import os
-#############################################################################
-#twd = '/worktmp/khorrami/current/FaST/experiments/model19base3/9252_bundle.pth'
-#target_layer = 2
-total_layers = 12
-trimTF = True
 
+import torch
+torch.cuda.empty_cache()
+#%%
+# Author: David Harwath
+import argparse
+import os
+import numpy as np
+import pickle
+import time
+from steps import trainer
+from models import fast_vgs, w2v2_model
+from datasets import spokencoco_dataset, libri_dataset
+from logging import getLogger
+import logging
+
+logger = getLogger(__name__)
+# khazar added below ....
+logger.setLevel(logging.DEBUG)
+logging.basicConfig()
+# .......................
+
+logger.info("I am process %s, running on %s: starting (%s)" % (
+        os.getpid(), os.uname()[1], time.asctime()))
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("--resume", action="store_true", dest="resume", help="load from exp_dir if True")
+parser.add_argument("--validate", action="store_true", default=False, help="temp, if call trainer_variants rather than trainer")
+parser.add_argument("--test", action="store_true", default=False, help="test the model on test set")
+parser.add_argument("--ssl", action="store_true", dest="ssl", help="only ssl training")
+
+trainer.Trainer.add_args(parser)
+
+w2v2_model.Wav2Vec2Model_cls.add_args(parser)
+
+fast_vgs.DualEncoder.add_args(parser)
+
+spokencoco_dataset.ImageCaptionDataset.add_args(parser)
+
+libri_dataset.LibriDataset.add_args(parser)
+
+# my custom args
+parser.add_argument("--mytwd", help="my model dir")
+parser.add_argument("--mytarget_layer", help="my target layer")
+
+args = parser.parse_args()
+
+#%% args from script
+
+root = "/worktmp2/hxkhkh/current/"
+
+#..............................................................................
+data_root = os.path.join(root, 'FaST/data')
+fb_w2v2_weights_fn = os.path.join(root,'FaST/model/wav2vec_small.pt')
+libri_fn_root = os.path.join(root,'FaST/datavf/libri_fn_root/')
+pretrained_root = os.path.join(root,'FaST/hubertAndDINO')
+
+#..............................................................................
+args.data_root=data_root
+args.fb_w2v2_weights_fn=fb_w2v2_weights_fn
+
+args.libri_fn_root=libri_fn_root
+args.load_pretrained_vit=pretrained_root
+    
+args.batch_size= 4
+args.val_batch_size= 16
+args.val_cross_batch_size= 4
+args.n_epochs= 50
+args.n_print_steps= 100
+args.n_val_steps= 1000
+args.lr= 0.0001
+args.warmup_fraction= 0.1
+args.vit_arch= 'vitsmall'
+args.vit_patch_size= 8
+args.vit_checkpoint_key= 'teacher'
+args.normalize= True
+args.xtrm_layers= 1
+args.trm_layers= 6
+args.fine_matching_weight= 0.0
+args.coarse_matching_weight= 1.0
+args.libri_w2v2_weight= 0.0
+args.caption_w2v2_weight= 1.0
+args.feature_grad_mult= 1.0
+args.trim_mask= True
+args.layer_use= 7
+ 
+#os.makedirs(args.exp_dir, exist_ok=True)
+
+if args.resume or args.validate:
+    resume = args.resume
+    assert(bool(args.exp_dir))
+    with open("%s/args.pkl" % args.exp_dir, "rb") as f:
+        old_args = pickle.load(f)
+    new_args = vars(args)
+    old_args = vars(old_args)
+    for key in new_args:
+        if key not in old_args or old_args[key] != new_args[key]:
+            old_args[key] = new_args[key]
+    args = argparse.Namespace(**old_args)
+    args.resume = resume
+else:
+    print("\nexp_dir: %s" % args.exp_dir)
+    with open("%s/args.pkl" % args.exp_dir, "wb") as f:
+        pickle.dump(args, f)
+args.places = False
+args.flickr8k = False
+args.validate = True
+args.test = True
+#############################################################################
+# # for data
+# import argparse
+import soundfile as sf
+# import numpy as np
+# import os
+# import torch
+import numpy
+# # for model
+from models.w2v2_model import  Wav2Vec2Model_cls 
+# from steps import trainer
+# from steps.utils import *
+# from steps.trainer_utils import *
+# from models import fast_vgs, w2v2_model
+# from datasets import spokencoco_dataset, libri_dataset
+# #############################################################################
+# # loading Model
+device = 'cpu'
+# # adding all args
+# parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+# parser.add_argument("--mytwd", help="my model dir")
+# parser.add_argument("--mytarget_layer", help="my target layer")
+# #..............................................................................
+
+# parser.add_argument("--resume", action="store_true", dest="resume", help="load from exp_dir if True")
+# parser.add_argument("--validate", action="store_true", default=False, help="temp, if call trainer_variants rather than trainer")
+# parser.add_argument("--test", action="store_true", default=False, help="test the model on test set")
+# trainer.Trainer.add_args(parser)
+# w2v2_model.Wav2Vec2Model_cls.add_args(parser)
+# fast_vgs.DualEncoder.add_args(parser)
+# spokencoco_dataset.ImageCaptionDataset.add_args(parser)
+# libri_dataset.LibriDataset.add_args(parser)
+# args = parser.parse_args()
+# ##############################################
+# # my args
+mytwd = args.mytwd
+args.layer_use = int(args.mytarget_layer)
+# # 
+# args.encoder_layers = 12
+# args.trim_mask = True
+# args.normalize = True
+# args.encoder_attention_heads = 12
+
+# ############################################## defining the model based on ARGS
+#..............................
+conv1_trm1_trm3 = Wav2Vec2Model_cls(args)
+conv1_trm1_trm3.to(device)
+conv1_trm1_trm3.eval()
+
+# loading Pre-trained weights
+bundle = torch.load(mytwd)
+conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
+
+#%%
 # Paths for LibriSpeech input and output
 wav_path = "/worktmp/khorrami/current/semtest/COCO/"#'/scratch/specog/lextest/data/CDI/'#"/worktmp2/hxkhkh/current/lextest/data/CDI/"
 save_path = "/worktmp/khorrami/current/lextest/embedds/" # '/scratch/specog/lextest/embedds/'#"/worktmp2/hxkhkh/current/lextest/embedds"
 os.makedirs(save_path, exist_ok=True)
-#############################################################################
-# for data
-import argparse
-import soundfile as sf
-import numpy as np
-import torch
-import json
-import numpy
-# for model
-from models.w2v2_model import  Wav2Vec2Model_cls , ConvFeatureExtractionModel
-
-from steps import trainer
-from steps.utils import *
-from steps.trainer_utils import *
-from models import fast_vgs, w2v2_model
-from datasets import spokencoco_dataset, libri_dataset
-
-#############################################################################
-    
+###############################################################################
 def LoadAudio( path):
     x, sr = sf.read(path, dtype = 'float32')
     assert sr == 16000
@@ -36,95 +173,7 @@ def LoadAudio( path):
     x_norm = (x - np.mean(x)) / np.std(x)
       
     return x_norm, audio_length
-
-#############################################################################
-
-# writting resamples files
-
-# 
-# wav_path = '/worktmp2/hxkhkh/current/lextest/CDI_lextest/CDI_synth/'
-# new_path = '/worktmp2/hxkhkh/current/lextest/data/CDI/'
-# import librosa
-# SAMPLE_RATE = 16000
-
-# for counter, wav_file in enumerate(wav_files_json):
-#     y, sr = librosa.load(wav_path + wav_file, dtype = 'float32')
-#     x = librosa.resample(y, sr, SAMPLE_RATE)
-#     sf.write(new_path + wav_file , x, SAMPLE_RATE)
-
-#############################################################################
-# loading Model
-device = 'cpu'
-# adding all args
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("--mytwd", help="my model dir")
-parser.add_argument("--mytarget_layer", help="my target layer")
-#..............................................................................
-
-parser.add_argument("--resume", action="store_true", dest="resume", help="load from exp_dir if True")
-parser.add_argument("--validate", action="store_true", default=False, help="temp, if call trainer_variants rather than trainer")
-parser.add_argument("--test", action="store_true", default=False, help="test the model on test set")
-trainer.Trainer.add_args(parser)
-w2v2_model.Wav2Vec2Model_cls.add_args(parser)
-fast_vgs.DualEncoder.add_args(parser)
-spokencoco_dataset.ImageCaptionDataset.add_args(parser)
-libri_dataset.LibriDataset.add_args(parser)
-args = parser.parse_args()
-#..............................
-
-# input args
-mytwd = args.mytwd
-args.layer_use = int(args.mytarget_layer)
-
-
-# fixed args
-args.encoder_layers = total_layers
-args.trim_mask = trimTF
-args.normalize = True
-args.encoder_attention_heads = 12
-
-print ('###############################')
-print(args)
-print ('###############################')
-
-############################################## defining the model based on ARGS
-#..............................
-conv1_trm1_trm3 = Wav2Vec2Model_cls(args)
-conv1_trm1_trm3.to(device)
-conv1_trm1_trm3.eval()
-
-
-# loading Pre-trained weights
-
-bundle = torch.load(mytwd)
-conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
-############################################################################# test
-
-# changing device to gpu
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# conv1_trm1_trm3.to(device)
-
-# conv1_trm1_trm3.eval()
-# all_signals = []
-# for counter, wav_file in enumerate(wav_files_json):
-#     signal_peng,l =  LoadAudio(wav_path + wav_file)
-#     all_signals.append(signal_peng)
-# audio_signals =  torch.tensor(all_signals ,dtype=torch.float).to(device)  
-# input_signals = audio_signals.view(1, -1)
-# with torch.no_grad(): 
-#     trm13_out = conv1_trm1_trm3(input_signals,  mask=False, features_only=True, tgt_layer=args.layer_use)
-
-    
-# trm13_out_features = trm13_out['layer_feats']
-# output_tensor = trm13_out_features[0]
-# output_np_arr = output_tensor.cpu().detach().numpy()
-
-# for counter, wav_file in enumerate(wav_files_json): 
-#     print(counter)   
-#     numpy.savetxt(save_path + wav_file [0:-4] + '.txt', output_np_arr[counter] )
-
-#############################################################################
-
+###############################################################################
 # changing device to gpu
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conv1_trm1_trm3.to(device)
@@ -150,10 +199,4 @@ with torch.no_grad():
         numpy.savetxt(save_path + wav_file [0:-4] + '.txt', output_np_arr_cls)
         
         torch.cuda.empty_cache()
-        #del trm13_out,trm13_out_features,output_tensor,output_np_arr
-############################################################################
-# from matplotlib import pyplot as plt
-# plt.imshow(output_np_arr.T)
-# vec = {'embedding_pretrained_model':output_np_arr}
-# from scipy.io import savemat
-# savemat('/home/hxkhkh/Music/' + "embedding_w2v2_model_layer3.mat", vec)
+       
