@@ -2,7 +2,7 @@
 DATAFOLDER='/worktmp/khorrami/current/semtest/COCO/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 NAME="expS1"
-OUTFOLDER="/scratch/specog/lextest/output/COCO"/$NAME
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/COCO"/$NAME
 mkdir $OUTFOLDER
 MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/prefb"/$NAME
 
