@@ -85,6 +85,10 @@ args.trim_mask= True
 args.layer_use= 7
  
 #os.makedirs(args.exp_dir, exist_ok=True)
+args.places = False
+args.flickr8k = False
+args.validate = True
+#args.test = True
 
 if args.resume or args.validate:
     resume = args.resume
@@ -102,10 +106,7 @@ else:
     print("\nexp_dir: %s" % args.exp_dir)
     with open("%s/args.pkl" % args.exp_dir, "wb") as f:
         pickle.dump(args, f)
-args.places = False
-args.flickr8k = False
-args.validate = True
-args.test = True
+
 #############################################################################
 # # for data
 # import argparse
