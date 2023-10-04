@@ -7,8 +7,21 @@ MROOT="/worktmp/khorrami/current/FaST/experiments/vfsubsets/prefb"
 
 
 MNAME="expS1"
-SNAME="S1_aL_vB"
+SNAME="S1_aL_vO"
 AF="COCO"
-VF="images/blurred"
-
+VF="images/original"
 python semantic_eval_DINO.py --exp_dir $MROOT/$MNAME --root $ROOT --Sname $SNAME --afiles $AF --vfiles $VF
+
+MNAME="expS2"
+SNAME="S2_aL_vO"
+AF="COCO"
+VF="images/original"
+python semantic_eval_DINO.py --exp_dir $MROOT/$MNAME --root $ROOT --Sname $SNAME --afiles $AF --vfiles $VF
+
+MNAME="expS3"
+SNAME="S3_aL_vO"
+AF="COCO"
+VF="images/original"
+python semantic_eval_DINO.py --exp_dir $MROOT/$MNAME --root $ROOT --Sname $SNAME --afiles $AF --vfiles $VF
+
+
