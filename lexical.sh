@@ -1,7 +1,7 @@
 #!/bin/sh
 DATAFOLDER='/worktmp/khorrami/current/semtest/COCO/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
-NAME="expS1"
+NAME="expS3"
 OUTFOLDER="/worktmp/khorrami/current/lextest/output/COCO"/$NAME
 mkdir $OUTFOLDER
 MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/prefb"/$NAME
