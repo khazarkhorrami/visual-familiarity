@@ -26,6 +26,8 @@ spokencoco_dataset.ImageCaptionDataset.add_args(parser)
 libri_dataset.LibriDataset.add_args(parser)
 
 # my custom args
+parser.add_argument("--apath", help="test audio wav dir")
+parser.add_argument("--epath", help="path to dave embeddings")
 parser.add_argument("--mytwd", help="my model dir")
 parser.add_argument("--mytarget_layer", help="my target layer")
 args = parser.parse_args()
@@ -69,8 +71,8 @@ conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
                             # extracting embeddings #
 # #############################################################################
 # Paths for input and output
-wav_path = "/worktmp/khorrami/current/semtest/COCO/"#'/scratch/specog/lextest/data/CDI/'#
-save_path = "/worktmp/khorrami/current/lextest/embedds/" # '/scratch/specog/lextest/embedds/'
+wav_path = args.apath#"/worktmp/khorrami/current/semtest/COCO/"#'/scratch/specog/lextest/data/CDI/'#
+save_path = args.epath#"/worktmp/khorrami/current/lextest/embedds/" # '/scratch/specog/lextest/embedds/'
 os.makedirs(save_path, exist_ok=True)
 ###############################################################################
 def LoadAudio( path):
