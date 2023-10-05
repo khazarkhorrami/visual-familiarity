@@ -2,9 +2,9 @@
 DATAFOLDER='/worktmp/khorrami/current/semtest/COCO/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 NAME="expS3"
-OUTFOLDER="/worktmp/khorrami/current/lextest/output/COCO"/$NAME
+OUTFOLDER="/worktmp/khorrami/current/lextest/output6M/COCO"/$NAME
 mkdir $OUTFOLDER
-MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/prefb"/$NAME
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/pre6M"/$NAME
 
 source activate fastvgs
 
@@ -13,7 +13,7 @@ for LAYERNAME in 1 2 3 4 5 6 7 8 9 10 11
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
-    python /worktmp/khorrami/current/FaST/visual-familiarity/lexical.py --mytarget_layer $LAYERNAME --mytwd $MFOLDER/$M
+    python /worktmp/khorrami/current/FaST/visual-familiarity/lexical.py --apath DATAFOLDER --epath EMBDFOLDER --mytarget_layer $LAYERNAME --mytwd $MFOLDER/$M
     mkdir $OUTFILE
     cd /worktmp/khorrami/current/lextest/COCO_lextest
     sh COCO_lextest.sh $DATAFOLDER $EMBDFOLDER 'single' 0 $OUTFILE

@@ -7,7 +7,7 @@ import numpy as np
 import os
 from matplotlib import pyplot as plt
 import json
-S_path = os.path.join(root, 'Smatrix')
+S_path = os.path.join(root, 'SmatrixFB')
   
     
 file = os.path.join(root, "semtest_files_pairings.json")
@@ -134,7 +134,8 @@ def measure_3 (S):
 def find_measure1 (Snames):  
     ms = [] 
     for Sname in Snames:
-        S = np.load(S_path + Sname + ".npy")  
+        P = os.path.join(S_path , Sname)
+        S = np.load( P + ".npy")  
         m = measure_1 (S)
         ms.append(m)
     return ms
@@ -143,7 +144,8 @@ def find_measure3 (Snames):
     ss = []
     scats = []   
     for Sname in Snames:
-        S = np.load(S_path + Sname + ".npy")          
+        P = os.path.join(S_path , Sname)
+        S = np.load( P + ".npy")          
         s, scat  = measure_3 (S)
         ss.append(s)
         scats.append(scat)
@@ -155,7 +157,8 @@ def find_all_measures (Snames):
     scats = []
     
     for Sname in Snames:
-        S = np.load(S_path + Sname + ".npy")  
+        P = os.path.join(S_path , Sname)
+        S = np.load( P + ".npy")  
         m = measure_1 (S)
         s, scat  = measure_3 (S)
         ms.append(m)
@@ -195,8 +198,11 @@ def plotbar_multi (names, results , title):
     plt.show()
 
 #%%
-
-
+Snames = ["S3_aL_vO", "S3_aL_vM","S3_aL_vB"  ]
+m_3 = find_measure1 (Snames)
+s_3, cat_3 = find_measure3 (Snames)
+kh
+#%%
 # Measure 1
 Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
 m_O = find_measure1 (Snames)
