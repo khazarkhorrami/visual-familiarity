@@ -17,14 +17,14 @@ import logging
 
 
 
-logger = getLogger(__name__)
-# khazar added below ....
-logger.setLevel(logging.DEBUG)
-logging.basicConfig()
+# logger = getLogger(__name__)
+# # khazar added below ....
+# logger.setLevel(logging.DEBUG)
+# logging.basicConfig()
 # .......................
 
-logger.info("I am process %s, running on %s: starting (%s)" % (
-        os.getpid(), os.uname()[1], time.asctime()))
+# logger.info("I am process %s, running on %s: starting (%s)" % (
+#         os.getpid(), os.uname()[1], time.asctime()))
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--resume", action="store_true", dest="resume", help="load from exp_dir if True")
