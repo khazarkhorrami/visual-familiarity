@@ -1,7 +1,7 @@
 #!/bin/sh
 DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
-EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission/'
-TYPE='phonetic/dev-clean/'
+EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
+TYPE='phonetic'
 NAME="vfls"
 OUTFOLDER="/worktmp/khorrami/current/ZeroSpeech/output/AC"/$NAME
 mkdir $OUTFOLDER

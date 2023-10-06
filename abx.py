@@ -71,8 +71,8 @@ conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
 # #############################################################################
 # Paths for input and output
 wav_path = args.apath
-save_path = args.epath
-os.makedirs(save_path, exist_ok=True)
+embedd_path = args.epath
+os.makedirs(embedd_path + 'dev-clean', exist_ok=True)
 
 audio_dataset_json_file = os.path.join(wav_path ,'index.json')
 
@@ -107,7 +107,7 @@ with torch.no_grad():
         trm13_out_features = trm13_out['layer_feats']
         output_tensor = trm13_out_features[0] # (time, 768)
         output_np_arr = output_tensor.cpu().detach().numpy()
-        np.savetxt(save_path + wav_file [0:-4] + '.txt', output_np_arr )
+        np.savetxt(embedd_path + wav_file [0:-4] + '.txt', output_np_arr )
 
         torch.cuda.empty_cache()
         del trm13_out,trm13_out_features,output_tensor,output_np_arr
