@@ -1,9 +1,9 @@
 #!/bin/sh
 DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
 EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
-TYPE='phonetic'
+TYPE='phonetic/'
 NAME="vfls"
-OUTFOLDER="/worktmp/khorrami/current/ZeroSpeech/output/AC"/$NAME
+OUTFOLDER="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTFOLDER
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/"exphh"
 
@@ -16,7 +16,7 @@ source activate fastvgs
 python /worktmp/khorrami/current/FaST/visual-familiarity/abx.py --apath $DATAFOLDER --epath $EMBDFOLDER/$TYPE --mytarget_layer 0 --mytwd $MFOLDER/$M
 conda activate zerospeech2021
 mkdir $OUTFILE
-zerospeech2021-evaluate /worktmp/khorrami/current/ZeroSpeech/data/  $EMBDFOLDER -o $OUTFILE -j12 --no-lexical --no-syntactic --no-semantic --force-cpu
+zerospeech2021-evaluate /worktmp/khorrami/current/ZeroSpeech/data/  $EMBDFOLDER -o $OUTFILE -j12 --no-lexical --no-syntactic --no-semantic --force-cpu 
 rm -r $EMBDFOLDER/$TYPE
 
 
