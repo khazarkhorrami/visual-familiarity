@@ -1,5 +1,5 @@
 #!/bin/sh
-DATAFOLDER='/worktmp/khorrami/current/semtest/COCO/'
+DATAFOLDER=''/worktmp/khorrami/current/lextest/data/COCO/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 NAME="expl"
 OUTFOLDER="/worktmp/khorrami/current/lextest/outputSSL6M/COCO"/$NAME
