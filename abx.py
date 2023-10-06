@@ -55,7 +55,7 @@ args.layer_use = int(args.mytarget_layer)
 
 # #############################################################################
 # ########################################### defining the model based on ARGS
-device = 'cpu'
+device = 'cuda'
 #..............................
 conv1_trm1_trm3 = Wav2Vec2Model_cls(args)
 conv1_trm1_trm3.to(device)
