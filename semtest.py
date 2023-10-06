@@ -198,10 +198,10 @@ def plotbar_multi (names, results , title):
     plt.show()
 
 #%%
-Snames = ["S3_aL_vO", "S3_aL_vM","S3_aL_vB"  ]
-m_3 = find_measure1 (Snames)
-s_3, cat_3 = find_measure3 (Snames)
-kh
+# Snames = ["S3_aL_vO", "S3_aL_vM","S3_aL_vB"  ]
+# m_3 = find_measure1 (Snames)
+# s_3, cat_3 = find_measure3 (Snames)
+
 #%%
 # Measure 1
 Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
