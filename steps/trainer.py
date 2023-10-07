@@ -356,15 +356,15 @@ class Trainer:
         save_progress(self)
         
         #######################################################################
-        # Khazar: here it saves the model in each call 
-        # if self.progress['epoch'] <= 5 :
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        # else:
-        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        #Khazar: here it saves the model in each call 
+        if self.progress['epoch'] <= 5 :
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        else:
+            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #######################################################################    
-        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
@@ -376,7 +376,7 @@ class Trainer:
             },save_path
         )
         logger.info(f"save models, indices, acc and other statistics at {save_path} and {self.args.exp_dir}/progress.pkl at global step {self.progress['num_updates']}")
-        #khazar: I added this return below:
+
         return r10, r5, r1
 
     def validate(self, valid_loader, unseen = False):
@@ -714,7 +714,7 @@ class Trainer:
             indices = None
             libri_indices = None
             optim_states = None
-        # Khazar: for random initialization
+
         if self.args.fb_w2v2_weights_fn and self.progress['num_updates'] <= 1 and not self.args.validate and self.args.trained_weights_dir == None:           
             b = torch.load(self.args.fb_w2v2_weights_fn)['model']
             dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(b)
