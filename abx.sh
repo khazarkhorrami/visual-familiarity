@@ -2,10 +2,10 @@
 DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
 EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
-NAME="vfls"
+NAME="vfsubsets"
 OUTFOLDER="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTFOLDER
-MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/"exphh"
+MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/"pre6M/expS1"
 
 
 M="best_bundle.pth"
