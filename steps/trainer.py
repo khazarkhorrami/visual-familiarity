@@ -95,7 +95,7 @@ class Trainer:
     def train(self):
         for epk in range(self.args.n_epochs):
             self.train_vgs()
-            #self.validate_and_save()
+            self.validate_libri()
             self.train_ssl()
             self.validate_and_save_ssl()
             self.progress['epoch'] += 1
@@ -305,14 +305,14 @@ class Trainer:
         
         #######################################################################
         # Khazar: here it saves the model in each call 
-        # if self.progress['epoch'] <= 5 :
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        # else:
-        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        if self.progress['epoch'] <= 5 :
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        else:
+            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #######################################################################    
-        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
@@ -647,12 +647,12 @@ class Trainer:
         weighted_loss = losses['coarse_matching_loss'] * self.args.coarse_matching_weight * alpha 
         if 'caption_w2v2_loss' in losses:
             weighted_loss += losses['caption_w2v2_loss'].mean() * self.args.caption_w2v2_weight * (beta)           
-        if 'libri_w2v2_loss' in losses:
-            weighted_loss += losses['libri_w2v2_loss'].mean() * self.args.libri_w2v2_weight
-        if 'caption_hubert_loss' in losses:
-            weighted_loss += losses['caption_hubert_loss'].mean() * self.args.caption_hubert_weight
-        if 'libri_hubert_loss' in losses:
-            weighted_loss += losses['libri_hubert_loss'].mean() * self.args.libri_hubert_weight
+        # if 'libri_w2v2_loss' in losses:
+        #     weighted_loss += losses['libri_w2v2_loss'].mean() * self.args.libri_w2v2_weight
+        # if 'caption_hubert_loss' in losses:
+        #     weighted_loss += losses['caption_hubert_loss'].mean() * self.args.caption_hubert_weight
+        # if 'libri_hubert_loss' in losses:
+        #     weighted_loss += losses['libri_hubert_loss'].mean() * self.args.libri_hubert_weight
 
         
         return weighted_loss
