@@ -15,7 +15,7 @@ python \
 --data_root ${data_root} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
---trained_weights_dir ${twd} \
+--resume \
 --load_pretrained_vit ${pretrained_root} \
 --batch_size 160 \
 --val_batch_size 160 \
