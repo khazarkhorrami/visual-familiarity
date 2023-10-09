@@ -2,9 +2,9 @@
 DATAFOLDER='/worktmp/khorrami/current/lextest/data/CDI/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 NAME="exphh"
-OUTFOLDER="/worktmp/khorrami/current/lextest/outputSSL6M/CDI"/$NAME
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfsubsets/CDI"/$NAME
 mkdir $OUTFOLDER
-MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfls"/$NAME
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/exp100"/$NAME
 
 source activate fastvgs
 
