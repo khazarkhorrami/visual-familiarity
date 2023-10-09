@@ -1,14 +1,14 @@
 #!/bin/sh
 DATAFOLDER=''/worktmp/khorrami/current/lextest/data/COCO/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
-NAME="expl"
-OUTFOLDER="/worktmp/khorrami/current/lextest/outputSSL6M/COCO"/$NAME
+NAME="expS1"
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfsubsets/COCO"/$NAME
 mkdir $OUTFOLDER
-MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfls"/$NAME
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfsubsets/exp100"/$NAME
 
 source activate fastvgs
 
-M="best_bundle.pth"
+M="bundle.pth"
 for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
 do
     OUTNAME="L"$LAYERNAME
