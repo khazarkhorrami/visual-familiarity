@@ -92,15 +92,19 @@ class Trainer:
     def forward_ssl (self, libri_batch):
         losses = self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)
         return losses
+    
     def train(self):
         for epk in range(self.args.n_epochs):
-            self.validate_and_save()
+            
             self.train_vgs()
+            self.validate_and_save() 
+            self.train_ssl()  
             self.validate_libri()
-            self.train_ssl()   
+             
             self.progress['epoch'] += 1
         r10, r5, r1 = self.validate_and_save()
         self.writer.close()
+    
     def train_vgs(self):
         print ('############# here is inside train function ###############')
 
@@ -405,12 +409,8 @@ class Trainer:
                         #img_feats_list.append(detached_visual_feats[j])
                         img_cls_list.append(visual_cls[j].detach())
                         img_img_id_list.append(img_id)
-                if i>= 110:
-                    break
-            
-            # print ('khazar: memory allocated before cat')
-            # print(torch.cuda.memory_allocated(device=0) / 1024 ** 3)
-            
+                # if i>= 110:
+                #     break
             
             audio_cls_total = torch.cat(audio_cls_total)  
             #audio_cls_total = audio_cls_total.cuda(device=1)
