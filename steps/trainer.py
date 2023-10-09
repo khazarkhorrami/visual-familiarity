@@ -530,8 +530,7 @@ class Trainer:
                 extended_audio_attention_mask_total.append(extended_audio_attention_mask.detach())
                 visual_feats_total.append(visual_feats.detach())
                 #img_id_total.append(batch['img_id'])
-                # if i>= 20:
-                #     break
+
             audio_feats_total = torch.cat(audio_feats_total)
             extended_audio_attention_mask_total = torch.cat(extended_audio_attention_mask_total)
             visual_feats_total = torch.cat(visual_feats_total)
