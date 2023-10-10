@@ -290,7 +290,38 @@ for key, dict_images in dict_obj_sorted_image.items():
 # with open(file_json, "w") as fp:
 #     json.dump(dict_saved_images,fp) 
 #%% testing json file
-# with open(file_json, 'r', encoding='utf-8') as json_file:
-#     data_json_saved = json.load(json_file) 
+import json
+file_json = "/worktmp2/hxkhkh/current/semtest/images/" + "semtest_images.json"
+with open(file_json, 'r', encoding='utf-8') as json_file:
+    data_json_saved = json.load(json_file) 
+
+#%%
+dict_snames_to_imnames = {}
+for key, value in data_json_saved.items():
+    imlist = value['image_list']
+    snames = value['saved_names']
+    for counter, imn in enumerate(imlist):
+        ims = snames[counter]
+        dict_snames_to_imnames [ims] = imn
+#%%   
+import json   
+file_json = '/worktmp2/hxkhkh/current/semtest/data.json'
+with open(file_json, 'r', encoding='utf-8') as json_file:
+    data_DINO = json.load(json_file) ['data']
+
+list_RCNN = []
+for item in data_DINO:
+    i = item['image']
+    c = item['caption']
+    item_rcnn = {}
+    item_rcnn['image'] = dict_snames_to_imnames [i]
+    item_rcnn['caption'] = c
     
-    
+    list_RCNN.append(item_rcnn)
+
+data_RCNN = {}
+data_RCNN['data'] = list_RCNN
+#%%
+# file_json = '/worktmp2/hxkhkh/current/semtest/dataRCNN.json'
+# with open(file_json, "w") as fp:
+#     json.dump(data_RCNN,fp) 
