@@ -2,7 +2,7 @@
 DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
 EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
-NAME="vfsubsets"
+NAME="vfplus"
 M="bundle.pth"
 OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTDIR
