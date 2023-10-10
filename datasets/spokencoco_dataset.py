@@ -53,6 +53,7 @@ class ImageCaptionDataset(Dataset):
         self.args = args
         self.split = split
         self.audio_feat_len = args.audio_feat_len if "train" in split else args.val_audio_feat_len
+        
         if split == "train":
             if args.subset == "all":
                 # for original data
