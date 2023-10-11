@@ -17,8 +17,8 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --resume \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 154 \
---val_batch_size 160 \
+--batch_size 140 \
+--val_batch_size 140 \
 --val_cross_batch_size 100 \
 --n_epochs 70 \
 --n_print_steps 100 \
