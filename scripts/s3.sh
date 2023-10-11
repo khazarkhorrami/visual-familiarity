@@ -14,7 +14,7 @@ python \
 --image_type "normal" \
 --subset "subset3" \
 --data_root ${data_root} \
---fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
+--trained_weights_dir ${twd} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
