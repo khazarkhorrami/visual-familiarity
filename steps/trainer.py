@@ -283,7 +283,8 @@ class Trainer:
                     
                
                 # validation and save models
-                if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                if self.progress['num_updates'] % step_per_epoch == 0:
+                #if self.progress['num_updates'] % self.args.n_val_steps == 0:
                     self.validate_and_save_ssl(n_save_ind = self.progress['epoch'])
                     
                 ########    
@@ -309,7 +310,7 @@ class Trainer:
             logger.info(f"save *best* models at {save_path} at global step {self.progress['num_updates']}")
         if self.progress['epoch'] <= 5 :
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 15 == 0:
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 10 == 0:
             save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
         else:
             save_path = os.path.join(self.args.exp_dir, "bundle.pth")
