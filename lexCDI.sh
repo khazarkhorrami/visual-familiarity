@@ -3,11 +3,11 @@ DATAFOLDER='/worktmp/khorrami/current/lextest/data/CDI/'
 EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 source activate fastvgs
 
-NAME="exphh"
-OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfls/CDI"/$NAME
+NAME="expS0"
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfplus/CDI"/$NAME
 mkdir $OUTFOLDER
-MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfls/exp70"/$NAME
-M="best_bundle.pth"
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfplus/exp6M"/$NAME
+M="bundle.pth"
 for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
 do
     OUTNAME="L"$LAYERNAME
@@ -19,4 +19,50 @@ do
     rm -r $EMBDFOLDER
 done
 
+NAME="expS1"
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfplus/CDI"/$NAME
+mkdir $OUTFOLDER
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfplus/exp6M"/$NAME
+M="bundle.pth"
+for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
+do
+    OUTNAME="L"$LAYERNAME
+    OUTFILE=$OUTFOLDER/$OUTNAME
+    python /worktmp/khorrami/current/FaST/visual-familiarity/lexical.py --apath $DATAFOLDER --epath $EMBDFOLDER --mytarget_layer $LAYERNAME --mytwd $MFOLDER/$M
+    mkdir $OUTFILE
+    cd /worktmp/khorrami/current/lextest/CDI_lextest
+    sh CDI_lextest.sh $DATAFOLDER $EMBDFOLDER 'single' 0 $OUTFILE
+    rm -r $EMBDFOLDER
+done
 
+NAME="expS2"
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfplus/CDI"/$NAME
+mkdir $OUTFOLDER
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfplus/exp6M"/$NAME
+M="bundle.pth"
+for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
+do
+    OUTNAME="L"$LAYERNAME
+    OUTFILE=$OUTFOLDER/$OUTNAME
+    python /worktmp/khorrami/current/FaST/visual-familiarity/lexical.py --apath $DATAFOLDER --epath $EMBDFOLDER --mytarget_layer $LAYERNAME --mytwd $MFOLDER/$M
+    mkdir $OUTFILE
+    cd /worktmp/khorrami/current/lextest/CDI_lextest
+    sh CDI_lextest.sh $DATAFOLDER $EMBDFOLDER 'single' 0 $OUTFILE
+    rm -r $EMBDFOLDER
+done
+
+NAME="expS3"
+OUTFOLDER="/worktmp/khorrami/current/lextest/output/vfplus/CDI"/$NAME
+mkdir $OUTFOLDER
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfplus/exp6M"/$NAME
+M="bundle.pth"
+for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
+do
+    OUTNAME="L"$LAYERNAME
+    OUTFILE=$OUTFOLDER/$OUTNAME
+    python /worktmp/khorrami/current/FaST/visual-familiarity/lexical.py --apath $DATAFOLDER --epath $EMBDFOLDER --mytarget_layer $LAYERNAME --mytwd $MFOLDER/$M
+    mkdir $OUTFILE
+    cd /worktmp/khorrami/current/lextest/CDI_lextest
+    sh CDI_lextest.sh $DATAFOLDER $EMBDFOLDER 'single' 0 $OUTFILE
+    rm -r $EMBDFOLDER
+done
