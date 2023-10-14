@@ -23,7 +23,7 @@ python \
 --val_cross_batch_size 100 \
 --n_epochs 100 \
 --n_print_steps 59 \
---n_val_steps 300 \
+--n_val_steps 590 \
 --lr 0.0001 \
 --warmup_fraction 0.1 \
 --vit_arch 'vitsmall' \
