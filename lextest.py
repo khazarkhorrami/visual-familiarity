@@ -1,6 +1,6 @@
 root = "/worktmp2/hxkhkh/current/lextest/"
 dtype = 'COCO'
-mtype = 'vfsubsets'
+mtype = 'vfplus'
 
 if mtype == 'vfplus':
     title = 'RCNN-' + dtype
