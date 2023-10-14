@@ -4,7 +4,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
 fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
-exp_dir="../../expFB/expS3/"
+exp_dir="../../expR/expS3/"
 libri_fn_root="../../../../datavf/ssl_sub3_root/"
 pretrained_root="../../../../hubertAndDINO"
 twd="../../twd/"
@@ -14,7 +14,6 @@ python \
 --image_type "normal" \
 --subset "subset3" \
 --data_root ${data_root} \
---fb_w2v2_weights_fn ${fb_w2v2_weights_fn} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
