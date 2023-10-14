@@ -2,13 +2,13 @@
 
 
 root = "/worktmp2/hxkhkh/current/semtest/"
-mtype = 'subsets'# plus #FB
+mtype = 'vfplus'# plus #FB
 #%%
 import numpy as np
 import os
 from matplotlib import pyplot as plt
 import json
-S_path = os.path.join(root, 'S/', 'Smatrix-' + mtype)
+S_path = os.path.join(root, 'Smatrix', mtype)
   
     
 file = os.path.join(root, "semtest_files_pairings.json")
@@ -252,7 +252,7 @@ if mtype=="FB":
 
 #%% subsets
 
-if mtype == "subsets":
+if mtype == "vfsubsets":
     Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
     m_O = find_measure1 (Snames)
     Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
@@ -278,13 +278,13 @@ if mtype == "subsets":
     plotbar_multi (names, results, "DINO_m3", cl = 0.50)
 
 #%% vfplus
-if mtype == "plus":
+if mtype == "vfplus":
     #Measure 1
-    Snames = ["Splus1","Splus0","Splus2","Splus3"  ]
+    Snames = ["S1","S0","S2","S3"  ]
     m_O = find_measure1 (Snames)
     
     # Measure 3
-    Snames = ["Splus1","Splus0","Splus2","Splus3"  ]
+    Snames = ["S1","S0","S2","S3"  ]
     s_O, cat_O = find_measure3 (Snames)
     
     # plotting
