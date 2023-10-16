@@ -4,9 +4,9 @@ EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
 NAME="vfls"
 
-OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC/vfls/expls"
+OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC/vfls/explsl"
 mkdir $OUTDIR
-MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfls/expls"
+MFOLDER="/worktmp/khorrami/current/FaST/experiments/vfls/explsl"
 
 MODEL="E10"
 M="${MODEL}_bundle.pth"
@@ -22,7 +22,7 @@ mkdir $OUTFILE
 zerospeech2021-evaluate /worktmp/khorrami/current/ZeroSpeech/data/  $EMBDFOLDER -o $OUTFILE -j12 --no-lexical --no-syntactic --no-semantic --force-cpu 
 rm -r $EMBDFOLDER/$TYPE
 
-for LAYERNAME in 1 2 3 4 5 6 7 8 9 10 11
+for LAYERNAME in 1 2 3 4 5
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
@@ -38,7 +38,7 @@ MODEL="E20"
 M="${MODEL}_bundle.pth"
 OUTFOLDER=$OUTDIR/$MODEL
 mkdir $OUTFOLDER
-for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
+for LAYERNAME in 0 1 2 3 4 5
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
@@ -54,7 +54,7 @@ MODEL="E40"
 M="${MODEL}_bundle.pth"
 OUTFOLDER=$OUTDIR/$MODEL
 mkdir $OUTFOLDER
-for LAYERNAME in 0 1 2 3 4 5 6 7 8 9 10 11
+for LAYERNAME in 0 1 2 3 4 5
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
@@ -66,7 +66,7 @@ do
     rm -r $EMBDFOLDER/$TYPE
 done
 
-MODEL="E60"
+MODEL="E50"
 M="${MODEL}_bundle.pth"
 OUTFOLDER=$OUTDIR/$MODEL
 mkdir $OUTFOLDER
