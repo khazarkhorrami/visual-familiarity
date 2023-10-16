@@ -74,7 +74,7 @@ class LibriDataset(Dataset):
     def add_args(parser):
         parser.add_argument("--libri_fn_root", type=str, default="../../../../datavf/ssl_root/", help="root for tsv files")
         #parser.add_argument("--data_root", type=str, default="../../../../data/")
-        parser.add_argument("--libri_max_seq_len", type=float, default=6)
+        parser.add_argument("--libri_max_seq_len", type=float, default=20)
         parser.add_argument("--libri_val_bzs", type=int, default=64)
         parser.add_argument("--sample_rate", type=int, default=16000)
         parser.add_argument("--feature_rate", type=int, default=50, help="50")
