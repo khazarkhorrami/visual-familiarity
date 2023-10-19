@@ -19,22 +19,21 @@ python \
 --batch_size 22 \
 --val_batch_size 22 \
 --val_cross_batch_size 22 \
---n_epochs 50 \
+--n_epochs 200 \
 --n_print_steps 100 \
 --n_val_steps 1800 \
---lr 0.0001 \
---warmup_fraction 0.1 \
+--lr 0.0005 \
+--warmup_fraction 0.08 \
 --vit_arch 'vitsmall' \
 --vit_patch_size 8 \
 --vit_checkpoint_key 'teacher' \
---normalize \
 --xtrm_layers 1 \
 --trm_layers 1 \
 --fine_matching_weight 0.0 \
 --coarse_matching_weight 1.0 \
 --libri_w2v2_weight 0.0 \
 --caption_w2v2_weight 1.0 \
---feature_grad_mult 1.0 \
+--feature_grad_mult 0.1 \
 --trim_mask \
 --encoder_layers 10 \
 --encoder_attention_heads 8 \
