@@ -4,7 +4,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
 fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
-exp_dir="../../expls10/"
+exp_dir="../../expls8/"
 twd="../../twd/"
 libri_fn_root="../../../../datavf/libri_fn_root/"
 pretrained_root="../../../../hubertAndDINO"
@@ -16,8 +16,8 @@ python \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
---batch_size 22 \
---val_batch_size 22 \
+--batch_size 24 \
+--val_batch_size 24 \
 --val_cross_batch_size 22 \
 --n_epochs 200 \
 --n_print_steps 100 \
@@ -33,9 +33,9 @@ python \
 --coarse_matching_weight 1.0 \
 --libri_w2v2_weight 0.0 \
 --caption_w2v2_weight 1.0 \
---feature_grad_mult 0.1 \
+--feature_grad_mult 1.0 \
 --trim_mask \
---encoder_layers 10 \
+--encoder_layers 8 \
 --encoder_attention_heads 8 \
---layer_use 9 \
+--layer_use 7 \
 
