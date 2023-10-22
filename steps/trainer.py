@@ -579,7 +579,9 @@ class Trainer:
         print_model_info(cross_encoder, print_model = False)
         if self.args.trained_weights_dir != None:
             bundle = torch.load(os.path.join(self.args.trained_weights_dir, "best_bundle.pth"))
-            dual_encoder.carefully_load_state_dict(bundle['dual_encoder'])
+            # this should be checked for the difference between bundle and FB b
+            dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
+            #dual_encoder.carefully_load_state_dict(bundle['dual_encoder'])
             #cross_encoder.carefully_load_state_dict(bundle['cross_encoder'])
             indices = None
             libri_indices = None
