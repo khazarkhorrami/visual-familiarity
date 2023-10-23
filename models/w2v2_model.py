@@ -933,7 +933,31 @@ class ConvFeatureExtractionModel(nn.Module):
                 )
             )
             in_d = dim
+    # def carefully_load_state_dict(self, states):
+    #     """
+    #     1) Take care of DataParallel/nn.Module state_dict
+    #     2) Show keys that are not loaded due to size mismatch or not found in model
+    #     """
+    #     new_states = self.state_dict()
+    #     loaded_keys = []
+    #     for k, v in states.items():
+    #         k = k[7:] if k.startswith('module') else k
+    #         k = k[22:] if k.startswith('w2v_encoder.w2v_model') else k
+    #         k = k[11:] if k.startswith('w2v2_model') else k
+    #         k = k.replace("conv1_trm1_trm3.","")
+    #         if k in new_states and new_states[k].size() == v.size():
+    #             new_states[k] = v
+    #             loaded_keys.append(k)
+    #         else:
+    #             print('Ignoring %s due to not existing or size mismatch' % k)
 
+    #     non_loaded_keys = set(new_states.keys()) - set(loaded_keys)
+    #     if non_loaded_keys:
+    #         print('\nModel states that do not exist in the seed_dir:')
+    #         for k in sorted(non_loaded_keys):
+    #             print('  %s' % k)
+        
+    #     self.load_state_dict(new_states)
     def forward(self, x):
 
         # BxT -> BxCxT

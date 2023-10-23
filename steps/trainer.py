@@ -52,14 +52,14 @@ class Trainer:
         # now this is used to check if after VGS/VGS+ epoch we want SSL-only one.(Default: False( weight = 0))
         self.use_libri_loss = self.args.libri_w2v2_weight != 0
         
-        if args.ssl:
+        if self.args.ssl:
             # for ssl pretraining
             self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.libri_train_data_length = self._setup_dataloader_ssl()
         else:
             # for normal training:
             self.train_loader, self.valid_loader, self.train_sampler, self.libri_train_loader, self.libri_valid_loader, self.libri_train_sampler, self.train_data_length = self._setup_dataloader()
         
-        if args.ssl:
+        if self.args.ssl:
             # for ssl pretraining
             self.total_num_updates = int(math.floor(self.libri_train_data_length / self.args.batch_size))*self.args.n_epochs
         else:
@@ -579,10 +579,11 @@ class Trainer:
         print_model_info(cross_encoder, print_model = False)
         if self.args.trained_weights_dir != None:
             bundle = torch.load(os.path.join(self.args.trained_weights_dir, "best_bundle.pth"))
-            # this should be checked for the difference between bundle and FB b
-            dual_encoder.conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
-            #dual_encoder.carefully_load_state_dict(bundle['dual_encoder'])
-            #cross_encoder.carefully_load_state_dict(bundle['cross_encoder'])
+            # Kh: I change this part from loading from dual encoder to w2v2 layers
+            if self.args.ssl:
+                dual_encoder.conv1_trm1_trm3.carefully_load_state_dict_ssl(bundle['dual_encoder'])
+            else:
+                dual_encoder.conv1_trm1_trm3.carefully_load_state_dict_pre(bundle['dual_encoder'])
             indices = None
             libri_indices = None
             optim_states = None
