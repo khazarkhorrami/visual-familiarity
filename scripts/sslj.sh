@@ -17,9 +17,9 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
---libri_max_seq_len 8 \
---batch_size 16 \
---val_batch_size 16 \
+--libri_max_seq_len 10 \
+--batch_size 8 \
+--val_batch_size 8 \
 --val_cross_batch_size 100 \
 --n_epochs 100 \
 --n_print_steps 100 \
