@@ -4,7 +4,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
 fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
-exp_dir="../../expls8/"
+exp_dir="../../expls10/"
 twd="../../twd/"
 libri_fn_root="../../../../datavf/libri_fn_root/"
 pretrained_root="../../../../hubertAndDINO"
@@ -13,6 +13,7 @@ python \
 ../run_spokencoco.py \
 --ssl \
 --data_root ${data_root} \
+--trained_weights_dir ${twd} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
 --load_pretrained_vit ${pretrained_root} \
@@ -33,9 +34,9 @@ python \
 --coarse_matching_weight 1.0 \
 --libri_w2v2_weight 0.0 \
 --caption_w2v2_weight 1.0 \
---feature_grad_mult 1.0 \
+--feature_grad_mult 0.1 \
 --trim_mask \
---encoder_layers 8 \
+--encoder_layers 10 \
 --encoder_attention_heads 8 \
 --layer_use 7 \
 
