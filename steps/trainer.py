@@ -581,9 +581,9 @@ class Trainer:
             bundle = torch.load(os.path.join(self.args.trained_weights_dir, "best_bundle.pth"))
             # Kh: I change this part from loading from dual encoder to w2v2 layers
             if self.args.ssl:
-                dual_encoder.conv1_trm1_trm3.carefully_load_state_dict_ssl(bundle['dual_encoder'])
+                dual_encoder.carefully_load_state_dict_ssl(bundle['dual_encoder'])
             else:
-                dual_encoder.conv1_trm1_trm3.carefully_load_state_dict_pre(bundle['dual_encoder'])
+                dual_encoder.carefully_load_state_dict_pre(bundle['dual_encoder'])
             indices = None
             libri_indices = None
             optim_states = None
