@@ -382,6 +382,62 @@ class DualEncoder(nn.Module):
                 print('  %s' % k)
         
         self.load_state_dict(new_states)
+        
+    def carefully_load_state_dict_pre(self, states):
+        """
+        0) this is to only load w2v2 weights (khazar)
+        1) Take care of DataParallel/nn.Module state_dict
+        2) Show keys that are not loaded due to size mismatch or not found in model
+        """
+        new_states = self.state_dict()
+        loaded_keys = []
+        for k, v in states.items():
+            k = k[7:] if k.startswith('module') else k
+            # if "audio_convnet" in k:
+            #     print(f"skip audio convnet weights {k}")
+            #     continue
+            if k in new_states and new_states[k].size() == v.size() and k.startswith('conv1_trm1_trm3'):
+                new_states[k] = v
+                loaded_keys.append(k)
+                print(k)
+            # else:
+            #     print('Ignoring %s due to not existing or size mismatch' % k)
+
+        non_loaded_keys = set(new_states.keys()) - set(loaded_keys)
+        if non_loaded_keys:
+            print('\nDual Encoder states that do not exist in the seed_dir:')
+            for k in sorted(non_loaded_keys):
+                print('  %s' % k)
+        
+        self.load_state_dict(new_states)
+        
+    def carefully_load_state_dict_ssl(self, states):
+        """
+        0) this is to only load feature_extractor weights (khazar)
+        1) Take care of DataParallel/nn.Module state_dict
+        2) Show keys that are not loaded due to size mismatch or not found in model
+        """
+        new_states = self.state_dict()
+        loaded_keys = []
+        for k, v in states.items():
+            k = k[7:] if k.startswith('module') else k
+            # if "audio_convnet" in k:
+            #     print(f"skip audio convnet weights {k}")
+            #     continue
+            if k in new_states and new_states[k].size() == v.size() and k.startswith('conv1_trm1_trm3.feature_extractor'):
+                new_states[k] = v
+                loaded_keys.append(k)
+                print(k)
+            # else:
+            #     print('Ignoring %s due to not existing or size mismatch' % k)
+
+        non_loaded_keys = set(new_states.keys()) - set(loaded_keys)
+        # if non_loaded_keys:
+        #     print('\nDual Encoder states that do not exist in the seed_dir:')
+        #     for k in sorted(non_loaded_keys):
+        #         print('  %s' % k)
+        
+        self.load_state_dict(new_states)
 
 class CrossEncoder(nn.Module):
     def __init__(self, args):
