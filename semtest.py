@@ -2,13 +2,14 @@
 
 
 root = "/worktmp2/hxkhkh/current/semtest/"
-mtype = 'vfplus'# plus #FB
+mtype = 'RCNN'# RCNN
+
 #%%
 import numpy as np
 import os
 from matplotlib import pyplot as plt
 import json
-S_path = os.path.join(root, 'Smatrix', mtype)
+
   
     
 file = os.path.join(root, "semtest_files_pairings.json")
@@ -132,7 +133,7 @@ def measure_3 (S):
     return score_all, score_sorted
     
 #%%
-def find_measure1 (Snames):  
+def find_measure1 (S_path, Snames):  
     ms = [] 
     for Sname in Snames:
         P = os.path.join(S_path , Sname)
@@ -141,7 +142,7 @@ def find_measure1 (Snames):
         ms.append(m)
     return ms
 
-def find_measure3 (Snames):  
+def find_measure3 (S_path, Snames):  
     ss = []
     scats = []   
     for Sname in Snames:
@@ -152,7 +153,7 @@ def find_measure3 (Snames):
         scats.append(scat)
     return ss, scats
 
-def find_all_measures (Snames):  
+def find_all_measures (S_path, Snames):  
     ms = []
     ss = []
     scats = []
@@ -168,9 +169,8 @@ def find_all_measures (Snames):
     return ms, ss, scats
 
 
-
 #%%
-def plotbar_multi (names, results , title, cl):
+def plotbar_multi (names, results , title, yname, cl):
     barWidth = 0.25
     fig = plt.subplots(figsize =(12, 12))  
     
@@ -179,8 +179,12 @@ def plotbar_multi (names, results , title, cl):
     br1 = np.arange(n)
     br2 = [x + barWidth for x in br1]
     br3 = [x + barWidth for x in br2]
-    ychance = np.ones(len(br1))*cl
-    plt.plot(br1,ychance, color ='red', label='chance level', linewidth=1.5) 
+    x = [-barWidth]
+    x.extend(list(br1))
+    x.extend([float (list(br1)[-1] + 3*barWidth )])
+   
+    ychance = np.ones(len(x))*cl
+    plt.plot(x,ychance, color ='red', label='chance level', linewidth=1.5) 
     
     plt.bar(br1, results[0], color ='b', width = barWidth,
             edgecolor ='grey', label ='Original image')
@@ -188,19 +192,52 @@ def plotbar_multi (names, results , title, cl):
             edgecolor ='grey', label ='Masked image')
     plt.bar(br3, results[2], color ='grey', width = barWidth,
             edgecolor ='grey', label ='Blurred image')
-     
-
     plt.title(title + '\n', fontweight ='bold', fontsize = 28)
-    plt.ylabel('semantic test\n', fontweight ='bold',fontsize=24)
+    plt.ylabel('semantic test ' + '(' + yname + ')' + '\n', fontweight ='bold',fontsize=24)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = 20)
-    plt.ylim(0,1) 
+    
+    #plt.ylim(0,1) 
     plt.yticks(fontsize=20)
     plt.legend(fontsize = 24)
     plt.grid()
     savepath = os.path.join(root, "results/" )
-    plt.savefig(savepath + title + '.png' ,  format = 'png' )
+    plt.savefig(savepath + title + yname + '.png' ,  format = 'png' )
     plt.show()
 
+def plotbar_multi_all (names, results , title, yname, cl):
+    barWidth = 0.25
+    fig = plt.subplots(figsize =(12, 12))  
+    
+    n = len(results[0])
+    
+    br1 = np.arange(n)
+    br2 = [x + barWidth for x in br1]
+    br3 = [x + barWidth for x in br2]
+    x = [-barWidth]
+    x.extend(list(br1))
+    x.extend([float (list(br1)[-1] + 3*barWidth )])
+   
+    ychance = np.ones(len(x))*cl
+    plt.plot(x,ychance, color ='red', label='chance level', linewidth=1.5) 
+    
+    plt.bar(br1, results[0], color ='b', width = barWidth,
+            edgecolor ='grey', label =title[0])
+    plt.bar(br2, results[1], color ='g', width = barWidth,
+            edgecolor ='grey', label =title[1])
+    plt.bar(br3, results[2], color ='grey', width = barWidth,
+            edgecolor ='grey', label =title[2])
+    plt.title("comparison between all pretrained versions" + '\n', fontweight ='bold', fontsize = 28)
+    plt.ylabel('semantic test ' + '(' + yname + ')' + '\n', fontweight ='bold',fontsize=24)
+    plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = 20)
+    
+    #plt.ylim(0,1) 
+    plt.yticks(fontsize=20)
+    plt.legend(fontsize = 24)
+    plt.grid()
+    savepath = os.path.join(root, "results/" )
+    plt.savefig(savepath + 'all' + yname + '.png' ,  format = 'png' )
+    plt.show()
+    
 def plotbar_single (names, results , title, cl):
     barWidth = 0.25
     fig = plt.subplots(figsize =(12, 12))  
@@ -224,76 +261,90 @@ def plotbar_single (names, results , title, cl):
     plt.savefig(savepath + title + '.png' ,  format = 'png' )
     plt.show()
 #%% FB
-if mtype=="FB":
-    #Measure 1
-    Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
-    m_O = find_measure1 (Snames)
-    Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
-    m_M = find_measure1 (Snames)
-    Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
-    m_B = find_measure1 (Snames)
+# if mtype=="FB":
+#     #Measure 1
+#     Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
+#     m_O = find_measure1 (S_path ,Snames)
+#     Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
+#     m_M = find_measure1 (S_path ,Snames)
+#     Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
+#     m_B = find_measure1 (S_path ,Snames)
     
-    # Measure 3
-    Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
-    s_O, cat_O = find_measure3 (Snames)
-    Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
-    s_M, cat_M = find_measure3 (Snames)
-    Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
-    s_B, cat_B = find_measure3 (Snames)
+#     # Measure 3
+#     Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
+#     s_O, cat_O = find_measure3 (S_path ,Snames)
+#     Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
+#     s_M, cat_M = find_measure3 (S_path ,Snames)
+#     Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
+#     s_B, cat_B = find_measure3 (S_path ,Snames)
     
-    # plotting
-    names = ["subset 1\n(2 months)", "subset 2\n(4 months)","subset 3\n(6 months)"]
+#     # plotting
+#     names = ["subset 1\n(2 months)", "subset 2\n(4 months)","subset 3\n(6 months)"]
     
-    results = [m_O, m_M, m_B ]
-    plotbar_multi (names, results, "measurement_1")
+#     results = [m_O, m_M, m_B ]
+#     plotbar_multi (names, results, "measurement_1")
     
-    results = [s_O, s_M, s_B ]
-    plotbar_multi (names, results, "measurement_3")
+#     results = [s_O, s_M, s_B ]
+#     plotbar_multi (names, results, "measurement_3")
+kh
+#%% individual DINO
+ttype = 'exp6M'
+title = mtype + ', Pre' + ttype[-2:]
+S_path = os.path.join(root, 'S', mtype, ttype)
+#if mtype == "vfsubsets":
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+m_O = find_measure1 (S_path ,Snames)
+Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
+m_M = find_measure1 (S_path ,Snames)
+Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
+m_B = find_measure1 (S_path ,Snames)
 
-#%% subsets
+# Measure 3
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+s_O, cat_O = find_measure3 (S_path ,Snames)
+Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
+s_M, cat_M = find_measure3 (S_path ,Snames)
+Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
+s_B, cat_B = find_measure3 (S_path ,Snames)
 
-if mtype == "vfsubsets":
-    Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-    m_O = find_measure1 (Snames)
-    Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
-    m_M = find_measure1 (Snames)
-    Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
-    m_B = find_measure1 (Snames)
-    
-    # Measure 3
-    Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-    s_O, cat_O = find_measure3 (Snames)
-    Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
-    s_M, cat_M = find_measure3 (Snames)
-    Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
-    s_B, cat_B = find_measure3 (Snames)
-    
-    # plotting
-    names = ["subset 1\n(2 months)", "subset 0\n(uniform)", "subset 2\n(4 months)","subset 3\n(6 months)"]
-    
-    results = [m_O, m_M, m_B ]
-    plotbar_multi (names, results, "DINO_m1", cl= 0.0125)
-    
-    results = [s_O, s_M, s_B ]
-    plotbar_multi (names, results, "DINO_m3", cl = 0.50)
+# plotting
+names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
 
-#%% vfplus
-if mtype == "vfplus":
-    #Measure 1
-    Snames = ["S1","S0","S2","S3"  ]
-    m_O = find_measure1 (Snames)
-    
-    # Measure 3
-    Snames = ["S1","S0","S2","S3"  ]
-    s_O, cat_O = find_measure3 (Snames)
-    
-    # plotting
-    names = ["subset 1\n(2 months)", "subset 0\n(uniform)", "subset 2\n(4 months)","subset 3\n(6 months)"]
-    
-    results = m_O
-    plotbar_single (names, results, "RCNN-m1", cl= 0.0125)
-    
-    results = s_O
-    plotbar_single (names, results, "RCNN_m3", cl = 0.50)
+results = [m_O, m_M, m_B ]
+plotbar_multi (names, results, title , yname = 'm1', cl= 0.0125)
 
+results = [s_O, s_M, s_B ]
+plotbar_multi (names, results, title, yname = 'm3', cl = 0.50)
+
+#%% All 
+title = []
+ttype = 'expFB'
+title.append('Pre' + ttype[-2:])
+S_path = os.path.join(root, 'S', mtype, ttype)
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+m_FB = find_measure1 (S_path ,Snames)
+s_FB, cat_FB = find_measure3 (S_path ,Snames)
+
+ttype = 'exp6M'
+title.append('Pre' + ttype[-2:])
+S_path = os.path.join(root, 'S', mtype, ttype)
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+m_6M = find_measure1 (S_path ,Snames)
+s_6M, cat_6M = find_measure3 (S_path ,Snames)
+
+ttype = 'expR'
+title.append('Pre' + ttype[-1:])
+S_path = os.path.join(root, 'S', mtype, ttype)
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+m_R = find_measure1 (S_path ,Snames)
+s_R, cat_R = find_measure3 (S_path ,Snames)
+
+# plotting
+names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+
+results = [m_FB, m_6M, m_R ]
+plotbar_multi_all (names, results, title , yname = 'm1', cl= 0.0125)
+
+results = [s_FB, s_6M, s_R ]
+plotbar_multi_all (names, results, title, yname = 'm3', cl = 0.50)
 
