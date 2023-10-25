@@ -238,7 +238,7 @@ def plotbar_multi_all (names, results , title, yname, cl):
     plt.savefig(savepath + 'all' + yname + '.png' ,  format = 'png' )
     plt.show()
     
-def plotbar_single (names, results , title, cl):
+def plotbar_single (names, results , title, yname , cl):
     barWidth = 0.25
     fig = plt.subplots(figsize =(12, 12))  
     
@@ -251,14 +251,14 @@ def plotbar_single (names, results , title, cl):
     plt.bar(br1, results, color ='b', width = barWidth,
             edgecolor ='grey')
     plt.title(title + '\n', fontweight ='bold', fontsize = 28)
-    plt.ylabel('semantic test\n', fontweight ='bold',fontsize=24)
+    plt.ylabel('semantic test ' + '(' + yname + ')' + '\n', fontweight ='bold',fontsize=24)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = 20)
     plt.yticks(fontsize=20)
-    plt.ylim(0,1) 
+    #plt.ylim(0,1) 
     plt.legend(fontsize = 24)
     plt.grid()
     savepath = os.path.join(root, "results/" )
-    plt.savefig(savepath + title + '.png' ,  format = 'png' )
+    plt.savefig(savepath + title + yname + '.png' ,  format = 'png' )
     plt.show()
 #%% FB
 # if mtype=="FB":
@@ -286,7 +286,28 @@ def plotbar_single (names, results , title, cl):
     
 #     results = [s_O, s_M, s_B ]
 #     plotbar_multi (names, results, "measurement_3")
-kh
+
+#%% individual RCNN
+ttype = 'expFB'
+title = mtype + ', Pre' + ttype[-2:]
+S_path = os.path.join(root, 'S', mtype, ttype)
+#if mtype == "vfsubsets":
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+m_O = find_measure1 (S_path ,Snames)
+
+# Measure 3
+Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+s_O, cat_O = find_measure3 (S_path ,Snames)
+
+# plotting
+names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+
+results = m_O 
+plotbar_single (names, results, title , yname = 'm1', cl= 0.0125)
+
+results = s_O
+plotbar_single (names, results, title, yname = 'm3', cl = 0.50)
+
 #%% individual DINO
 ttype = 'exp6M'
 title = mtype + ', Pre' + ttype[-2:]
