@@ -49,7 +49,7 @@ args.trim_mask= True
 args.places = False
 args.flickr8k = False
 args.validate = True
-kh
+
 # my args
 mytwd = args.mytwd
 args.layer_use = int(args.mytarget_layer)
@@ -67,17 +67,17 @@ bundle = torch.load(mytwd)
 conv1_trm1_trm3.carefully_load_state_dict(bundle['dual_encoder'])
 
 #%% here is scratch notre to test how bundle files are loaded
-import torch
-device = 'cpu'
-from models import fast_vgs
-dual_encoder = fast_vgs.DualEncoder(args)
+# import torch
+# device = 'cpu'
+# from models import fast_vgs
+# dual_encoder = fast_vgs.DualEncoder(args)
 
-b = "/worktmp2/hxkhkh/current/FaST/exp/best_bundle.pth"
-#b = '/worktmp2/hxkhkh/current/FaST/model/fast-vgs-plus-coco/best_bundle.pth'
-d = torch.load(b)['dual_encoder']
-# for key, value in d.items():
-#     print(key)
-dual_encoder.carefully_load_state_dict_ssl(d )
+# b = "/worktmp2/hxkhkh/current/FaST/exp/best_bundle.pth"
+# #b = '/worktmp2/hxkhkh/current/FaST/model/fast-vgs-plus-coco/best_bundle.pth'
+# d = torch.load(b)['dual_encoder']
+# # for key, value in d.items():
+# #     print(key)
+# dual_encoder.carefully_load_state_dict_ssl(d )
 #dual_encoder.conv1_trm1_trm3.feature_extractor.carefully_load_state_dict(d )
 
 # FB    
