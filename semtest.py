@@ -2,7 +2,7 @@
 
 
 root = "/worktmp2/hxkhkh/current/semtest/"
-mtype = 'RCNN'# RCNN
+mtype = 'DINO'# RCNN
 
 #%%
 import numpy as np
@@ -10,8 +10,6 @@ import os
 from matplotlib import pyplot as plt
 import json
 
-  
-    
 file = os.path.join(root, "semtest_files_pairings.json")
 with open(file, 'r', encoding='utf-8') as json_file:
     data = json.load(json_file)
@@ -260,112 +258,109 @@ def plotbar_single (names, results , title, yname , cl):
     savepath = os.path.join(root, "results/" )
     plt.savefig(savepath + title + yname + '.png' ,  format = 'png' )
     plt.show()
-#%% FB
-# if mtype=="FB":
-#     #Measure 1
-#     Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
-#     m_O = find_measure1 (S_path ,Snames)
-#     Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
-#     m_M = find_measure1 (S_path ,Snames)
-#     Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
-#     m_B = find_measure1 (S_path ,Snames)
-    
-#     # Measure 3
-#     Snames = ["S1_aL_vO", "S2_aL_vO","S3_aL_vO"  ]
-#     s_O, cat_O = find_measure3 (S_path ,Snames)
-#     Snames = ["S1_aL_vM", "S2_aL_vM","S3_aL_vM"  ]
-#     s_M, cat_M = find_measure3 (S_path ,Snames)
-#     Snames = ["S1_aL_vB", "S2_aL_vB","S3_aL_vB"  ]
-#     s_B, cat_B = find_measure3 (S_path ,Snames)
-    
-#     # plotting
-#     names = ["subset 1\n(2 months)", "subset 2\n(4 months)","subset 3\n(6 months)"]
-    
-#     results = [m_O, m_M, m_B ]
-#     plotbar_multi (names, results, "measurement_1")
-    
-#     results = [s_O, s_M, s_B ]
-#     plotbar_multi (names, results, "measurement_3")
+#%%
 
-#%% individual RCNN
 ttype = 'expFB'
 title = mtype + ', Pre' + ttype[-2:]
 S_path = os.path.join(root, 'S', mtype, ttype)
-#if mtype == "vfsubsets":
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-m_O = find_measure1 (S_path ,Snames)
-
-# Measure 3
 Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
 s_O, cat_O = find_measure3 (S_path ,Snames)
+p = os.path.join(root, 'results', mtype)
+np.save(p + mtype + ".npy", cat_O)
+#%%
+import json
+data = {}
+data [mtype] = {}
 
-# plotting
-names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+data[mtype]['8 months'] = cat_O[0]
+data[mtype]['uniform'] = cat_O[1]
+data[mtype]['10 months'] = cat_O[2]
+data[mtype]['12 months'] = cat_O[3]
+file_json = p + ".json"
+with open(file_json, "w") as fp:
+    json.dump(data,fp) 
+    
+with open(file_json, "r") as fp:
+    d = json.load(fp)    
+#%% individual RCNN
+# ttype = 'expFB'
+# title = mtype + ', Pre' + ttype[-2:]
+# S_path = os.path.join(root, 'S', mtype, ttype)
+# #if mtype == "vfsubsets":
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# m_O = find_measure1 (S_path ,Snames)
 
-results = m_O 
-plotbar_single (names, results, title , yname = 'm1', cl= 0.0125)
+# # Measure 3
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# s_O, cat_O = find_measure3 (S_path ,Snames)
 
-results = s_O
-plotbar_single (names, results, title, yname = 'm3', cl = 0.50)
+# # plotting
+# names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+
+# results = m_O 
+# plotbar_single (names, results, title , yname = 'm1', cl= 0.0125)
+
+# results = s_O
+# plotbar_single (names, results, title, yname = 'm3', cl = 0.50)
 
 #%% individual DINO
-ttype = 'exp6M'
-title = mtype + ', Pre' + ttype[-2:]
-S_path = os.path.join(root, 'S', mtype, ttype)
-#if mtype == "vfsubsets":
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-m_O = find_measure1 (S_path ,Snames)
-Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
-m_M = find_measure1 (S_path ,Snames)
-Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
-m_B = find_measure1 (S_path ,Snames)
+# ttype = 'expFB'
+# title = mtype + ', Pre' + ttype[-2:]
+# S_path = os.path.join(root, 'S', mtype, ttype)
+# #if mtype == "vfsubsets":
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# m_O = find_measure1 (S_path ,Snames)
+# Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
+# m_M = find_measure1 (S_path ,Snames)
+# Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
+# m_B = find_measure1 (S_path ,Snames)
 
-# Measure 3
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-s_O, cat_O = find_measure3 (S_path ,Snames)
-Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
-s_M, cat_M = find_measure3 (S_path ,Snames)
-Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
-s_B, cat_B = find_measure3 (S_path ,Snames)
+# # Measure 3
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# s_O, cat_O = find_measure3 (S_path ,Snames)
+# Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
+# s_M, cat_M = find_measure3 (S_path ,Snames)
+# Snames = ["S1_aL_vB","S0_aL_vB","S2_aL_vB","S3_aL_vB"  ]
+# s_B, cat_B = find_measure3 (S_path ,Snames)
 
-# plotting
-names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+# # plotting
+# names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
 
-results = [m_O, m_M, m_B ]
-plotbar_multi (names, results, title , yname = 'm1', cl= 0.0125)
+# results = [m_O, m_M, m_B ]
+# plotbar_multi (names, results, title , yname = 'm1', cl= 0.0125)
 
-results = [s_O, s_M, s_B ]
-plotbar_multi (names, results, title, yname = 'm3', cl = 0.50)
+# results = [s_O, s_M, s_B ]
+# plotbar_multi (names, results, title, yname = 'm3', cl = 0.50)
 
 #%% All 
-title = []
-ttype = 'expFB'
-title.append('Pre' + ttype[-2:])
-S_path = os.path.join(root, 'S', mtype, ttype)
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-m_FB = find_measure1 (S_path ,Snames)
-s_FB, cat_FB = find_measure3 (S_path ,Snames)
+# title = []
+# ttype = 'expFB'
+# title.append('Pre' + ttype[-2:])
+# S_path = os.path.join(root, 'S', mtype, ttype)
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# m_FB = find_measure1 (S_path ,Snames)
+# s_FB, cat_FB = find_measure3 (S_path ,Snames)
 
-ttype = 'exp6M'
-title.append('Pre' + ttype[-2:])
-S_path = os.path.join(root, 'S', mtype, ttype)
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-m_6M = find_measure1 (S_path ,Snames)
-s_6M, cat_6M = find_measure3 (S_path ,Snames)
+# ttype = 'exp6M'
+# title.append('Pre' + ttype[-2:])
+# S_path = os.path.join(root, 'S', mtype, ttype)
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# m_6M = find_measure1 (S_path ,Snames)
+# s_6M, cat_6M = find_measure3 (S_path ,Snames)
 
-ttype = 'expR'
-title.append('Pre' + ttype[-1:])
-S_path = os.path.join(root, 'S', mtype, ttype)
-Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-m_R = find_measure1 (S_path ,Snames)
-s_R, cat_R = find_measure3 (S_path ,Snames)
+# ttype = 'expR'
+# title.append('Pre' + ttype[-1:])
+# S_path = os.path.join(root, 'S', mtype, ttype)
+# Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
+# m_R = find_measure1 (S_path ,Snames)
+# s_R, cat_R = find_measure3 (S_path ,Snames)
 
-# plotting
-names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
+# # plotting
+# names = ["8\n months", "10\n months\n (uniform)", "10\n months","12\n months"]
 
-results = [m_FB, m_6M, m_R ]
-plotbar_multi_all (names, results, title , yname = 'm1', cl= 0.0125)
+# results = [m_FB, m_6M, m_R ]
+# plotbar_multi_all (names, results, title , yname = 'm1', cl= 0.0125)
 
-results = [s_FB, s_6M, s_R ]
-plotbar_multi_all (names, results, title, yname = 'm3', cl = 0.50)
+# results = [s_FB, s_6M, s_R ]
+# plotbar_multi_all (names, results, title, yname = 'm3', cl = 0.50)
 
