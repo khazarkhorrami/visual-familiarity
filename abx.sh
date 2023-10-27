@@ -3,13 +3,13 @@ DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
 EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
 NAME="vfls"
-M="E20_bundle.pth"
+M="best_bundle.pth"
 OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTDIR
 
 MODEL='expnew'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
-OUTFOLDER=$OUTDIR/$MODEL/"E20"
+OUTFOLDER=$OUTDIR/$MODEL/"best"
 mkdir $OUTFOLDER
 
 OUTNAME="L0"
