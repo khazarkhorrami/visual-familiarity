@@ -278,11 +278,11 @@ for c in catnames_list:
 
 #%% call data from saved files
 
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected.json"
+caption_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_words_selected.json"
 with open(caption_json, 'r') as fp:
     dict_words_selected = json.load(fp)
 
-caption_json = "/worktmp2/hxkhkh/current/FaST/data/coco_subsets/dict_words_selected_counts.json"
+caption_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_words_selected_counts.json"
 with open(caption_json, 'r') as fp:
     dict_words_selected_counts = json.load(fp)
    
@@ -316,7 +316,11 @@ for counter, l in enumerate(labels_sorted):
     label_word_sorted.append(lw_pair)
     
 # check "label_word_sorted" with Okko
-
+data_labels_sorted = {}
+data_labels_sorted['sorted_object_labels'] = labels_sorted
+file_json = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_sorted_objects.json"
+with open(file_json, "w") as fp:
+    json.dump(data_labels_sorted,fp)
 #%% 
  
      
