@@ -7,7 +7,7 @@ M="best_bundle.pth"
 OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTDIR
 
-MODEL='expnew'
+MODEL='expnewp1'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
 OUTFOLDER=$OUTDIR/$MODEL/"best"
 mkdir $OUTFOLDER
