@@ -4,7 +4,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
 fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
-exp_dir="../../expnewp2/"
+exp_dir="../../expnewp2t/"
 twd="../../twdp2/"
 libri_fn_root="../../../../datavf/ssl6M_root/"
 pretrained_root="../../../../hubertAndDINO"
@@ -17,9 +17,9 @@ python \
 --libri_fn_root ${libri_fn_root} \
 --trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
---libri_max_seq_len 15 \
---batch_size 22 \
---val_batch_size 22 \
+--libri_max_seq_len 8 \
+--batch_size 64 \
+--val_batch_size 64 \
 --val_cross_batch_size 100 \
 --n_epochs 100 \
 --n_print_steps 100 \
