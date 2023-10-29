@@ -18,8 +18,8 @@ python \
 --trained_weights_dir ${twd} \
 --load_pretrained_vit ${pretrained_root} \
 --libri_max_seq_len 15 \
---batch_size 16 \
---val_batch_size 16 \
+--batch_size 22 \
+--val_batch_size 22 \
 --val_cross_batch_size 100 \
 --n_epochs 100 \
 --n_print_steps 100 \
