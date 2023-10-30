@@ -5,6 +5,7 @@ root = "/worktmp2/hxkhkh/current/semtest/"
 mtype = 'DINO'# RCNN
 
 #%%
+from scipy import stats
 import numpy as np
 import os
 from matplotlib import pyplot as plt
@@ -170,7 +171,7 @@ def find_all_measures (S_path, Snames):
 #%%
 def plotbar_multi (names, results , title, yname, cl):
     barWidth = 0.25
-    fig = plt.subplots(figsize =(12, 12))  
+    plt.subplots(figsize =(12, 12))  
     
     n = len(results[0])
     
@@ -204,7 +205,7 @@ def plotbar_multi (names, results , title, yname, cl):
 
 def plotbar_multi_all (names, results , title, yname, cl):
     barWidth = 0.25
-    fig = plt.subplots(figsize =(12, 12))  
+    plt.subplots(figsize =(12, 12))  
     
     n = len(results[0])
     
@@ -238,7 +239,7 @@ def plotbar_multi_all (names, results , title, yname, cl):
     
 def plotbar_single (names, results , title, yname , cl):
     barWidth = 0.25
-    fig = plt.subplots(figsize =(12, 12))  
+    plt.subplots(figsize =(12, 12))  
     
     n = len(results)
     
@@ -258,30 +259,123 @@ def plotbar_single (names, results , title, yname , cl):
     savepath = os.path.join(root, "results/" )
     plt.savefig(savepath + title + yname + '.png' ,  format = 'png' )
     plt.show()
-#%%
+#%% Correlations
 
 ttype = 'expFB'
 title = mtype + ', Pre' + ttype[-2:]
 S_path = os.path.join(root, 'S', mtype, ttype)
 Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
-s_O, cat_O = find_measure3 (S_path ,Snames)
-p = os.path.join(root, 'results', mtype)
-np.save(p + mtype + ".npy", cat_O)
-#%%
-import json
-data = {}
-data [mtype] = {}
 
-data[mtype]['8 months'] = cat_O[0]
-data[mtype]['uniform'] = cat_O[1]
-data[mtype]['10 months'] = cat_O[2]
-data[mtype]['12 months'] = cat_O[3]
-file_json = p + ".json"
-with open(file_json, "w") as fp:
-    json.dump(data,fp) 
+s_O, cat_O = find_measure3 (S_path ,Snames)
+
+# write results on json file (for Okko)
+# import json
+# data = {}
+# data [mtype] = {}
+# p = os.path.join(root, 'results', mtype)
+# data[mtype]['8 months'] = cat_O[0]
+# data[mtype]['uniform'] = cat_O[1]
+# data[mtype]['10 months'] = cat_O[2]
+# data[mtype]['12 months'] = cat_O[3]
+# file_json = p + ".json"
+# with open(file_json, "w") as fp:
+#     json.dump(data,fp) 
     
-with open(file_json, "r") as fp:
-    d = json.load(fp)    
+# with open(file_json, "r") as fp:
+#     d = json.load(fp) 
+
+fp_freq = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_words_selected_counts.json"
+with open(fp_freq, "r") as fp:
+    d_freq = json.load(fp)
+#%%
+o8m = []
+s8m = []
+f8m = []
+for item in cat_O[0]:
+    o = item[0]
+    s = item[1]
+    f = d_freq[o]
+    if o != "person":
+        o8m.append(o)
+        s8m.append(s)
+        f8m.append(f)
+res8m = stats.pearsonr(f8m, s8m)
+print(res8m)
+
+o10mU = []
+s10mU = []
+f10mU = []
+for item in cat_O[1]:
+    o = item[0]
+    s = item[1]
+    f = d_freq[o]
+    if o != "person":
+        o10mU.append(o)
+        s10mU.append(s)
+        f10mU.append(f)
+res10mU = stats.pearsonr(f10mU, s10mU)
+print(res10mU)
+
+o10m = []
+s10m = []
+f10m = []
+for item in cat_O[2]:
+    o = item[0]
+    s = item[1]
+    f = d_freq[o]
+    if o != "person":
+        o10m.append(o)
+        s10m.append(s)
+        f10m.append(f)
+res10m = stats.pearsonr(f10m, s10m)
+print(res10m)
+
+
+o12m = []
+s12m = []
+f12m = []
+for item in cat_O[3]:
+    o = item[0]
+    s = item[1]
+    f = d_freq[o]
+    if o != "person":
+        o12m.append(o)
+        s12m.append(s)
+        f12m.append(f)
+res12m = stats.pearsonr(f12m, s12m)
+print(res12m)
+
+plt.figure(figsize =(12, 12))
+plt.subplot(2,2,1)
+plt.scatter(f8m, s8m, label = " (" + str (round(res8m[0],3)) + ' , ' + str(round(res8m[1],3)) + ')' )
+plt.title(' 8 months', fontsize = 18)
+plt.ylabel('semtest',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,2)
+plt.scatter(f10mU, s10mU, label = " (" + str (round(res10mU[0],3)) + ' , ' + str(round(res10mU[1],3)) + ')')
+plt.title(' 10 months- uniform',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,3)
+plt.scatter(f10m, s10m, label = " (" + str (round(res10m[0],3)) + ' , ' + str(round(res10m[1],3)) + ')')
+plt.title(' 10 months',fontsize = 18)
+plt.ylabel('semtest',fontsize = 18)
+plt.xlabel('\nobject frequency',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,4)
+plt.scatter(f12m, s12m, label = " (" + str (round(res12m[0],3)) + ' , ' + str(round(res12m[1],3)) + ')')
+plt.title(' 12 months',fontsize = 18)
+plt.xlabel('\nobject frequency',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+
+plt.savefig(os.path.join(root , 'results' , 'correlations','corr_freq.png' ) ,  format = 'png' )
 #%% individual RCNN
 # ttype = 'expFB'
 # title = mtype + ', Pre' + ttype[-2:]
