@@ -159,7 +159,6 @@ def find_dict_image_to_nouns (dict_image_id_to_captions):
 
 data = read_captions_from_json()
 dict_image_id_to_captions = find_dict_image_to_captions (data)
-kh
                  
 #%% step 3
 
