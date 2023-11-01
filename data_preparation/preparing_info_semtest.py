@@ -64,7 +64,6 @@ dataDir_wav = '../../data/coco_pyp/SpokenCOCO/'
 saveDir_wav = '/worktmp2/hxkhkh/current/semtest/utterances/'
 
 
-    
 dict_utterances = {}
 for cat, info in info_semtest.items():
     images = info['images']
