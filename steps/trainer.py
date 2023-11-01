@@ -582,8 +582,7 @@ class Trainer:
             # Kh: I change this part from loading from dual encoder to w2v2 layers
             if self.args.ssl:
                 # for only CNN feature extractor part
-                #dual_encoder.carefully_load_state_dict_ssl(bundle['dual_encoder'])
-                dual_encoder.carefully_load_state_dict_pre(bundle['dual_encoder'])
+                dual_encoder.carefully_load_state_dict_ssl(bundle['dual_encoder'])   
             else:
                 dual_encoder.carefully_load_state_dict_pre(bundle['dual_encoder'])
             indices = None
