@@ -4,8 +4,16 @@
 root = "/worktmp2/hxkhkh/current/semtest/"
 mtype = 'DINO'# RCNN
 
+
+Sname_to_hname = {}
+Sname_to_hname ["S1_aL_vO"] = "8 months"
+Sname_to_hname ["S0_aL_vO"] = "10 months uniform"
+Sname_to_hname ["S2_aL_vO"] = "10 months"
+Sname_to_hname ["S3_aL_vO"] = "12 months"
+
 #%%
 from scipy import stats
+from scipy.stats import ranksums
 import numpy as np
 import os
 from matplotlib import pyplot as plt
@@ -130,7 +138,23 @@ def measure_3 (S):
     print(f"Measurement 3 : {score_all}")
     print(score_sorted[0:5])    
     return score_all, score_sorted
+
+def find_t_stat (S):
     
+    dict_ttest = {}
+    for category_index in range(80):
+        
+        ind_green = tt [category_index]
+        S_green = S[ind_green, :][:,ind_green]
+        
+        ind_red =  [ind for ind in range(1600) if ind not in ind_green ]
+        S_red = S[ind_green, :][:,ind_red]
+        
+        D_green = S_green.flatten()
+        D_red = S_red.flatten()
+        (r, p ) = ranksums(D_green, D_red, alternative="greater")
+        dict_ttest[categories[category_index]] = (r, p )
+    return dict_ttest
 #%%
 def find_measure1 (S_path, Snames):  
     ms = [] 
@@ -259,14 +283,16 @@ def plotbar_single (names, results , title, yname , cl):
     savepath = os.path.join(root, "results/" )
     plt.savefig(savepath + title + yname + '.png' ,  format = 'png' )
     plt.show()
-#%% Correlations
 
+
+
+###############################################################################
+#%% For correlations and T-test
 ttype = 'expFB'
 title = mtype + ', Pre' + ttype[-2:]
 S_path = os.path.join(root, 'S', mtype, ttype)
 Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
 
-s_O, cat_O = find_measure3 (S_path ,Snames)
 
 # write results on json file (for Okko)
 # import json
@@ -283,10 +309,63 @@ s_O, cat_O = find_measure3 (S_path ,Snames)
     
 # with open(file_json, "r") as fp:
 #     d = json.load(fp) 
+###############################################################################
+#%% T-test
+# apply t-test class by class
+# T-test will tell you which classes are doing above chance
 
+# compare the distribution of green box with red box for each class
+#s_O, cat_O = find_measure3 (S_path ,Snames)
+dict_ttest_all = {}
+for counter, Sname in enumerate(Snames):
+    P = os.path.join(S_path , Sname)
+    S = np.load( P + ".npy")  
+
+    dict_ttest = find_t_stat (S)
+    dict_ttest_all[Sname] = dict_ttest
+    print(Sname_to_hname [Sname])
+    for key, value in dict_ttest.items():
+        r,p = value
+        if p > 0.05:
+            print("chance level performance for " + key)
+            print(cat_O[counter][key])
+    print("............................................")
+#%% Correlations
+kh
+
+
+# if you need to check freq correlations considering general data frequencies 
 fp_freq = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_words_selected_counts.json"
 with open(fp_freq, "r") as fp:
     d_freq = json.load(fp)
+
+# if you need to check correlations considering subset frequencies 
+def return_meta (meta_file):
+    with open(meta_file, "r") as fp:
+        d_meta = json.load(fp)
+    d_areas = d_meta['object_areas']
+    #d_cap = d_meta['object_cap']
+    d_freq = d_meta['object_freq']
+    return d_areas, d_freq
+
+meta_0 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub0_meta.json"
+meta_1 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub1_meta.json"
+meta_2 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub2_meta.json"
+meta_3 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub3_meta.json"
+
+meta_file = meta_0
+d_areas_0, d_freq_0 = return_meta (meta_0)
+d_areas_1, d_freq_1 = return_meta (meta_1)
+d_areas_2, d_freq_2 = return_meta (meta_2)
+d_areas_3, d_freq_3 = return_meta (meta_3)
+
+d_meta_0 = d_freq_0
+d_meta_1 = d_freq_1
+d_meta_2 = d_freq_2
+d_meta_3 = d_freq_3
+
+corr_name = 'corr_freq_pearson.png'
+xlab = '\nobject frequencies'
 #%%
 o8m = []
 s8m = []
@@ -294,7 +373,7 @@ f8m = []
 for item in cat_O[0]:
     o = item[0]
     s = item[1]
-    f = d_freq[o]
+    f = d_meta_1[o]
     if o != "person":
         o8m.append(o)
         s8m.append(s)
@@ -308,7 +387,7 @@ f10mU = []
 for item in cat_O[1]:
     o = item[0]
     s = item[1]
-    f = d_freq[o]
+    f = d_meta_0[o]
     if o != "person":
         o10mU.append(o)
         s10mU.append(s)
@@ -322,7 +401,7 @@ f10m = []
 for item in cat_O[2]:
     o = item[0]
     s = item[1]
-    f = d_freq[o]
+    f = d_meta_2[o]
     if o != "person":
         o10m.append(o)
         s10m.append(s)
@@ -337,7 +416,7 @@ f12m = []
 for item in cat_O[3]:
     o = item[0]
     s = item[1]
-    f = d_freq[o]
+    f = d_meta_3[o]
     if o != "person":
         o12m.append(o)
         s12m.append(s)
@@ -363,19 +442,19 @@ plt.subplot(2,2,3)
 plt.scatter(f10m, s10m, label = " (" + str (round(res10m[0],3)) + ' , ' + str(round(res10m[1],3)) + ')')
 plt.title(' 10 months',fontsize = 18)
 plt.ylabel('semtest',fontsize = 18)
-plt.xlabel('\nobject frequency',fontsize = 18)
+plt.xlabel(xlab,fontsize = 18)
 plt.ylim(0,1)
 plt.grid()
 plt.legend(fontsize = 18)
 plt.subplot(2,2,4)
 plt.scatter(f12m, s12m, label = " (" + str (round(res12m[0],3)) + ' , ' + str(round(res12m[1],3)) + ')')
 plt.title(' 12 months',fontsize = 18)
-plt.xlabel('\nobject frequency',fontsize = 18)
+plt.xlabel(xlab,fontsize = 18)
 plt.ylim(0,1)
 plt.grid()
 plt.legend(fontsize = 18)
 
-plt.savefig(os.path.join(root , 'results' , 'correlations','corr_freq.png' ) ,  format = 'png' )
+plt.savefig(os.path.join(root , 'results' , 'correlations', corr_name) ,  format = 'png' )
 #%% individual RCNN
 # ttype = 'expFB'
 # title = mtype + ', Pre' + ttype[-2:]
