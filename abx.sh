@@ -7,12 +7,12 @@ M="best_bundle.pth"
 OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTDIR
 
-MODEL='expnewp1'
+MODEL='expnewl8'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
 OUTFOLDER=$OUTDIR/$MODEL/"best"
 mkdir $OUTFOLDER
 
-OUTNAME="L0"
+OUTNAME="L3"
 OUTFILE=$OUTFOLDER/$OUTNAME
 source activate fastvgs
 python /worktmp/khorrami/current/FaST/visual-familiarity/abx.py --apath $DATAFOLDER --epath $EMBDFOLDER/$TYPE --mytarget_layer 0 --mytwd $MFOLDER/$M
@@ -21,7 +21,7 @@ mkdir $OUTFILE
 zerospeech2021-evaluate /worktmp/khorrami/current/ZeroSpeech/data/  $EMBDFOLDER -o $OUTFILE -j12 --no-lexical --no-syntactic --no-semantic --force-cpu 
 rm -r $EMBDFOLDER/$TYPE
 
-for LAYERNAME in 1 2 3 4 5 6 7 8 9 10 11
+for LAYERNAME in 2 4
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
