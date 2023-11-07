@@ -14,7 +14,7 @@ OUTFOLDER=$OUTDIR/$MODEL/"best"
 mkdir $OUTDIR/$MODEL
 mkdir $OUTFOLDER
 
-OUTNAME="L3"
+OUTNAME="L5"
 OUTFILE=$OUTFOLDER/$OUTNAME
 source activate fastvgs
 python /worktmp/khorrami/current/FaST/visual-familiarity/abx.py --apath $DATAFOLDER --epath $EMBDFOLDER/$TYPE --mytarget_layer 0 --mytwd $MFOLDER/$M
@@ -23,7 +23,7 @@ mkdir $OUTFILE
 zerospeech2021-evaluate /worktmp/khorrami/current/ZeroSpeech/data/  $EMBDFOLDER -o $OUTFILE -j12 --no-lexical --no-syntactic --no-semantic --force-cpu 
 rm -r $EMBDFOLDER/$TYPE
 
-for LAYERNAME in 2 4
+for LAYERNAME in 1 6
 do
     OUTNAME="L"$LAYERNAME
     OUTFILE=$OUTFOLDER/$OUTNAME
