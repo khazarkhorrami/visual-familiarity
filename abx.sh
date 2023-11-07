@@ -9,7 +9,9 @@ mkdir $OUTDIR
 
 MODEL='expnewl8'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
+
 OUTFOLDER=$OUTDIR/$MODEL/"best"
+mkdir $OUTDIR/$MODEL
 mkdir $OUTFOLDER
 
 OUTNAME="L3"
