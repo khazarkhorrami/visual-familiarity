@@ -3,10 +3,10 @@ source activate fastvgs
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 data_root=$1
-fb_w2v2_weights_fn="../../../../model/wav2vec_small.pt"
+fb_w2v2_weights_fn="../../model/wav2vec_small.pt"
 exp_dir="../../exprandom"
-libri_fn_root="../../../../datavf/ssl_sub2_root/"
-pretrained_root="../../../../hubertAndDINO"
+libri_fn_root="../../datavf/ssl_sub2_root/"
+pretrained_root="../../hubertAndDINO"
 twd="../../twd/"
 
 python \
