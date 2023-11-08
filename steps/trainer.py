@@ -108,6 +108,9 @@ class Trainer:
                 
             
             for i, batch in enumerate(self.train_loader):
+                
+                r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
+                
                 if self.use_libri_loss:
                     libri_batch = next(libri_loader_iterator)
                     # Kh: you can also do this for big LS batch sizes
@@ -358,14 +361,14 @@ class Trainer:
         
         #######################################################################
         #Khazar: here it saves the model in each call 
-        # if self.progress['epoch'] <= 5 :
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
-        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        # else:
-        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        if self.progress['epoch'] <= 5 :
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
+            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        else:
+            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #######################################################################    
-        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
