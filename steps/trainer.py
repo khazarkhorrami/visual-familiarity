@@ -109,94 +109,94 @@ class Trainer:
             
             for i, batch in enumerate(self.train_loader):
                 
-                r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
                 
-                # if self.use_libri_loss:
-                #     libri_batch = next(libri_loader_iterator)
-                #     # Kh: you can also do this for big LS batch sizes
-                #     # try:
-                #     #     libri_batch = next(libri_loader_iterator)
-                #     # except StopIteration:
-                #     #     pass
+                
+                if self.use_libri_loss:
+                    libri_batch = next(libri_loader_iterator)
+                    # Kh: you can also do this for big LS batch sizes
+                    # try:
+                    #     libri_batch = next(libri_loader_iterator)
+                    # except StopIteration:
+                    #     pass
                       
-                # data_end_time = time.time()
-                # self.dual_encoder.train()
-                # self.cross_encoder.train()
-                # if self.progress['num_updates'] > self.total_num_updates:
-                #     flag = False
-                #     r10, r5, r1 = self.validate_and_save()
-                #     self.writer.close()
-                #     break
+                data_end_time = time.time()
+                self.dual_encoder.train()
+                self.cross_encoder.train()
+                if self.progress['num_updates'] > self.total_num_updates:
+                    flag = False
+                    r10, r5, r1 = self.validate_and_save()
+                    self.writer.close()
+                    break
                 
-                # cur_lr = np.mean(self.optimizer.get_lr())
+                cur_lr = np.mean(self.optimizer.get_lr())
     
-                # self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
-                # cur_step = self.progress['num_updates'] % step_per_epoch
+                self.writer.add_scalar("lr", cur_lr, self.progress['num_updates'])
+                cur_step = self.progress['num_updates'] % step_per_epoch
     
                 
-                # cur_batch = {
-                #         "images": batch['images'].to(self.device),
-                #         "audio": batch['audio'].to(self.device),
-                #         "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
-                #         "img_id": batch['img_id']
-                #         }
+                cur_batch = {
+                        "images": batch['images'].to(self.device),
+                        "audio": batch['audio'].to(self.device),
+                        "audio_attention_mask": batch['audio_attention_mask'].to(self.device),
+                        "img_id": batch['img_id']
+                        }
                 
-                # losses = self.forward(cur_batch)
+                losses = self.forward(cur_batch)
                 
-                # if self.use_libri_loss:
-                #     losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
+                if self.use_libri_loss:
+                    losses.update(self.dual_encoder(audio_feats = libri_batch['audio'].to(self.device), attention_mask = libri_batch['audio_attention_mask'].to(self.device), forward_libri=True)) 
     
-                # for key in losses:
-                #     if key in self.meters:
-                #         self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
-                #         self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
+                for key in losses:
+                    if key in self.meters:
+                        self.meters[key].update(losses[key].mean().cpu().item(), cur_batch['images'].shape[0])
+                        self.writer.add_scalar(key, self.meters[key].val, self.progress['num_updates'])
                 
-                # alpha = 0.5
-                # beta = 0.5
-                # weighted_loss = self.weight_loss(losses, alpha, beta) #self.weight_loss(losses)
+                alpha = 0.5
+                beta = 0.5
+                weighted_loss = self.weight_loss(losses, alpha, beta) #self.weight_loss(losses)
     
-                # self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
-                # self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
+                self.meters['weighted_loss'].update(weighted_loss.item(), cur_batch['images'].shape[0])
+                self.writer.add_scalar('weighted_loss', weighted_loss.item(), self.progress['num_updates'])
                 
-                # #########
-                # weighted_loss.backward()
-                # torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
-                # self.optimizer.step()
-                # self.optimizer.zero_grad()
-                # #########
+                #########
+                weighted_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.trainables, 1.)
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                #########
                 
-                # self.meters['data_time'].update(data_end_time - data_start_time)
-                # self.meters['train_time'].update(time.time() - data_end_time)
+                self.meters['data_time'].update(data_end_time - data_start_time)
+                self.meters['train_time'].update(time.time() - data_end_time)
     
-                # self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
-                # self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
+                self.writer.add_scalar("data_time", data_end_time - data_start_time, self.progress['num_updates'])
+                self.writer.add_scalar("train_time", time.time() - data_end_time, self.progress['num_updates'])
     
-                # # logging
-                # if self.progress['num_updates'] % self.args.n_print_steps == 0:
+                # logging
+                if self.progress['num_updates'] % self.args.n_print_steps == 0:
                     
-                #     log_out = {}
-                #     log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
-                #     log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
-                #     log_out['num_updates'] = self.progress['num_updates']
-                #     log_out['lr'] = f"{cur_lr:.7f}"
-                #     for key in self.meters:
-                #         if self.meters[key].val != 0 or self.meters[key].avg != 0:
-                #             log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
-                #     logger.info(log_out)
-                #     if np.isnan(self.meters['weighted_loss'].avg):
-                #         logger.info("training diverged...")
-                #         return
+                    log_out = {}
+                    log_out['epoch'] = f"{self.progress['epoch']}/{self.args.n_epochs}"
+                    log_out['cur_step/steps_per_epoch'] = f"{cur_step}/{step_per_epoch}"
+                    log_out['num_updates'] = self.progress['num_updates']
+                    log_out['lr'] = f"{cur_lr:.7f}"
+                    for key in self.meters:
+                        if self.meters[key].val != 0 or self.meters[key].avg != 0:
+                            log_out[key] = f"{self.meters[key].val:.4f} ({self.meters[key].avg:.4f})" if isinstance(self.meters[key].val, float) else f"{self.meters[key].val}"
+                    logger.info(log_out)
+                    if np.isnan(self.meters['weighted_loss'].avg):
+                        logger.info("training diverged...")
+                        return
                     
                
-                # # validation and save models
-                # if self.progress['num_updates'] % self.args.n_val_steps == 0:
+                # validation and save models
+                if self.progress['num_updates'] % self.args.n_val_steps == 0:
                     
-                #     r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
-                # ########    
-                # self.progress['num_updates'] += 1
-                # self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
-                # data_start_time = time.time()
-                # #print(self.progress['num_updates'])
+                    r10, r5, r1 = self.validate_and_save(libri=self.use_libri_loss, places=self.args.places, n_save_ind = self.progress['epoch'])
+                ########    
+                self.progress['num_updates'] += 1
+                self.progress['epoch'] = int(math.ceil(self.progress['num_updates'] / step_per_epoch))
+                data_start_time = time.time()
+                #print(self.progress['num_updates'])
     def train_ssl(self):
         print ('############# here is inside train_ssl function ###############')
         print ('############# here is size of encoder ###############')
@@ -361,14 +361,14 @@ class Trainer:
         
         #######################################################################
         #Khazar: here it saves the model in each call 
-        if self.progress['epoch'] <= 5 :
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
-        elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
-            save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
-        else:
-            save_path = os.path.join(self.args.exp_dir, "bundle.pth")
+        # if self.progress['epoch'] <= 5 :
+        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")
+        # elif self.progress['epoch'] > 5  and self.progress['epoch'] % 25 == 0:
+        #     save_path = os.path.join(self.args.exp_dir, 'E' + str(n_save_ind) + "_bundle.pth")          
+        # else:
+        #     save_path = os.path.join(self.args.exp_dir, "bundle.pth")
         #######################################################################    
-        #save_path = os.path.join(self.args.exp_dir,"bundle.pth")
+        save_path = os.path.join(self.args.exp_dir,"bundle.pth")
         torch.save(
             {
                 "dual_encoder": self.dual_encoder.module.state_dict() if torch.cuda.device_count() > 1 else self.dual_encoder.state_dict(),
