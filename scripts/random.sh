@@ -12,7 +12,7 @@ twd="../../twd/"
 python \
 ../run_spokencoco.py \
 --image_type "normal" \
---subset "subset0A" \
+--subset "all" \
 --data_root ${data_root} \
 --exp_dir ${exp_dir} \
 --libri_fn_root ${libri_fn_root} \
