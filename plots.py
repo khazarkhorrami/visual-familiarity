@@ -92,10 +92,8 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
     plt.ylim(0,12) 
-    plt.legend(fontsize = 20)
+    plt.legend(fontsize = f_leg, loc=1)
     plt.grid()
-    plt.legend(fontsize = f_leg)
-    savepath = os.path.join(root, "results/" )
     
     ######### lEX
     plt.subplot(2,2,4)
@@ -118,7 +116,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
 
     
     
-    plt.savefig(path_save +  'results.png' ,  format = 'png' )
+    plt.savefig(path_save +  'results.png' , bbox_inches='tight',  format = 'png' )
     
     
 def plot_recall(names, results_recall , r_ch, ax):
