@@ -16,12 +16,13 @@ mtype = 'DINO'
 
 layer_names = ['L0','L1','L2','L3','L4','L5','L6','L7','L8', 'L9', 'L10', 'L11' ]
 models = ['exphh','expS1', 'expS2', 'expS0', 'expS3']
-names = ["6 M\n(speech)", "8 M", "10 M", "10 M\n (uniform)", "12 M"]
+names = ["6 ", "8 ", "10 ", "10(u)", "12 "]
 Sname_to_hname = {}
 Sname_to_hname ["S1_aL_vO"] = "8 months"
 Sname_to_hname ["S0_aL_vO"] = "10 months uniform"
 Sname_to_hname ["S2_aL_vO"] = "10 months"
 Sname_to_hname ["S3_aL_vO"] = "12 months"
+
 
 # functions
 def plot_all (names , results_recall, results_abx, results_lex, results_sem):
@@ -30,12 +31,13 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     abx_mfcc = 10.95
     lex_cl = 1/89
     lex_logmel = 0.17
-    plt.figure(figsize =(24,24))
-    f_leg = 26
+    fig = plt.figure(figsize =(32,24))
+    f_leg = 28
     f_ticks = 26
-    f_ylabel = 30
+    f_ylabel = 34
+    
     ######### recall
-    plt.subplot(2,2,1)
+    plt.subplot(2,3,2)
     [r_image, r_speech] = results_recall
     barWidth = 0.25    
     n = len(r_image)  
@@ -46,21 +48,29 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     x.extend([br2[-1]]) 
     ychance = np.ones(len(x))*recall_cl
     plt.plot(x,ychance, color ='purple', label='chance level', linewidth=5) 
-    plt.bar(br1, r_image, color ='olive', width = barWidth,
-            edgecolor ='black', label ="speech_to_image")
-    plt.bar(br2, r_speech, color ='darkolivegreen', width = barWidth,
-            edgecolor ='black', label ="image_to_speech")
-    plt.ylabel('recall@10' + '\n', fontweight ='bold', fontsize = f_ylabel)
-    plt.ylim(0,12)
+    bars1 = plt.bar(br1, r_image, color ='olive', width = barWidth, align='center', ecolor='black', capsize=10,
+            edgecolor ='black', label ="speech_to_image", alpha=0.8)
+
+    bars2 = plt.bar(br2, r_speech, color ='darkolivegreen', width = barWidth, align='center', ecolor='black', capsize=10,
+            edgecolor ='black', label ="image_to_speech", alpha=0.8)
+    plt.ylabel('Audio-visual mapping', fontweight ='bold', fontsize = f_ylabel)
+    plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
-    plt.legend(fontsize = f_leg)
+    plt.ylim(0,12)
+    
+    plt.legend(fontsize = f_leg, framealpha=0.1)
     plt.grid()
+    bars1[0].set_hatch('//')
+    bars1[0].set_linewidth(4)
+    bars2[0].set_hatch('//')
+    bars2[0].set_linewidth(4)
     
     ######### sem
-    plt.subplot(2,2,2)
+    [(s_O, std_O), (s_B, std_B)] = results_sem
+    plt.subplot(2,3,4)
     barWidth = 0.25  
-    n = len(results_sem[0])   
+    n = len(s_O)   
     br1 = np.arange(n)
     br2 = [x + barWidth for x in br1]
     x = []
@@ -68,54 +78,86 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     x.extend([br2[-1]])   
     ychance = np.ones(len(x))*0.5 # chance level
     plt.plot(x,ychance, color ='purple', label='chance level', linewidth=5)    
-    plt.bar(br1, results_sem[0], color ='olive', width = barWidth,
-           edgecolor ='black', label ='Original image')
-    plt.bar(br2, results_sem[1], color ='darkolivegreen', width = barWidth,
-            edgecolor ='black', label ='Masked image')
-    plt.ylabel('semantic test ', fontweight ='bold',fontsize=f_ylabel)
+    bars1 = plt.bar(br1, s_O, yerr=std_O , color ='olive', width = barWidth,
+           edgecolor ='black',  label ='Original image', align='center', alpha=0.8, ecolor='black', capsize=10)
+    
+    bars2 = plt.bar(br2, s_B,  yerr=std_B ,color ='darkolivegreen', width = barWidth,
+            edgecolor ='black', label ='Masked image', align='center', alpha=0.8, ecolor='black', capsize=10)
+    plt.errorbar(br1, s_O, std_O, fmt='.', color='Black')
+    plt.ylabel('Semantic score ', fontweight ='bold',fontsize=f_ylabel)
+    plt.xlabel('\n Age (month)', fontsize = f_ylabel)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = f_ticks) 
     plt.yticks(fontsize = f_ticks)
-    plt.ylim(0,1) 
-    plt.legend(fontsize = f_leg)
+    plt.ylim(0,1.1) 
+    plt.legend(fontsize = f_leg, framealpha=0.1)
     plt.grid()
-    
-    ######### ABX
-    plt.subplot(2,2,3)
-    barWidth = 0.25
-    n = len(results_abx)
-    br1 = np.arange(n)
-    ylogmel = np.ones(len(br1))*abx_mfcc
-    plt.plot(br1,ylogmel, color ='blue', label='MFCC features', linewidth=5)
-    plt.bar(br1, results_abx, color ='darkolivegreen', width = barWidth,
-            edgecolor ='black',label='WC')
-    plt.ylabel('ABX error' + '\n', fontweight ='bold', fontsize = f_ylabel)
-    plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
-    plt.yticks(fontsize = f_ticks)
-    plt.ylim(0,12) 
-    plt.legend(fontsize = f_leg, loc=1)
-    plt.grid()
+    bars1[0].set_hatch('//')
+    bars1[0].set_linewidth(4)
+    bars2[0].set_hatch('//')
+    bars2[0].set_linewidth(4)
     
     ######### lEX
-    plt.subplot(2,2,4)
+    (scores_lex, std_lex) =  results_lex
+    plt.subplot(2,3,5)
     barWidth = 0.25
-    n = len(results_lex)  
+    n = len(scores_lex)  
     br1 = np.arange(n)
     ychance = np.ones(len(br1))*lex_cl
     ylogmel = np.ones(len(br1))*lex_logmel
     plt.plot(br1,ychance, color ='purple', label='chance level', linewidth=5)
     plt.plot(br1,ylogmel, color ='blue', label='log-Mel features', linewidth=5)
-    plt.bar(br1, results_lex, color ='darkolivegreen', width = barWidth,
-            edgecolor ='black')
-    plt.ylabel('lexical test' , fontweight ='bold', fontsize = f_ylabel)
+    bars = plt.bar(br1, scores_lex,  yerr=std_lex , color ='darkolivegreen', width = barWidth,
+            edgecolor ='black', alpha=0.8 , align='center', ecolor='black', capsize=10)
+    
+    plt.ylabel('Lexical score' , fontweight ='bold', fontsize = f_ylabel)
+    plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
-    plt.ylim(0,1) 
-    plt.legend(fontsize = f_leg)#, framealpha=0.1)
+    plt.ylim(0,1.1) 
+    plt.legend(fontsize = f_leg, framealpha=0.1)#, framealpha=0.1)
     plt.grid()
-    
+    bars[0].set_hatch('//')
+    bars[0].set_linewidth(4)
 
+    ######### ABX
+    plt.subplot(2,3,6)
+    barWidth = 0.25
+    n = len(results_abx)
+    br1 = np.arange(n)
+    ylogmel = np.ones(len(br1))*abx_mfcc
+    plt.plot(br1,ylogmel, color ='blue', label='MFCC features', linewidth=5)
+    bars = plt.bar(br1, results_abx, color ='darkolivegreen', width = barWidth, edgecolor='black',
+           label='WC', alpha=0.8)
+    
+    plt.ylabel('Phonemic score', fontweight ='bold', fontsize = f_ylabel)
+    plt.xlabel('\n Age (month)', fontsize = f_ylabel)
+    plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
+    plt.yticks(fontsize = f_ticks)
+    plt.ylim(0,15) 
+    plt.legend(fontsize = f_leg, loc=1, framealpha=0.1)
+    plt.grid()    
+    bars[0].set_hatch('//')
+    bars[0].set_linewidth(4)
+    
+    #legend plot
+    n = 5
+    br1 = np.arange(n)
+    legend_ax = plt.subplot(2, 3, 1)
+    legend_ax.set_axis_off()  
+    bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='//',linewidth = 4, label='Speech only learning', alpha=0.8)
+    bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='gray', hatch='', label='Audiovisual learning', alpha=0.3)
+    legend_ax.legend(fontsize = f_leg *1.3 ,framealpha=0.1, loc='center left')
+    plt.ylim(-0.1,-1) 
     
     
+    #training curves
+    
+    ax = plt.subplot(2,3,3)
+    m = np.arange(5)
+    ax.plot(m, -2*m , label= "training curves come here")
+    ax.legend(fontsize = f_leg, framealpha=0.1)
+    
+    plt.tight_layout(pad=6.0)
     plt.savefig(path_save +  'results.png' , bbox_inches='tight',  format = 'png' )
     
     
@@ -260,7 +302,20 @@ def read_all_layers_abx (model_name):
     return scores, bs, bl
  
 ########################################################################### LEX
+def read_lexical_score_classes (path):
+    words= []
+    scores_classes = []
+    with open(path) as file:
+        for line in file:
+            l = line.rstrip()
+            word = l.split(',')[0].strip()
+            score = float(l.split(',')[1])
+            words.append(word)
+            scores_classes.append(score)
+    return words,  scores_classes
+
 def read_lexical_score (path):
+        
     with open(path , 'r') as file:
         a = file.read()
     score = float(a[16:-1])
@@ -275,19 +330,24 @@ def read_all_layers_lexical (path, model_name, tn):
         scores.append(s)
     bs = np.sort(scores)[::-1][0]
     bl = np.argsort(scores)[::-1][0]
-    return scores, bs, bl
+    path_out_classes = os.path.join(path , model_name, 'L' + str(bl), 'output_words.txt')
+    words, scores_classes = read_lexical_score_classes (path_out_classes)
+    std_classes = np.std(scores_classes)
+    return scores, bs, bl, std_classes
 
 def get_best_lexical_score(path, models, tn):
     dict_scores = {}
     dict_bs = {}
     dict_bl = {}
+    dict_std = {}
     
     for model in models:
-        scores, bs, bl = read_all_layers_lexical (path, model, tn)
+        scores, bs, bl, std_classes = read_all_layers_lexical (path, model, tn)
         dict_scores[model] = scores
         dict_bs[model] = bs
         dict_bl[model] = bl
-    return dict_scores, dict_bs, dict_bl
+        dict_std [model] = std_classes
+    return dict_scores, dict_bs, dict_bl, dict_std
 
 
 ########################################################################### SEM
@@ -359,27 +419,31 @@ def measure_3 (S):
         scores_degree_cats.append(d_cat)
         scores_degree_cats_average[categories[category_index]] = round (np.average(d_cat),3)
     
-    score_all = round(np.average(scores_degree_all) , 3)
+    score_mean = round(np.average(scores_degree_all) , 3)
+    score_std = round(np.std(scores_degree_all) , 3)
+    
     score_sorted = sorted(scores_degree_cats_average.items(), key=lambda x:x[1], reverse=True)
-    print(f"Measurement 3 : {score_all}")
+    print(f"Measurement 3 : {score_mean}")
     print(score_sorted[0:5])    
-    return score_all, score_sorted
+    return score_mean, score_std, score_sorted
         
 def find_measure3 (S_path, Snames):  
     ss = []
+    ss_std = []
     scats = []   
     for Sname in Snames:
         P = os.path.join(S_path , Sname)
         S = np.load( P + ".npy")          
-        s, scat  = measure_3 (S)
+        s, s_std, scat = measure_3 (S)
         ss.append(s)
+        ss_std.append(s_std)
         scats.append(scat)
-    return ss, scats  
+    return ss,ss_std, scats  
 
 #%%
 #%% Recall
 # manually enter numbers for recall@10 [ssl, r1, r2, r0, r3]
-
+x_recall = ['exphh', 'expS1', 'expS2', 'expS0', 'expS3']
 r_image = [0.2, 0.7, 4.4, 5.0 , 9.2 ]
 r_speech = [0.2, 1.1, 5.1, 5.5, 11.6 ]
 results_recall = [r_image, r_speech]
@@ -394,36 +458,42 @@ for model in models:
     dict_scores[model] = scores
     dict_bs[model] = bs
     dict_bl[model] = bl
-x = []
+x_abx = []
 results_abx = []
 for key, value in dict_bs.items():
-    x.append(key)
+    print(key)
+    x_abx.append(key)
     results_abx.append(value)
 
 #  Lex
 
-dict_scores, dict_bs, dict_bl = get_best_lexical_score(path_lex, models, 'output.txt')
+dict_scores, dict_bs, dict_bl, dict_std = get_best_lexical_score(path_lex, models, 'output.txt')
 x_FB = []
-results_lex = []
+scores_lex = []
+std_lex = []
 for key, value in dict_bs.items():
+    print(key)
     x_FB.append(key)
-    results_lex.append(value)
-  
+    scores_lex.append(value)
+    std_lex.append(dict_std [key])
+results_lex = (scores_lex, std_lex)
 
 #  SEM
 # Measure 3
 Snames = ["S1_aL_vO","S2_aL_vO", "S0_aL_vO","S3_aL_vO"  ]
-s_O, cat_O = find_measure3 (path_sem ,Snames)
+s_O, std_O, cat_O = find_measure3 (path_sem ,Snames)
 # Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
 # s_M, cat_M = find_measure3 (S_path ,Snames)
 Snames = ["S1_aL_vB","S2_aL_vB","S0_aL_vB","S3_aL_vB"  ]
-s_B, cat_B = find_measure3 (path_sem ,Snames)
+s_B, std_B, cat_B = find_measure3 (path_sem ,Snames)
 
 # for SSL (later compute this)
 s_O.insert(0, 0.5)
 s_B.insert(0, 0.5)
-results_sem = [s_O, s_B]
-#%%
 
+std_O.insert(0, 0.0)
+std_B.insert(0, 0.0)
+results_sem = [(s_O, std_O), (s_B, std_B)]
+#%%
 # plotting
-plot_all (names , results_recall, results_abx, results_lex, [s_O, s_B])
+plot_all (names , results_recall, results_abx, results_lex, results_sem)
