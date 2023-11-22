@@ -428,6 +428,11 @@ total_time = (1/60) * simulation_days * minutes_per_day # hours
 total_time_co_occurrence = beta * total_time 
 print(total_time_co_occurrence)
 
+# sub1: 28.05 hours
+# sub2: 56.1 hours
+# sub3: 84.15 hours
+
+# sub0A: 56.1 hours
 ###############################################################################
 
 
