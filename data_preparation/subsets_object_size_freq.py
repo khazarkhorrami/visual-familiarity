@@ -215,3 +215,13 @@ with open(file_json, "w") as fp:
 
 
 
+#%% testing the saved files
+f = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub3_meta.json"
+with open(f, 'r') as fp:
+    dict_test = json.load(fp)
+freqs = sorted (dict_test['object_freq'].items(), key=lambda x:x[1], reverse=True)
+# (min, max) frequencies
+# 8 months (2,89)
+# 10 months (4, 178)
+# 10 months uniform (37,37)
+# 12 months (6, 267)
