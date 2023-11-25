@@ -448,6 +448,10 @@ r_image = [0.2, 0.7, 4.4, 5.0 , 9.2 ]
 r_speech = [0.2, 1.1, 5.1, 5.5, 11.6 ]
 results_recall = [r_image, r_speech]
 
+# S3: 6M: Audio R@10 0.101 Image R@10 0.089     FB: Audio R@10 0.116 Image R@10 0.092
+# S2: 6M: Audio R@10 0.055 Image R@10 0.049     FB: Audio R@10 0.051 Image R@10 0.044
+# S0: 6M: Audio R@10 0.027 Image R@10 0.019     FB: Audio R@10 0.055 Image R@10 0.050
+# S1: 6M: Audio R@10 0.010 Image R@10 0.007     FB: Audio R@10 0.011 Image R@10 0.007
 # ABX 
 
 dict_scores = {}
@@ -495,5 +499,6 @@ std_O.insert(0, 0.0)
 std_B.insert(0, 0.0)
 results_sem = [(s_O, std_O), (s_B, std_B)]
 #%%
+kh
 # plotting
 plot_all (names , results_recall, results_abx, results_lex, results_sem)
