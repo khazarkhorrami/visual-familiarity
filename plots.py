@@ -15,13 +15,13 @@ dtype = 'CDI'
 mtype = 'DINO'
 
 layer_names = ['L0','L1','L2','L3','L4','L5','L6','L7','L8', 'L9', 'L10', 'L11' ]
-models = ['exphh','expS1', 'expS2', 'expS0', 'expS3']
-names = ["6 ", "8 ", "10 ", "10(u)", "12 "]
+models = ['exphh','expS1', 'expS2', 'expS3', 'expS0']
+names = ["6 ", "8 ", "10 ", "12 ", "10(u)"]
 Sname_to_hname = {}
 Sname_to_hname ["S1_aL_vO"] = "8 months"
-Sname_to_hname ["S0_aL_vO"] = "10 months uniform"
 Sname_to_hname ["S2_aL_vO"] = "10 months"
 Sname_to_hname ["S3_aL_vO"] = "12 months"
+Sname_to_hname ["S0_aL_vO"] = "10 months uniform"
 
 
 # functions
@@ -47,13 +47,14 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     x.extend(list(br1))
     x.extend([br2[-1]]) 
     ychance = np.ones(len(x))*recall_cl
+    
     plt.plot(x,ychance, color ='purple', label='chance level', linewidth=5) 
     bars1 = plt.bar(br1, r_image, color ='olive', width = barWidth, align='center', ecolor='black', capsize=10,
             edgecolor ='black', label ="speech_to_image", alpha=0.8)
 
-    bars2 = plt.bar(br2, r_speech, color ='darkolivegreen', width = barWidth, align='center', ecolor='black', capsize=10,
-            edgecolor ='black', label ="image_to_speech", alpha=0.8)
-    plt.ylabel('Audio-visual mapping', fontweight ='bold', fontsize = f_ylabel)
+    bars2 = plt.bar(br2, r_speech, color ='brown', width = barWidth, align='center', ecolor='black', capsize=10,
+            edgecolor ='black', label ="image_to_speech", alpha=0.8)#'darkolivegreen'
+    plt.ylabel('cross-modal retrieval (%)', fontweight ='bold', fontsize = f_ylabel)
     plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
@@ -81,10 +82,10 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     bars1 = plt.bar(br1, s_O, yerr=std_O , color ='olive', width = barWidth,
            edgecolor ='black',  label ='Original image', align='center', alpha=0.8, ecolor='black', capsize=10)
     
-    bars2 = plt.bar(br2, s_B,  yerr=std_B ,color ='darkolivegreen', width = barWidth,
-            edgecolor ='black', label ='Masked image', align='center', alpha=0.8, ecolor='black', capsize=10)
+    bars2 = plt.bar(br2, s_B,  yerr=std_B ,color ='brown', width = barWidth,
+            edgecolor ='black', label ='Masked image', align='center', alpha=0.8, ecolor='black', capsize=10) #'darkolivegreen'
     plt.errorbar(br1, s_O, std_O, fmt='.', color='Black')
-    plt.ylabel('Semantic score ', fontweight ='bold',fontsize=f_ylabel)
+    plt.ylabel('Semantic score (%)', fontweight ='bold',fontsize=f_ylabel)
     plt.xlabel('\n Age (month)', fontsize = f_ylabel)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = f_ticks) 
     plt.yticks(fontsize = f_ticks)
@@ -106,10 +107,10 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     ylogmel = np.ones(len(br1))*lex_logmel
     plt.plot(br1,ychance, color ='purple', label='chance level', linewidth=5)
     plt.plot(br1,ylogmel, color ='blue', label='log-Mel features', linewidth=5)
-    bars = plt.bar(br1, scores_lex,  yerr=std_lex , color ='darkolivegreen', width = barWidth,
+    bars = plt.bar(br1, scores_lex,  yerr=std_lex , color ='olive', width = barWidth,
             edgecolor ='black', alpha=0.8 , align='center', ecolor='black', capsize=10)
     
-    plt.ylabel('Lexical score' , fontweight ='bold', fontsize = f_ylabel)
+    plt.ylabel('Lexical score (%)' , fontweight ='bold', fontsize = f_ylabel)
     plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
@@ -126,10 +127,10 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     br1 = np.arange(n)
     ylogmel = np.ones(len(br1))*abx_mfcc
     plt.plot(br1,ylogmel, color ='blue', label='MFCC features', linewidth=5)
-    bars = plt.bar(br1, results_abx, color ='darkolivegreen', width = barWidth, edgecolor='black',
-           label='WC', alpha=0.8)
+    bars = plt.bar(br1, results_abx, color ='olive', width = barWidth, edgecolor='black',
+           label='WC', ecolor='black', capsize=10, alpha=0.8)
     
-    plt.ylabel('Phonemic score', fontweight ='bold', fontsize = f_ylabel)
+    plt.ylabel('Phonemic error rate (%)', fontweight ='bold', fontsize = f_ylabel)
     plt.xlabel('\n Age (month)', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
@@ -443,17 +444,20 @@ def find_measure3 (S_path, Snames):
 #%%
 #%% Recall
 # manually enter numbers for recall@10 [ssl, r1, r2, r0, r3]
-x_recall = ['exphh', 'expS1', 'expS2', 'expS0', 'expS3']
-r_image = [0.2, 0.7, 4.4, 5.0 , 9.2 ]
-r_speech = [0.2, 1.1, 5.1, 5.5, 11.6 ]
+x_recall = ['exphh', 'expS1', 'expS2', 'expS3' , 'expS0']
+r_image = [0.2, 0.7, 4.4 , 9.2 , 5.0 ]
+r_speech = [0.2, 1.1, 5.1, 11.6 , 5.5]
 results_recall = [r_image, r_speech]
 
-# S3: 6M: Audio R@10 0.101 Image R@10 0.089     FB: Audio R@10 0.116 Image R@10 0.092
-# S2: 6M: Audio R@10 0.055 Image R@10 0.049     FB: Audio R@10 0.051 Image R@10 0.044
-# S0: 6M: Audio R@10 0.027 Image R@10 0.019     FB: Audio R@10 0.055 Image R@10 0.050
 # S1: 6M: Audio R@10 0.010 Image R@10 0.007     FB: Audio R@10 0.011 Image R@10 0.007
-# ABX 
+# S2: 6M: Audio R@10 0.055 Image R@10 0.049     FB: Audio R@10 0.051 Image R@10 0.044
+# S3: 6M: Audio R@10 0.101 Image R@10 0.089     FB: Audio R@10 0.116 Image R@10 0.092
+#................
+# S0: 6M: Audio R@10 0.027 Image R@10 0.019     FB: Audio R@10 0.055 Image R@10 0.050
 
+
+
+# ABX 
 dict_scores = {}
 dict_bs = {}
 dict_bl = {}
@@ -468,9 +472,9 @@ for key, value in dict_bs.items():
     print(key)
     x_abx.append(key)
     results_abx.append(value)
-
+    
+    
 #  Lex
-
 dict_scores, dict_bs, dict_bl, dict_std = get_best_lexical_score(path_lex, models, 'output.txt')
 x_FB = []
 scores_lex = []
@@ -482,13 +486,14 @@ for key, value in dict_bs.items():
     std_lex.append(dict_std [key])
 results_lex = (scores_lex, std_lex)
 
+
 #  SEM
 # Measure 3
-Snames = ["S1_aL_vO","S2_aL_vO", "S0_aL_vO","S3_aL_vO"  ]
+Snames = ["S1_aL_vO","S2_aL_vO", "S3_aL_vO" , "S0_aL_vO" ]
 s_O, std_O, cat_O = find_measure3 (path_sem ,Snames)
 # Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
 # s_M, cat_M = find_measure3 (S_path ,Snames)
-Snames = ["S1_aL_vB","S2_aL_vB","S0_aL_vB","S3_aL_vB"  ]
+Snames = ["S1_aL_vB","S2_aL_vB","S3_aL_vB" ,"S0_aL_vB" ]
 s_B, std_B, cat_B = find_measure3 (path_sem ,Snames)
 
 # for SSL (later compute this)
@@ -499,6 +504,5 @@ std_O.insert(0, 0.0)
 std_B.insert(0, 0.0)
 results_sem = [(s_O, std_O), (s_B, std_B)]
 #%%
-kh
 # plotting
 plot_all (names , results_recall, results_abx, results_lex, results_sem)
