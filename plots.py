@@ -7,7 +7,7 @@ import csv
 
 # global variables
 root = "/worktmp2/hxkhkh/current/"
-path_abx = os.path.join(root, 'ZeroSpeech/output/WC/vfsubsets')
+path_abx = os.path.join(root, 'ZeroSpeech/output/WC/vfsubsets/expFB')
 path_lex = os.path.join(root, "lextest/output/CDI/DINO/expFB")
 path_sem = os.path.join(root, "semtest/S/DINO/expFB")
 path_save = "/worktmp2/hxkhkh/current/FaST/papers/vf/material/"
