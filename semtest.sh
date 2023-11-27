@@ -2,8 +2,8 @@
 
 source activate fastvgs
 
-M="RCNN"
-G="expR"
+M="DINO"
+G="exp6M"
 ROOT="/worktmp/khorrami/current"
 MROOT="/worktmp/khorrami/current/FaST/experiments"/$M/$G
 
