@@ -4,11 +4,11 @@ EMBDFOLDER='/worktmp/khorrami/current/lextest/embedds/'
 OUTDIR='/worktmp/khorrami/current/lextest/output/CDI'
 source activate fastvgs
 
-M="RCNN"
+
+M="DINO"
 G="exp6M"
 OUTPATH=$OUTDIR/$M/$G
 mkdir $OUTPATH
-
 
 NAME="expS0"
 OUTFOLDER=$OUTPATH/$NAME
@@ -75,7 +75,7 @@ do
 done
 
 
-G="expFB"
+G="expR"
 OUTPATH=$OUTDIR/$M/$G
 mkdir $OUTPATH
 
