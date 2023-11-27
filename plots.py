@@ -8,7 +8,7 @@ import csv
 # global variables
 root = "/worktmp2/hxkhkh/current/"
 path_abx = os.path.join(root, 'ZeroSpeech/output/WC/vfsubsets/expFB')
-path_lex = os.path.join(root, "lextest/output/CDI/DINO/expFB")
+path_lex = os.path.join(root, "lextest/output/CDI/DINO/exp6M")
 path_sem = os.path.join(root, "semtest/S/DINO/expFB")
 path_save = "/worktmp2/hxkhkh/current/FaST/papers/vf/material/"
 dtype = 'CDI'
@@ -475,6 +475,7 @@ for key, value in dict_bs.items():
     
     
 #  Lex
+models = ['exp15','expS1', 'expS2', 'expS3', 'expS0']
 dict_scores, dict_bs, dict_bl, dict_std = get_best_lexical_score(path_lex, models, 'output.txt')
 x_FB = []
 scores_lex = []
