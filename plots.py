@@ -9,13 +9,13 @@ import csv
 root = "/worktmp2/hxkhkh/current/"
 path_abx = os.path.join(root, 'ZeroSpeech/output/WC/vfsubsets/expFB')
 path_lex = os.path.join(root, "lextest/output/CDI/DINO/exp6M")
-path_sem = os.path.join(root, "semtest/S/DINO/expFB")
+path_sem = os.path.join(root, "semtest/S/DINO/exp6M")
 path_save = "/worktmp2/hxkhkh/current/FaST/papers/vf/material/"
 dtype = 'CDI'
 mtype = 'DINO'
 
 layer_names = ['L0','L1','L2','L3','L4','L5','L6','L7','L8', 'L9', 'L10', 'L11' ]
-models = ['exphh','expS1', 'expS2', 'expS3', 'expS0']
+
 names = ["6 ", "8 ", "10 ", "12 ", "10(u)"]
 Sname_to_hname = {}
 Sname_to_hname ["S1_aL_vO"] = "8 months"
@@ -444,9 +444,9 @@ def find_measure3 (S_path, Snames):
 #%%
 #%% Recall
 # manually enter numbers for recall@10 [ssl, r1, r2, r0, r3]
-x_recall = ['exphh', 'expS1', 'expS2', 'expS3' , 'expS0']
-r_image = [0.2, 0.7, 4.4 , 9.2 , 5.0 ]
-r_speech = [0.2, 1.1, 5.1, 11.6 , 5.5]
+x_recall = ['exp6M', 'expS1', 'expS2', 'expS3' , 'expS0']
+r_image = [0.2, 0.7, 5.2 , 9.8 , 5.0 ]
+r_speech = [0.2, 0.9, 6.1, 11.7 , 6.4]
 results_recall = [r_image, r_speech]
 
 # S1: 6M: Audio R@10 0.009 Image R@10 0.007     FB: Audio R@10 0.011 Image R@10 0.007
@@ -458,6 +458,9 @@ results_recall = [r_image, r_speech]
 
 
 # ABX 
+
+models = ['exphh','expS1', 'expS2', 'expS3', 'expS0']
+
 dict_scores = {}
 dict_bs = {}
 dict_bl = {}
@@ -497,12 +500,17 @@ s_O, std_O, cat_O = find_measure3 (path_sem ,Snames)
 Snames = ["S1_aL_vB","S2_aL_vB","S3_aL_vB" ,"S0_aL_vB" ]
 s_B, std_B, cat_B = find_measure3 (path_sem ,Snames)
 
-# for SSL (later compute this)
-s_O.insert(0, 0.5)
-s_B.insert(0, 0.5)
+# for 6 months ssl
+Snames = ["S_aL_vO","S_aL_vM","S_aL_vB"  ]
+path_sem = os.path.join(root, "semtest/S/ssl/exp15")
+s_ssl, std_ssl, cat_ssl = find_measure3 (path_sem ,Snames)
 
-std_O.insert(0, 0.0)
-std_B.insert(0, 0.0)
+# for SSL (later compute this)
+s_O.insert(0, s_ssl[0])
+s_B.insert(0, s_ssl[2])
+
+std_O.insert(0, std_ssl[0])
+std_B.insert(0, std_ssl[2])
 results_sem = [(s_O, std_O), (s_B, std_B)]
 #%%
 # plotting
