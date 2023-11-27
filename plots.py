@@ -449,11 +449,11 @@ r_image = [0.2, 0.7, 4.4 , 9.2 , 5.0 ]
 r_speech = [0.2, 1.1, 5.1, 11.6 , 5.5]
 results_recall = [r_image, r_speech]
 
-# S1: 6M: Audio R@10 0.010 Image R@10 0.007     FB: Audio R@10 0.011 Image R@10 0.007
-# S2: 6M: Audio R@10 0.055 Image R@10 0.049     FB: Audio R@10 0.051 Image R@10 0.044
-# S3: 6M: Audio R@10 0.101 Image R@10 0.089     FB: Audio R@10 0.116 Image R@10 0.092
+# S1: 6M: Audio R@10 0.009 Image R@10 0.007     FB: Audio R@10 0.011 Image R@10 0.007
+# S2: 6M: Audio R@10 0.061 Image R@10 0.052    FB: Audio R@10 0.051 Image R@10 0.044
+# S3: 6M: Audio R@10 0.117 Image R@10 0.098     FB: Audio R@10 0.116 Image R@10 0.092
 #................
-# S0: 6M: Audio R@10 0.027 Image R@10 0.019     FB: Audio R@10 0.055 Image R@10 0.050
+# S0: 6M: Audio R@10 0.064 Image R@10 0.050     FB: Audio R@10 0.055 Image R@10 0.050
 
 
 
