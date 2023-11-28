@@ -7,7 +7,7 @@ M="bundle.pth"
 OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
 mkdir $OUTDIR
 
-MODEL='exp6M/expS0'
+MODEL='exp6M/expS3'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
 
 OUTFOLDER=$OUTDIR/$MODEL
