@@ -7,14 +7,14 @@ import csv
 
 # global variables
 root = "/worktmp2/hxkhkh/current/"
-path_abx = os.path.join(root, 'ZeroSpeech/output/WC/vfsubsets/expFB')
+path_abx = os.path.join(root, 'ZeroSpeech/output/WC/DINO/exp6M/')
 path_lex = os.path.join(root, "lextest/output/CDI/DINO/exp6M")
 path_sem = os.path.join(root, "semtest/S/DINO/exp6M")
 path_save = "/worktmp2/hxkhkh/current/FaST/papers/vf/material/"
 dtype = 'CDI'
 mtype = 'DINO'
 
-layer_names = ['L0','L1','L2','L3','L4','L5','L6','L7','L8', 'L9', 'L10', 'L11' ]
+
 
 names = ["6 ", "8 ", "10 ", "12 ", "10(u)"]
 Sname_to_hname = {}
@@ -85,7 +85,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     bars2 = plt.bar(br2, s_B,  yerr=std_B ,color ='brown', width = barWidth,
             edgecolor ='black', label ='Masked image', align='center', alpha=0.8, ecolor='black', capsize=10) #'darkolivegreen'
     plt.errorbar(br1, s_O, std_O, fmt='.', color='Black')
-    plt.ylabel('Semantic score (%)', fontweight ='bold',fontsize=f_ylabel)
+    plt.ylabel('Semantic score (0-1)', fontweight ='bold',fontsize=f_ylabel)
     plt.xlabel('\n Age (month)', fontsize = f_ylabel)
     plt.xticks([r + barWidth for r in range(n)], names, fontweight ='bold',fontsize = f_ticks) 
     plt.yticks(fontsize = f_ticks)
@@ -110,7 +110,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     bars = plt.bar(br1, scores_lex,  yerr=std_lex , color ='olive', width = barWidth,
             edgecolor ='black', alpha=0.8 , align='center', ecolor='black', capsize=10)
     
-    plt.ylabel('Lexical score (%)' , fontweight ='bold', fontsize = f_ylabel)
+    plt.ylabel('Lexical score (0-1)' , fontweight ='bold', fontsize = f_ylabel)
     plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
@@ -153,13 +153,13 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     
     #training curves
     
-    ax = plt.subplot(2,3,3)
-    m = np.arange(5)
-    ax.plot(m, -2*m , label= "training curves come here")
-    ax.legend(fontsize = f_leg, framealpha=0.1)
+    # ax = plt.subplot(2,3,3)
+    # m = np.arange(5)
+    # ax.plot(m, -2*m , label= "training curves come here")
+    # ax.legend(fontsize = f_leg, framealpha=0.1)
     
     plt.tight_layout(pad=6.0)
-    plt.savefig(path_save +  'results.png' , bbox_inches='tight',  format = 'png' )
+    plt.savefig(path_save +  'resultsR.png' , bbox_inches='tight',  format = 'png' )
     
     
 def plot_recall(names, results_recall , r_ch, ax):
@@ -292,7 +292,7 @@ def read_score_abx (path):
 
 def read_all_layers_abx (model_name):
     scores = []
-    
+    layer_names = ['L1','L2','L3','L4','L5','L6','L7' ]
     for layer_name in layer_names:
         name = layer_name
         path = os.path.join(path_abx, model_name , name , 'score_phonetic.csv')
@@ -303,6 +303,7 @@ def read_all_layers_abx (model_name):
     return scores, bs, bl
  
 ########################################################################### LEX
+
 def read_lexical_score_classes (path):
     words= []
     scores_classes = []
@@ -323,6 +324,7 @@ def read_lexical_score (path):
     return score
 
 def read_all_layers_lexical (path, model_name, tn):
+    layer_names = ['L0','L1','L2','L3','L4','L5','L6','L7','L8', 'L9', 'L10', 'L11' ]
     scores = []
     for layer_name in layer_names:
         name = layer_name
@@ -382,6 +384,7 @@ def find_degree_per_category (category_index, S):
     d_category = []
     for row_index in chunk_rows:
         d = find_degree_per_row (row_index, S)
+        print(d)
         d_category.append(round(d,3))
     return d_category
 
@@ -413,9 +416,8 @@ def measure_3 (S):
     scores_degree_all = []
     scores_degree_cats = []
     scores_degree_cats_average = {}
-    
     for category_index in range(80):
-        d_cat = find_degree_per_category (category_index, S)
+        d_cat = find_degree_per_category (category_index, S)         
         scores_degree_all.extend(d_cat)
         scores_degree_cats.append(d_cat)
         scores_degree_cats_average[categories[category_index]] = round (np.average(d_cat),3)
@@ -441,7 +443,11 @@ def find_measure3 (S_path, Snames):
         scats.append(scat)
     return ss,ss_std, scats  
 
-#%%
+# Snames = ["S_aL_vO"]
+# path_sem = os.path.join(root, "semtest/S/ssl/exp15")
+# S_path = path_sem
+
+# S = np.random.randn(1600, 1600)
 #%% Recall
 # manually enter numbers for recall@10 [ssl, r1, r2, r0, r3]
 x_recall = ['exp6M', 'expS1', 'expS2', 'expS3' , 'expS0']
@@ -459,7 +465,7 @@ results_recall = [r_image, r_speech]
 
 # ABX 
 
-models = ['exphh','expS1', 'expS2', 'expS3', 'expS0']
+models = ['exp15','expS1', 'expS2', 'expS3', 'expS0']
 
 dict_scores = {}
 dict_bs = {}
@@ -495,8 +501,8 @@ results_lex = (scores_lex, std_lex)
 # Measure 3
 Snames = ["S1_aL_vO","S2_aL_vO", "S3_aL_vO" , "S0_aL_vO" ]
 s_O, std_O, cat_O = find_measure3 (path_sem ,Snames)
-# Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
-# s_M, cat_M = find_measure3 (S_path ,Snames)
+Snames = ["S1_aL_vM","S0_aL_vM","S2_aL_vM","S3_aL_vM"  ]
+s_M, std_M, cat_M = find_measure3 (path_sem ,Snames)
 Snames = ["S1_aL_vB","S2_aL_vB","S3_aL_vB" ,"S0_aL_vB" ]
 s_B, std_B, cat_B = find_measure3 (path_sem ,Snames)
 
@@ -515,3 +521,49 @@ results_sem = [(s_O, std_O), (s_B, std_B)]
 #%%
 # plotting
 plot_all (names , results_recall, results_abx, results_lex, results_sem)
+
+
+#%%
+# for Okko
+# write category-based results on json file (for Okko)
+p = os.path.join(path_save, "forOkko" )
+
+data = {}
+
+mtype = 'Original'
+data [mtype] = {}
+data[mtype]['6 months'] = cat_ssl[0]
+data[mtype]['8 months'] = cat_O[0]
+data[mtype]['uniform'] = cat_O[1]
+data[mtype]['10 months'] = cat_O[2]
+data[mtype]['12 months'] = cat_O[3]
+
+mtype = 'Masked'
+data [mtype] = {}
+data[mtype]['6 months'] = cat_ssl[1]
+data[mtype]['8 months'] = cat_M[0]
+data[mtype]['uniform'] = cat_M[1]
+data[mtype]['10 months'] = cat_M[2]
+data[mtype]['12 months'] = cat_M[3]
+
+mtype = 'Blurred'
+data [mtype] = {}
+data[mtype]['6 months'] = cat_ssl[2]
+data[mtype]['8 months'] = cat_B[0]
+data[mtype]['uniform'] = cat_B[1]
+data[mtype]['10 months'] = cat_B[2]
+data[mtype]['12 months'] = cat_B[3]
+
+
+import json
+file_json = p + ".json"
+with open(file_json, "w") as fp:
+    json.dump(data,fp) 
+
+with open(file_json, "r") as fp:
+    d = json.load(fp) 
+    
+ #%%
+from scipy.io import savemat
+mydict = {"ages": names, "recall": results_recall, "ABX": results_abx ,"Lextest": results_lex,"Semtest": results_sem}
+savemat(path_save + "Results_6MPre.mat", mydict)
