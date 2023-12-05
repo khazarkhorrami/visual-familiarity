@@ -315,6 +315,9 @@ Snames = ["S1_aL_vO","S0_aL_vO","S2_aL_vO","S3_aL_vO"  ]
 # T-test will tell you which classes are doing above chance
 
 # compare the distribution of green box with red box for each class
+Snames = ["S_aL_vM","S6M_aL_vM", "S1_aL_vM","S2_aL_vM","S3_aL_vM","S0_aL_vM"  ]
+s_M, std_M, cat_M = find_measure3 (path_sem ,Snames)
+
 #s_O, cat_O = find_measure3 (S_path ,Snames)
 dict_ttest_all = {}
 for counter, Sname in enumerate(Snames):
