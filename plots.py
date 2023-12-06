@@ -28,7 +28,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     lex_cl = 1/89
     lex_logmel = 0.17
     sem_cl = 0.5
-    fig = plt.figure(figsize =(32,24))
+    fig = plt.figure(figsize =(32,12))
     f_leg = 28
     f_ticks = 26
     f_ylabel = 34
@@ -79,31 +79,50 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     
     ######### ABX
     
-    plt.subplot(2,3,4)
+    plt.subplot(1,3,1)
     n = len(results_abx)
     br1 = np.arange(n)
     #ylogmel = np.ones(len(br1))*abx_mfcc
     #plt.plot(br1,ylogmel, color ='blue', label='MFCC features', linewidth=5)
     ychance = np.ones(len(br1))*abx_cl
     plt.plot(br1,ychance, color = chancecolor, linewidth=5)
-    bars = plt.bar(br1, results_abx, color = c1, width = barWidth, edgecolor='black', ecolor='black', capsize=10, linewidth = 4, alpha = 0.8)
-    
+    bars = plt.bar(br1, results_abx, color = c1, width = barWidth, edgecolor='black', ecolor='black', capsize=10, linewidth = 4, alpha = 0.8) 
     plt.ylabel('Phonemic error rate (%)', fontweight ='bold', fontsize = f_ylabel)
     plt.xlabel('\n Age (month)', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
-    plt.ylim(0,51) 
-    #plt.legend(fontsize = f_leg, loc=1, framealpha=0.1)
+    plt.ylim(0,51)    
     plt.grid()    
     bars[1].set_hatch('//')
-    #bars.set_linewidth(4)
-    
     bars[0].set_hatch('.')
-    #bars.set_linewidth(4)
+    
+    barWidth = 0.01
+    plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='.',linewidth = 4 , width = barWidth, label='baseline', alpha=0.8)
+    plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='//',linewidth = 4 , width = barWidth, label='Auditory learning', alpha=0.8)
+    plt.bar(br1, br1*0, edgecolor='black', facecolor='gray', hatch='',linewidth = 4 , width = barWidth, label='Auditory + Audiovisual learning', alpha=0.5)
+    ychance = np.ones(len(br1))*0
+    plt.plot(br1, ychance, color = chancecolor, label='chance level', linewidth=7)
+    barWidth = 0.35
+    plt.legend(fontsize = f_leg, loc="upper right",  bbox_to_anchor=(2.0,1.35),  framealpha=0.1)
+    
+    
+    #legend plot
+    
+    # n = 2
+    # br1 = np.arange(n)
+    # legend_ax = plt.subplot(1, 3, 1)
+    # legend_ax.set_axis_off()  
+    # ychance = np.ones(len(br1))*0
+    # plt.plot(br1, ychance, color = chancecolor, label='chance level', linewidth=7)
+    # bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='.',linewidth = 4, label='baseline', alpha=0.8)
+    # bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='//',linewidth = 4, label='Auditory learning', alpha=0.8)
+    # bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='gray', hatch='',linewidth = 4, label='Audiovisual +\nAuditory learning', alpha=0.5)
+    # plt.legend(fontsize = f_leg*1.3 ,framealpha=0.1, loc='center left')
+    # plt.ylim(-0.1,-1) 
     
     ######### lEX
     (scores_lex, std_lex) =  results_lex
-    plt.subplot(2,3,5)
+    plt.subplot(1,3,2)
     n = len(scores_lex)  
     br1 = np.arange(n)
     ychance = np.ones(len(br1))*lex_cl
@@ -130,7 +149,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     
     #[(s_O, std_O), (s_B, std_B)] = results_sem 
     [scores_sem, std_sem] = results_sem 
-    plt.subplot(2,3,6)  
+    plt.subplot(1,3,3)  
     
     n = len(scores_sem)  
     br1 = np.arange(n)
@@ -177,35 +196,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     # #bars2[0].set_hatch('.')
     
     
-
-
-
-    
-    
-    #legend plot
-    n = 2
-    br1 = np.arange(n)
-    legend_ax = plt.subplot(2, 3, 1)
-    legend_ax.set_axis_off()  
-    
-    ychance = np.ones(len(br1))*0
-    
-    plt.plot(br1, ychance, color = chancecolor, label='chance level', linewidth=7)
-    bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='.',linewidth = 4, label='baseline', alpha=0.8)
-    bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='none', hatch='//',linewidth = 4, label='Auditory learning', alpha=0.8)
-    bars = plt.bar(br1, br1*0, edgecolor='black', facecolor='gray', hatch='',linewidth = 4, label='Audiovisual +\nAuditory learning', alpha=0.5)
-    legend_ax.legend(fontsize = f_leg*1.3 ,framealpha=0.1, loc='center left')
-    plt.ylim(-0.1,-1) 
-    
-    
-    #training curves
-    
-    # ax = plt.subplot(2,3,3)
-    # m = np.arange(5)
-    # ax.plot(m, -2*m , label= "training curves come here")
-    # ax.legend(fontsize = f_leg, framealpha=0.1)
-    
-    plt.tight_layout(pad=6.0)
+    #plt.tight_layout(pad=6.0)
     plt.savefig(path_save +  'results.pdf' ,  format = 'pdf', bbox_inches='tight' ) #, bbox_inches='tight'
     
     
@@ -436,12 +427,12 @@ results_lex = (scores_lex, std_lex)
 
 #  SEM
 # Measure 3
-Snames = ["S_aL_vO", "S6M_aL_vO", "S1_aL_vO","S2_aL_vO", "S3_aL_vO" , "S0_aL_vO" ]
-s_O, std_O, cat_O, scat_O  = find_measure3 (path_sem ,Snames)
+# Snames = ["S_aL_vO", "S6M_aL_vO", "S1_aL_vO","S2_aL_vO", "S3_aL_vO" , "S0_aL_vO" ]
+# s_O, std_O, cat_O, scat_O  = find_measure3 (path_sem ,Snames)
 Snames = ["S_aL_vM","S6M_aL_vM", "S1_aL_vM","S2_aL_vM","S3_aL_vM","S0_aL_vM"  ]
 s_M, std_M, cat_M, scat_M = find_measure3 (path_sem ,Snames)
-Snames = ["S_aL_vB","S6M_aL_vB", "S1_aL_vB","S2_aL_vB","S3_aL_vB" ,"S0_aL_vB" ]
-s_B, std_B, cat_B, scat_B = find_measure3 (path_sem ,Snames)
+# Snames = ["S_aL_vB","S6M_aL_vB", "S1_aL_vB","S2_aL_vB","S3_aL_vB" ,"S0_aL_vB" ]
+# s_B, std_B, cat_B, scat_B = find_measure3 (path_sem ,Snames)
 
 results_sem = [s_M, std_M]
 #%%
@@ -453,7 +444,7 @@ mydict = {"ages": names, "recall": results_recall, "ABX": results_abx ,"Lextest"
 savemat(path_save + "Results_6MPre.mat", mydict)
 
 #%%
-
+kh
 # for Okko
 # write category-based results on json file (for Okko)
 
