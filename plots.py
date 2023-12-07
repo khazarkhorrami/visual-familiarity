@@ -374,7 +374,7 @@ def find_measure3 (S_path, Snames):
 
 # S = np.random.randn(1600, 1600)
 
-
+kh
 #%% Recall
 
 # manually enter numbers for recall@10 [ssl, r1, r2, r0, r3]
@@ -444,7 +444,6 @@ mydict = {"ages": names, "recall": results_recall, "ABX": results_abx ,"Lextest"
 savemat(path_save + "Results_6MPre.mat", mydict)
 
 #%%
-kh
 # for Okko
 # write category-based results on json file (for Okko)
 
@@ -529,3 +528,138 @@ with open(file_json, "w") as fp:
 # testing
 with open(file_json, "r") as fp:
     d = json.load(fp) 
+#%%
+
+from scipy import stats
+
+Snames = ["S1_aL_vM","S2_aL_vM","S3_aL_vM","S0_aL_vM"  ]
+Snames = ["S1_aL_vO","S2_aL_vO", "S3_aL_vO" , "S0_aL_vO" ]
+s_M, std_M, cat_M, scat_M = find_measure3 (path_sem ,Snames)
+
+# if you need to check freq correlations considering general data frequencies 
+fp_freq = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/dict_words_selected_counts.json"
+with open(fp_freq, "r") as fp:
+    d_freq = json.load(fp)
+
+# if you need to check correlations considering subset frequencies 
+def return_meta (meta_file):
+    with open(meta_file, "r") as fp:
+        d_meta = json.load(fp)
+    d_areas = d_meta['object_areas']
+    #d_cap = d_meta['object_cap']
+    d_freq = d_meta['object_freq']
+    return d_areas, d_freq
+
+
+meta_1 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub1_meta.json"
+meta_2 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub2_meta.json"
+meta_3 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub3_meta.json"
+meta_0 = "/worktmp2/hxkhkh/current/FaST/datavf/coco_pyp/subsets/sub0_meta.json"
+
+# meta_file = meta_0
+
+d_areas_1, d_freq_1 = return_meta (meta_1)
+d_areas_2, d_freq_2 = return_meta (meta_2)
+d_areas_3, d_freq_3 = return_meta (meta_3)
+d_areas_0, d_freq_0 = return_meta (meta_0)
+
+
+d_meta_1 = d_areas_1
+d_meta_2 = d_areas_2
+d_meta_3 = d_areas_3
+d_meta_0 = d_areas_0
+
+corr_name = 'corr_freq_pearson.png'
+xlab = '\nobject frequencies'
+
+print('############# for 8 months ###################')
+o8m = []
+s8m = []
+f8m = []
+for item in scat_M[0]:
+    o = item[0]
+    s = item[1]
+    f = d_meta_1[o]
+    if o != "person":
+        o8m.append(o)
+        s8m.append(s)
+        f8m.append(f)
+res8m = stats.spearmanr(f8m, s8m)
+print(res8m)
+
+
+print('############# for 10 months ###################')
+o10m = []
+s10m = []
+f10m = []
+for item in scat_M[1]:
+    o = item[0]
+    s = item[1]
+    f = d_meta_2[o]
+    if o != "person":
+        o10m.append(o)
+        s10m.append(s)
+        f10m.append(f)
+res10m = stats.spearmanr(f10m, s10m)
+print(res10m)
+
+print('############# for 12 months ###################')
+o12m = []
+s12m = []
+f12m = []
+for item in scat_M[2]:
+    o = item[0]
+    s = item[1]
+    f = d_meta_3[o]
+    if o != "person":
+        o12m.append(o)
+        s12m.append(s)
+        f12m.append(f)
+res12m = stats.spearmanr(f12m, s12m)
+print(res12m)
+
+
+print('############# for uniform ###################')
+o10mU = []
+s10mU = []
+f10mU = []
+for item in scat_M[3]:
+    o = item[0]
+    s = item[1]
+    f = d_meta_0[o]
+    if o != "person":
+        o10mU.append(o)
+        s10mU.append(s)
+        f10mU.append(f)
+res10mU = stats.spearmanr(f10mU, s10mU)
+print(res10mU)
+
+plt.figure(figsize =(12, 12))
+plt.subplot(2,2,1)
+plt.scatter(f8m, s8m, label = " (" + str (round(res8m[0],3)) + ' , ' + str(round(res8m[1],3)) + ')' )
+plt.title(' 8 months', fontsize = 18)
+plt.ylabel('semtest',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,2)
+plt.scatter(f10mU, s10mU, label = " (" + str (round(res10mU[0],3)) + ' , ' + str(round(res10mU[1],3)) + ')')
+plt.title(' 10 months- uniform',fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,3)
+plt.scatter(f10m, s10m, label = " (" + str (round(res10m[0],3)) + ' , ' + str(round(res10m[1],3)) + ')')
+plt.title(' 10 months',fontsize = 18)
+plt.ylabel('semtest',fontsize = 18)
+plt.xlabel(xlab,fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
+plt.subplot(2,2,4)
+plt.scatter(f12m, s12m, label = " (" + str (round(res12m[0],3)) + ' , ' + str(round(res12m[1],3)) + ')')
+plt.title(' 12 months',fontsize = 18)
+plt.xlabel(xlab,fontsize = 18)
+plt.ylim(0,1)
+plt.grid()
+plt.legend(fontsize = 18)
