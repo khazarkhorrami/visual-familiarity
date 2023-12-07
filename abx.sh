@@ -4,10 +4,10 @@ EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
 NAME="DINO"
 M="bundle.pth"
-OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
+OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/AC"/$NAME
 mkdir $OUTDIR
 
-MODEL='exp6M/expS3'
+MODEL='exp6M/expS0'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
 
 OUTFOLDER=$OUTDIR/$MODEL
