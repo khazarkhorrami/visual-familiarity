@@ -88,7 +88,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
     plt.plot(br1,ychance, color = chancecolor, linewidth=5)
     bars = plt.bar(br1, results_abx, color = c1, width = barWidth, edgecolor='black', ecolor='black', capsize=10, linewidth = 4, alpha = 0.8) 
     plt.ylabel('Phonemic error rate (%)', fontweight ='bold', fontsize = f_ylabel)
-    plt.xlabel('\n Age (month)', fontsize = f_ylabel)
+    plt.xlabel('\n Age (months)', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
     plt.ylim(0,51)    
@@ -133,7 +133,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
             edgecolor ='black', align='center', ecolor='black', capsize=10, linewidth = 4, alpha = 0.8)
     
     plt.ylabel('Word form recognition (0-1)' , fontweight ='bold', fontsize = f_ylabel)
-    plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
+    plt.xlabel('\n Age (months)\n', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
     plt.ylim(0,1.1) 
@@ -159,7 +159,7 @@ def plot_all (names , results_recall, results_abx, results_lex, results_sem):
             edgecolor ='black', align='center', ecolor='black', capsize=10, linewidth = 4, alpha = 0.8)
     
     plt.ylabel('Word comprehension (0-1)' , fontweight ='bold', fontsize = f_ylabel)
-    plt.xlabel('\n Age (month)\n', fontsize = f_ylabel)
+    plt.xlabel('\n Age (months)\n', fontsize = f_ylabel)
     plt.xticks([r for r in range(n)], names, fontweight ='bold',fontsize = f_ticks)
     plt.yticks(fontsize = f_ticks)
     plt.ylim(0,1.1) 
