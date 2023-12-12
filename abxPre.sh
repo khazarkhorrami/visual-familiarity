@@ -2,12 +2,12 @@
 DATAFOLDER='/worktmp/khorrami/current/ZeroSpeech/data/phonetic/'
 EMBDFOLDER='/worktmp/khorrami/current/ZeroSpeech/submission'
 TYPE='phonetic/'
-NAME="vfls"
+NAME="ssl"
 M="E90_bundle.pth"
-OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/WC"/$NAME
+OUTDIR="/worktmp/khorrami/current/ZeroSpeech/output/AC"/$NAME
 mkdir $OUTDIR
 
-MODEL='expnewl15'
+MODEL='exp15'
 MFOLDER="/worktmp/khorrami/current/FaST/experiments"/$NAME/$MODEL
 
 OUTFOLDER=$OUTDIR/$MODEL/"E90"
