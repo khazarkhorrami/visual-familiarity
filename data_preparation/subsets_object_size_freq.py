@@ -135,8 +135,9 @@ dict_label_to_word_final_list = {}
 for item in label_word_sorted:
     dict_label_to_word_final_list[item[0]] = item[1]          
 #%% select a subset and run the code for it
-data_sub = data3
-name_meta = 'sub3'
+
+data_sub = data0
+name_meta = 'nsub0'
 dict_counts_sub = {}
 dict_areas_sub = {}
 dict_captions_sub = {}
@@ -148,12 +149,16 @@ for d in data_sub:
     im_path = d['image']
     im_name = im_path.split('/')[1]
     imID = img_filenames_to_img_id [im_name] 
+    h = img_filenames_to_all[im_name]['height']
+    w = img_filenames_to_all[im_name]['width']
+    areaI = h*w
     annId_img = coco.getAnnIds( imgIds=imID, iscrowd=False) 
     anns_image = coco.loadAnns(annId_img)
     objs = {}
     for annitem in anns_image:
         l = cats_id_to_name [annitem ['category_id'] ]
-        a = annitem ['area']
+        # ratio to all image
+        a = annitem ['area'] / areaI
         if l not in objs:
             objs[l] = [a]
         else:
